@@ -13,6 +13,40 @@ from PIL import Image, ImageChops
 # Metin kenarlarındaki 1-2 birimlik farklar gerçek tasarım farkı değildir.
 ESIK = 8
 
+# ── Onaylı K-21 kontrast düzeltmeleri ────────────────────────────────────────
+# Tasarımdaki iki renk erişilebilirlik için değiştirildi (kullanıcı onayladı).
+# Bu değişiklikten kaynaklanan piksel farkları GERÇEK fark değildir; araç
+# bunları ayırıp "onaylı sapma" olarak raporlar.
+#   zemin, tasarım_rengi, uygulama_rengi
+K21 = [
+    ((10, 10, 10), 115, 138),    # #0a0a0a üstünde #737373 -> #8a8a8a
+    ((255, 255, 255), 163, 107), # #ffffff üstünde #a3a3a3 -> #6b6b6b
+]
+
+
+def k21_aciklar_mi(pa, pb):
+    """Bu piksel çifti onaylı bir K-21 renk değişimiyle açıklanıyor mu?
+
+    Metin kenarlarında renk, zemin ile metin rengi arasında karışır. Aynı
+    karışım oranı (t) her iki tarafta da geçerliyse fark K-21'dendir.
+    """
+    # Gri tonları: üç kanal da birbirine yakın olmalı
+    if max(pa) - min(pa) > 3 or max(pb) - min(pb) > 3:
+        return False
+    da, db = sum(pa) / 3, sum(pb) / 3
+
+    for (zemin, tasarim, uygulama) in K21:
+        z = zemin[0]
+        if tasarim == z:
+            continue
+        t = (da - z) / (tasarim - z)
+        if not (-0.02 <= t <= 1.02):
+            continue
+        beklenen = z + t * (uygulama - z)
+        if abs(db - beklenen) <= 2.5:
+            return True
+    return False
+
 
 def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
     a = Image.open(ref_yol).convert("RGB")
@@ -32,9 +66,26 @@ def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
     diff = ImageChops.difference(a, b)
     # Kanal başına en büyük sapma
     mask = diff.convert("L").point(lambda p: 255 if p > ESIK else 0)
-    kutu = mask.getbbox()
-    farkli = sum(mask.point(lambda p: 1 if p else 0).getdata())
+    farkli_ham = sum(mask.point(lambda p: 1 if p else 0).getdata())
     toplam = a.size[0] * a.size[1]
+
+    # Farkları ikiye ayır: onaylı K-21 sapması mı, gerçek fark mı?
+    ap, bp, mp = a.load(), b.load(), mask.load()
+    onayli = 0
+    gercek_mask = Image.new("L", a.size, 0)
+    gp = gercek_mask.load()
+    for y in range(a.size[1]):
+        for x in range(a.size[0]):
+            if not mp[x, y]:
+                continue
+            if k21_aciklar_mi(ap[x, y], bp[x, y]):
+                onayli += 1
+            else:
+                gp[x, y] = 255
+
+    farkli = farkli_ham - onayli
+    mask = gercek_mask
+    kutu = mask.getbbox()
 
     # Fark haritası: farklar kırmızı, zemin soluk
     harita = a.copy().convert("RGB")
@@ -46,6 +97,7 @@ def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
     return {
         "boyutFarkli": False,
         "boyut": a.size,
+        "onayliSapma": onayli,
         "farkliPiksel": farkli,
         "toplamPiksel": toplam,
         "oran": farkli / toplam,
@@ -78,8 +130,13 @@ def main():
             )
             continue
 
+        k21 = (
+            f"  ·  {r['onayliSapma']:,} px onaylı K-21 kontrast sapması"
+            if r["onayliSapma"]
+            else ""
+        )
         if r["farkliPiksel"] == 0:
-            satirlar.append(f"  {w:>5}px  ✅ birebir aynı   ({boyut})")
+            satirlar.append(f"  {w:>5}px  ✅ birebir aynı   ({boyut}){k21}")
         else:
             hepsiTemiz = False
             yuzde = r["oran"] * 100
@@ -87,7 +144,7 @@ def main():
             # DPR 2 → CSS pikseline çevir
             satirlar.append(
                 f"  {w:>5}px  ❌ {r['farkliPiksel']:,} farklı piksel "
-                f"({yuzde:.3f}%) · max sapma {r['maxSapma']}\n"
+                f"({yuzde:.3f}%) · max sapma {r['maxSapma']}{k21}\n"
                 f"            fark bölgesi (CSS px): "
                 f"x {x0//2}–{x1//2}, y {y0//2}–{y1//2}\n"
                 f"            harita: {fark_yol}"

@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/site/header";
 import { Hero } from "@/components/site/hero";
+import { Firsatlar } from "@/components/site/firsatlar";
 import {
   aktifFirsatlarGetir,
   calismaSaatleriGetir,
@@ -28,7 +29,8 @@ export default async function AnaSayfa() {
         saatler={saatler}
       />
       {/* B3+ bölümleri buraya gelecek */}
-      {/* B3+ bölümleri buraya gelecek */}
+      <Firsatlar firsatlar={firsatlar} whatsapp={info.whatsapp} />
+      {/* B4+ bölümleri buraya gelecek */}
       <div className="h-[600px]" />
     </div>
   );
