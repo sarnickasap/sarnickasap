@@ -63,10 +63,6 @@ const opak = (p,sel)=>p.evaluate((s)=>{
     const p=await ctx.newPage();
     await p.goto(B+"/",{waitUntil:"domcontentloaded"});
     await p.waitForTimeout(500);
-    const gorunur = await p.evaluate(()=>{
-      const el=document.querySelector("#galeri");
-      return el ? getComputedStyle(el.parentElement).opacity : null;
-    }).catch(()=>null);
     const metin = await p.locator("#galeri").innerText().catch(()=>"");
     ok(metin.includes("Dükkândan"), "JS kapalıyken içerik GÖRÜNÜR (gizli kalmıyor)");
     await ctx.close();

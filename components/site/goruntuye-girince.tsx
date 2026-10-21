@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Bölüm giriş animasyonu — karar K-20, madde 2:
@@ -8,12 +8,15 @@ import { useEffect, useRef, useState } from "react";
 
    TASARIMDA YOK (K-10: kullanıcı "animasyon olursa iyi olur" dedi).
 
-   ⚠️ İki koruma:
-   1. `prefers-reduced-motion: reduce` → animasyon hiç kurulmaz, içerik
-      doğrudan görünür. (globals.css'teki genel kural da ayrıca var.)
-   2. JavaScript çalışmazsa içerik GİZLİ KALMAMALI. Bu yüzden başlangıç
-      durumu CSS'te değil, yalnız JS etkinse uygulanıyor — `useEffect`
-      çalışmazsa öğe zaten görünür olur.
+   ⚠️ Üç koruma:
+   1. `prefers-reduced-motion: reduce` → animasyon hiç kurulmaz.
+   2. JavaScript çalışmazsa içerik GİZLİ KALMAZ: başlangıç durumu CSS'te
+      değil, yalnız efekt çalışınca DOM'a yazılıyor.
+   3. Gözlemci bir kez tetiklenip bağlantıyı kesiyor.
+
+   React state'i KULLANILMIYOR: efekt içinde senkron setState zincirleme
+   render tetikliyor (eslint react-hooks uyarısı). Burada yapılan iş zaten
+   "harici bir sistemi (DOM) güncellemek" — efektin asıl amacı bu.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function GoruntuyeGirince({
@@ -24,48 +27,33 @@ export function GoruntuyeGirince({
   gecikmeMs?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [hazir, setHazir] = useState(false);
-  const [gorundu, setGorundu] = useState(false);
 
   useEffect(() => {
-    const azHareket = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (azHareket.matches) return;
-
-    // JS çalışıyor → animasyonu devreye al
-    setHazir(true);
-
     const el = ref.current;
     if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const gecis =
+      "opacity 400ms var(--ease-out-soft), transform 400ms var(--ease-out-soft)";
+
+    el.style.opacity = "0";
+    el.style.transform = "translateY(12px)";
+    el.style.transition = gecis;
+    if (gecikmeMs) el.style.transitionDelay = `${gecikmeMs}ms`;
 
     const gozlemci = new IntersectionObserver(
       ([giris]) => {
-        if (giris.isIntersecting) {
-          setGorundu(true);
-          gozlemci.disconnect();
-        }
+        if (!giris.isIntersecting) return;
+        el.style.opacity = "1";
+        el.style.transform = "none";
+        gozlemci.disconnect();
       },
       { rootMargin: "0px 0px -80px 0px", threshold: 0.05 },
     );
+
     gozlemci.observe(el);
     return () => gozlemci.disconnect();
-  }, []);
+  }, [gecikmeMs]);
 
-  return (
-    <div
-      ref={ref}
-      style={
-        hazir
-          ? {
-              opacity: gorundu ? 1 : 0,
-              transform: gorundu ? "none" : "translateY(12px)",
-              transition:
-                "opacity 400ms var(--ease-out-soft), transform 400ms var(--ease-out-soft)",
-              transitionDelay: gorundu ? `${gecikmeMs}ms` : "0ms",
-            }
-          : undefined
-      }
-    >
-      {children}
-    </div>
-  );
+  return <div ref={ref}>{children}</div>;
 }
