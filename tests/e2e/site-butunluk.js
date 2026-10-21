@@ -16,6 +16,9 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   ok(await p.locator("footer").count()===1, "Footer var");
 
   // Harita adresten türetiliyor mu (K-16)
+  // Harita görünüme yaklaşana kadar yüklenmiyor (D5) — önce oraya kaydır.
+  await p.evaluate(()=>document.querySelector("#iletisim")?.scrollIntoView());
+  await p.waitForSelector("#iletisim iframe",{timeout:15000});
   const src = await p.locator("#iletisim iframe").getAttribute("src");
   ok(decodeURIComponent(src).includes("Atatürk, B. Menderes Cad. 126/D, Gaziemir, İzmir"),
      "Harita adresten türetiliyor (K-16)");

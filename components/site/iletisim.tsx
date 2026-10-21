@@ -5,6 +5,7 @@ import {
   CalismaSaatleri,
   CalismaSaatleriIskelet,
 } from "./calisma-saatleri";
+import { Harita } from "./harita";
 
 /* ──────────────────────────────────────────────────────────────────────────
    İletişim — vault "Iletisim Bolumu" notundan birebir.
@@ -91,14 +92,7 @@ export function Iletisim({
           </Suspense>
         </div>
 
-        <div className="min-h-420 overflow-hidden rounded-12 border border-line bg-hover">
-          <iframe
-            title="Sarnıç Kasap konum"
-            src={haritaSrc}
-            loading="lazy"
-            className="map-filter block h-full min-h-420 w-full border-0"
-          />
-        </div>
+        <Harita src={haritaSrc} />
       </div>
     </section>
   );
