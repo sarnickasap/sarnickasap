@@ -13,8 +13,16 @@ import "./globals.css";
    kümesinde YOK. Eksik bırakılırsa Türkçe harfler sistem fontuna düşer ve
    tasarımla piksel farkı oluşur. (ç ö ü "latin" içinde, ama diğerleri değil.) */
 
+/* ⚠️ `axes: ["opsz"]` ZORUNLU.
+   Tasarım fontu `opsz,wght@9..40,...` diye istiyor — yani OPTİK BOYUT ekseni
+   dahil. Tarayıcı `font-optical-sizing: auto` ile ekseni font boyutuna göre
+   ayarlar: 84px'lik başlıkta opsz 40'a tırmanır ve harfler daralır.
+   Eksen dahil edilmezse font varsayılan opsz ile gelir, harfler GENİŞ kalır.
+   Ölçüldü: H1'de gözle görülür genişlik farkı; paragraf (18px) etkilenmiyor
+   çünkü orada opsz zaten varsayılana yakın. */
 const dmSans = DM_Sans({
   subsets: ["latin", "latin-ext"],
+  axes: ["opsz"],
   variable: "--font-dm-sans",
   display: "swap",
 });

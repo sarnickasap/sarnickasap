@@ -14,9 +14,17 @@ from PIL import Image, ImageChops
 ESIK = 8
 
 
-def karsilastir(ref_yol, uyg_yol, fark_yol):
+def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
     a = Image.open(ref_yol).convert("RGB")
     b = Image.open(uyg_yol).convert("RGB")
+
+    # Alt kenardan N CSS px dışla. Bir bölümün ekran görüntüsü kesirli
+    # yükseklik yüzünden bir SONRAKİ bölümün ilk satırını kapabiliyor;
+    # o satır gerçek bir fark değil, komşu bölümün rengidir.
+    if alt_kirp:
+        k = alt_kirp * 2  # DPR 2
+        a = a.crop((0, 0, a.size[0], max(1, a.size[1] - k)))
+        b = b.crop((0, 0, b.size[0], max(1, b.size[1] - k)))
 
     if a.size != b.size:
         return {"boyutFarkli": True, "ref": a.size, "uyg": b.size}
@@ -49,6 +57,7 @@ def karsilastir(ref_yol, uyg_yol, fark_yol):
 def main():
     sonuclar = json.loads(sys.argv[1])
     cikti = sys.argv[2]
+    alt_kirp = int(sys.argv[3]) if len(sys.argv) > 3 else 0
 
     satirlar = []
     hepsiTemiz = True
@@ -56,7 +65,7 @@ def main():
     for s in sonuclar:
         w = s["w"]
         fark_yol = f"{cikti}/{w}-fark.png"
-        r = karsilastir(s["refDosya"], s["uygDosya"], fark_yol)
+        r = karsilastir(s["refDosya"], s["uygDosya"], fark_yol, alt_kirp)
 
         rk, uk = s["refKutu"], s["uygKutu"]
         boyut = f"tasarım {rk['g']}×{rk['y']} · uygulama {uk['g']}×{uk['y']}"

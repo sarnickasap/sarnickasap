@@ -1,21 +1,35 @@
 import { SiteHeader } from "@/components/site/header";
-import { aktifFirsatlarGetir, siteBilgisiGetir } from "@/lib/data";
-import { WA_MESAJ, waLink } from "@/lib/format";
+import { Hero } from "@/components/site/hero";
+import {
+  aktifFirsatlarGetir,
+  calismaSaatleriGetir,
+  siteBilgisiGetir,
+} from "@/lib/data";
+import { WA_MESAJ, telLink, waLink } from "@/lib/format";
 
 export default async function AnaSayfa() {
-  const [info, firsatlar] = await Promise.all([
+  const [info, firsatlar, saatler] = await Promise.all([
     siteBilgisiGetir(),
     aktifFirsatlarGetir(),
+    calismaSaatleriGetir(),
   ]);
+
+  const wa = waLink(info.whatsapp, WA_MESAJ.genelSiparis);
 
   return (
     <div className="min-h-screen bg-ink text-body">
-      <SiteHeader
-        waLink={waLink(info.whatsapp, WA_MESAJ.genelSiparis)}
-        firsatVar={firsatlar.length > 0}
+      <SiteHeader waLink={wa} firsatVar={firsatlar.length > 0} />
+      <Hero
+        heroTitle={info.heroTitle}
+        heroSub={info.heroSub}
+        phone={info.phone}
+        waLink={wa}
+        telLink={telLink(info.whatsapp)}
+        saatler={saatler}
       />
-      {/* B2+ bölümleri buraya gelecek */}
-      <div className="h-[1200px]" />
+      {/* B3+ bölümleri buraya gelecek */}
+      {/* B3+ bölümleri buraya gelecek */}
+      <div className="h-[600px]" />
     </div>
   );
 }

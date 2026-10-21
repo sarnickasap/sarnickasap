@@ -33,6 +33,10 @@
   --color-pill: #2a1012; /* fırsat süre pili zemini */
   --color-edge: #333333; /* ikincil kenarlık, sönük yıldız */
   --color-dot: #525252; /* hero meta ayracı */
+  /* Kapalı durum noktası. METİN DEĞİL → WCAG 1.4.11 için 3:1 yeterli,
+     koyu zeminde 4,18:1 geçiyor. K-21 yalnız metin kullanımlarını
+     kapsadığı için bu değer tasarımdaki gibi korundu. */
+  --color-dot-kapali: #737373;
   --color-muted-dark: #8a8a8a; /* K-21 ← #737373 */
   --color-muted: #a3a3a3; /* gövde donuk metin (koyu zemin) */
   --color-soft: #d4d4d4; /* hero meta, pasif sekme */
@@ -73,21 +77,42 @@
   --font-mono: ui-monospace, monospace; /* yer tutucu yazıları */
 
   /* ── Font boyutları (tasarımdaki tam px değerleri) ────────────────────── */
+  /* ⚠️ Her boyutun satır yüksekliği `normal` — bu KRİTİK.
+     Tasarım inline stillerde satır yüksekliğini yalnızca BAZI yerlerde
+     belirtiyor (1.6, 1.5, 1.45, 1.7, .98, 1.05); kalan her yerde tarayıcı
+     varsayılanı `normal` (Inter'de ≈1,21) geçerli.
+     Tailwind ise font-size yardımcılarına varsayılan 1.5 veriyor — ölçüldü:
+     hero meta satırı 16px yerine 19,5px oluyordu ve bu TÜM metinleri
+     etkiliyordu. Satır yüksekliği gereken yerlerde `leading-*` ile verilir. */
   --text-11: 11px;
+  --text-11--line-height: normal;
   --text-12: 12px;
+  --text-12--line-height: normal;
   --text-13: 13px;
+  --text-13--line-height: normal;
   --text-14: 14px;
+  --text-14--line-height: normal;
   --text-15: 15px;
+  --text-15--line-height: normal;
   --text-16: 16px;
+  --text-16--line-height: normal;
   --text-17: 17px;
+  --text-17--line-height: normal;
   --text-18: 18px;
+  --text-18--line-height: normal;
   --text-20: 20px;
+  --text-20--line-height: normal;
   --text-24: 24px;
+  --text-24--line-height: normal;
   --text-28: 28px;
+  --text-28--line-height: normal;
   --text-30: 30px;
+  --text-30--line-height: normal;
   /* Akışkan başlıklar — tasarımdaki clamp() ifadeleri birebir */
   --text-h1: clamp(44px, 7vw, 84px);
+  --text-h1--line-height: normal;
   --text-h2: clamp(32px, 4.5vw, 48px);
+  --text-h2--line-height: normal;
 
   /* ── Satır yükseklikleri ──────────────────────────────────────────────── */
   --leading-h1: 0.98;
@@ -129,10 +154,23 @@
    ────────────────────────────────────────────────────────────────────────── */
 
 @layer base {
-  /* Tasarım: html{scroll-behavior:smooth;scroll-padding-top:72px} */
+  /* Tasarım: html{scroll-behavior:smooth;scroll-padding-top:72px}
+     `line-height: normal` — Tailwind preflight'ın dayattığı 1.5'i geri alır.
+     Tasarımda hiçbir yerde kök satır yüksekliği tanımlı değil. */
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 72px;
+    line-height: normal;
+  }
+
+  /* Tasarım: body{margin:0;background:#0a0a0a;color:#fafafa}
+     Zemini gövdeye vermek ŞART: sarmalayıcı div'e verilince kapsanmayan
+     alanlarda (overscroll, kısa sayfanın altı) tarayıcının beyazı görünüyor.
+     Ölçüldü: 834px'te hero'nun altında 22px beyaz bant oluşmuştu.
+     Admin açık tema zeminini kendi kökünde boyar. */
+  body {
+    background: var(--color-ink);
+    color: var(--color-body);
   }
 
   /* Tasarım: *{box-sizing:border-box} — Tailwind preflight zaten uygular */

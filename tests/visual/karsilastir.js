@@ -43,11 +43,17 @@ const genislikler = (
   .split(",")
   .map(Number);
 
+/* Komşu bölümün taşan ilk satırını dışla (bkz. diff.py). */
+const altKirp = Number(
+  (args.find((a) => a.startsWith("--altKirp=")) ?? "--altKirp=0").split("=")[1],
+);
+
 const CIKTI = path.join(__dirname, "ciktilar", ad);
 
 async function yakala(page, url, sel, dosya) {
   await page.goto(url, { waitUntil: "networkidle", timeout: 45000 });
   await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(600);
   const el = await page.$(sel);
   if (!el) throw new Error(`Seçici bulunamadı: ${sel} (${url})`);
@@ -62,7 +68,11 @@ async function yakala(page, url, sel, dosya) {
 
   for (const w of genislikler) {
     const ctx = await browser.newContext({
-      viewport: { width: w, height: 1000 },
+      /* Yüksek viewport: yakalanacak bölüm kaydırmadan tamamen görünsün.
+         Kesirli konumdaki öğeler (ör. 390px'te hero logosu y=500,61)
+         farklı kaydırma ofsetlerinde farklı alt piksel ızgarasına oturup
+         sahte fark üretiyordu. */
+      viewport: { width: w, height: 2000 },
       deviceScaleFactor: 2,
       locale: "tr-TR",
       timezoneId: "Europe/Istanbul",
@@ -91,7 +101,7 @@ async function yakala(page, url, sel, dosya) {
   // Piksel karşılaştırmasını Python/PIL yapar
   const res = spawnSync(
     "python3",
-    [path.join(__dirname, "diff.py"), JSON.stringify(sonuclar), CIKTI],
+    [path.join(__dirname, "diff.py"), JSON.stringify(sonuclar), CIKTI, String(altKirp)],
     { encoding: "utf8" },
   );
   process.stdout.write(res.stdout ?? "");
