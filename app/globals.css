@@ -267,6 +267,17 @@
   }
 }
 
+/* Marka şeridi (K-31) — akış CSS ile, JavaScript gerekmiyor.
+   Liste iki kez basıldığı için -50% tam bir tur eder ve dikişsiz döner. */
+@keyframes marka-ak {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @layer utilities {
   /* Admin (açık tema) kökü — odak halkasını zemine göre ters çevirir. */
   .tema-admin {
@@ -289,6 +300,50 @@
       var(--color-stripe-a) 0 12px,
       var(--color-stripe-b) 12px 24px
     );
+  }
+
+  /* Marka şeridi */
+  .marka-ray {
+    animation: marka-ak var(--marka-sure, 40s) linear infinite;
+  }
+  /* Fare üstündeyken dur — logoyu okumak/tıklamak isteyen için */
+  .marka-serit:hover .marka-ray {
+    animation-play-state: paused;
+  }
+  /* Kenarlarda yumuşak kaybolma */
+  .marka-serit {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 48px,
+      black calc(100% - 48px),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 48px,
+      black calc(100% - 48px),
+      transparent
+    );
+  }
+
+  /* Hareket azaltma: akış durur, logolar sarmalı ızgaraya döner (K-20).
+     `w-max` ve kopyalar olmadan tek sıra taşardı; burada sarılmasına
+     izin veriliyor ve ikinci kopya gizleniyor. */
+  @media (prefers-reduced-motion: reduce) {
+    .marka-ray {
+      animation: none;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .marka-ray > li[aria-hidden="true"] {
+      display: none;
+    }
+    .marka-serit {
+      -webkit-mask-image: none;
+      mask-image: none;
+    }
   }
 
   /* Tasarım: harita iframe filtresi */

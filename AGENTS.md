@@ -73,3 +73,10 @@ Doğrulama: `grep -o '\-\-color-<token>:[^;]*' .next/static/chunks/*.css`
 `crypto.getRandomValues()` çağırıyor; Cache Components altında bu, prerender'ı
 bozuyor. Yardımcılar `connection()` ile rotayı istek zamanına taşıyor.
 Oturuma bağlı sayfa/layout'lara ayrıca `export const instant = false` gerekir.
+
+### ⚠️ `vercel env pull` yerel değişkenleri siler
+
+`.env.local` dosyası Vercel'deki değişkenlerden yeniden üretilir. Yalnızca
+yerelde gereken ve bilerek Vercel'e eklenmeyen `AUTH_TRUST_HOST="true"`
+satırı pull sonrası kaybolur ve giriş `UntrustedHost` hatası verir.
+Pull yaptıysan satırı geri ekle.

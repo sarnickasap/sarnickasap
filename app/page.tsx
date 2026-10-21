@@ -4,6 +4,7 @@ import { Firsatlar } from "@/components/site/firsatlar";
 import { Urunler } from "@/components/site/urunler";
 import { Hakkimizda } from "@/components/site/hakkimizda";
 import { Galeri } from "@/components/site/galeri";
+import { Markalar } from "@/components/site/markalar";
 import { Yorumlar } from "@/components/site/yorumlar";
 import { Iletisim } from "@/components/site/iletisim";
 import { SiteFooter } from "@/components/site/footer";
@@ -12,6 +13,7 @@ import {
   aktifFirsatlarGetir,
   calismaSaatleriGetir,
   galeriGetir,
+  markalarGetir,
   gorunurYorumlarGetir,
   kategorilerGetir,
   siteBilgisiGetir,
@@ -28,9 +30,10 @@ export default async function AnaSayfa() {
     urunlerGetir(),
     kategorilerGetir(),
   ]);
-  const [galeri, yorumlar] = await Promise.all([
+  const [galeri, yorumlar, markalar] = await Promise.all([
     galeriGetir(),
     gorunurYorumlarGetir(),
+    markalarGetir(),
   ]);
 
   const wa = waLink(info.whatsapp, WA_MESAJ.genelSiparis);
@@ -67,6 +70,9 @@ export default async function AnaSayfa() {
       </GoruntuyeGirince>
       <GoruntuyeGirince>
         <Hakkimizda about={info.about} />
+      </GoruntuyeGirince>
+      <GoruntuyeGirince>
+        <Markalar markalar={markalar} />
       </GoruntuyeGirince>
       <GoruntuyeGirince>
         <Galeri ogeler={galeri} />

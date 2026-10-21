@@ -2,6 +2,7 @@ import "server-only";
 import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
+  brands,
   categories,
   deals,
   gallery,
@@ -85,6 +86,18 @@ export async function galeriGetir() {
   cacheTag(SITE_TAG);
 
   return db.select().from(gallery).orderBy(asc(gallery.sort));
+}
+
+export async function markalarGetir() {
+  "use cache";
+  const { cacheTag } = await import("next/cache");
+  cacheTag(SITE_TAG);
+
+  return db
+    .select()
+    .from(brands)
+    .where(eq(brands.visible, true))
+    .orderBy(asc(brands.sort));
 }
 
 /** Yalnızca GÖRÜNÜR yorumlar — tasarım `reviews.filter(r => r.visible)` yapıyor. */

@@ -7,6 +7,7 @@ import { UrunlerSekmesi, type AdminUrun } from "./urunler-sekmesi";
 import { TopluFiyatSekmesi } from "./toplu-fiyat-sekmesi";
 import { KampanyalarSekmesi, type AdminFirsat } from "./kampanyalar-sekmesi";
 import { GaleriSekmesi, type AdminGaleri } from "./galeri-sekmesi";
+import { MarkalarSekmesi, type AdminMarka } from "./markalar-sekmesi";
 import { YorumlarSekmesi, type AdminYorum } from "./yorumlar-sekmesi";
 import {
   IletisimSekmesi,
@@ -32,6 +33,7 @@ export type PanelVerisi = {
   kategoriler: { id: number; name: string }[];
   firsatlar: AdminFirsat[];
   galeri: AdminGaleri[];
+  markalar: AdminMarka[];
   yorumlar: AdminYorum[];
   bilgi: AdminBilgi;
   saatler: AdminSaat[];
@@ -60,6 +62,7 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
             urunler: veri.urunler.length,
             kampanyalar: veri.firsatlar.filter((d) => d.active).length,
             galeri: veri.galeri.length,
+            markalar: veri.markalar.filter((m) => m.visible).length,
             yorumlar: veri.yorumlar.filter((r) => r.visible).length,
             kullanicilar: veri.kullanicilar.length,
           }}
@@ -85,6 +88,9 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
           )}
           {sekme === "galeri" && (
             <GaleriSekmesi ogeler={veri.galeri} onDegisti={kaydedildi} />
+          )}
+          {sekme === "markalar" && (
+            <MarkalarSekmesi markalar={veri.markalar} onDegisti={kaydedildi} />
           )}
           {sekme === "yorumlar" && (
             <YorumlarSekmesi yorumlar={veri.yorumlar} onDegisti={kaydedildi} />

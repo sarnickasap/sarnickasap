@@ -27,6 +27,7 @@ export type SekmeAnahtari =
   | "toplu"
   | "kampanyalar"
   | "galeri"
+  | "markalar"
   | "yorumlar"
   | "iletisim"
   | "seo"
@@ -37,6 +38,7 @@ export const SEKMELER: { anahtar: SekmeAnahtari; etiket: string; yeni?: boolean 
   { anahtar: "toplu", etiket: "Toplu fiyat" },
   { anahtar: "kampanyalar", etiket: "Kampanyalar" },
   { anahtar: "galeri", etiket: "Galeri" },
+  { anahtar: "markalar", etiket: "Markalar", yeni: true },
   { anahtar: "yorumlar", etiket: "Yorumlar" },
   { anahtar: "iletisim", etiket: "İletişim & saatler" },
   { anahtar: "seo", etiket: "SEO", yeni: true },

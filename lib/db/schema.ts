@@ -110,6 +110,21 @@ export const reviews = pgTable("reviews", {
   sort: integer("sort").notNull().default(0),
 });
 
+/**
+ * * Çalışılan markalar / üreticiler (K-31) — TASARIMDA YOK.
+ * Hakkımızda metnindeki "etlerimizi güvendiğimiz üreticilerden alırız"
+ * ifadesinin görsel karşılığı. Akan şerit olarak gösterilir.
+ */
+export const brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 128 }).notNull(),
+  logoUrl: text("logo_url").notNull().default(""),
+  /** İsteğe bağlı — markanın kendi sitesi */
+  linkUrl: text("link_url").notNull().default(""),
+  visible: boolean("visible").notNull().default(true),
+  sort: integer("sort").notNull().default(0),
+});
+
 /** * Yönetim kullanıcıları (K-06). Tasarımda yok — giriş şifreli olacak ve
  *  panelden yeni admin eklenebilecek. */
 export const users = pgTable("users", {
@@ -129,4 +144,5 @@ export type Review = typeof reviews.$inferSelect;
 export type Hour = typeof hours.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type SiteInfo = typeof siteInfo.$inferSelect;
+export type Brand = typeof brands.$inferSelect;
 export type User = typeof users.$inferSelect;

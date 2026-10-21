@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import { oturumZorunlu } from "@/lib/session";
 import { db } from "@/lib/db";
 import {
+  brands,
   categories,
   deals,
   gallery,
@@ -18,7 +19,7 @@ export const instant = false;
 export default async function PanelSayfasi() {
   const kendim = await oturumZorunlu();
 
-  const [urunler, kategoriler, firsatlar, galeriOgeleri, yorumlar, bilgiler, saatler] =
+  const [urunler, kategoriler, firsatlar, galeriOgeleri, markalar, yorumlar, bilgiler, saatler] =
     await Promise.all([
       db
         .select({
@@ -38,6 +39,7 @@ export default async function PanelSayfasi() {
       // Admin'de TÜMÜ listelenir; sayaçlar aktif/görünür olanı sayar
       db.select().from(deals).orderBy(asc(deals.sort)),
       db.select().from(gallery).orderBy(asc(gallery.sort)),
+      db.select().from(brands).orderBy(asc(brands.sort)),
       db.select().from(reviews).orderBy(asc(reviews.sort)),
       db.select().from(siteInfo).where(eq(siteInfo.id, 1)),
       db.select().from(hours).orderBy(asc(hours.dayIndex)),
@@ -51,6 +53,7 @@ export default async function PanelSayfasi() {
         kategoriler,
         firsatlar,
         galeri: galeriOgeleri,
+        markalar,
         yorumlar,
         bilgi: bilgiler[0],
         saatler,
