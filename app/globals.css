@@ -113,6 +113,12 @@
   --radius-12: 12px;
   --radius-pill: 999px;
 
+  /* ── Odak halkası (karar K-08) ────────────────────────────────────────── */
+  /* Varsayılan koyu tema (site) için. Admin açık temada `.tema-admin` ile
+     ezilir. Marka kırmızısı BİLEREK kullanılmadı: admin paletinde kırmızı
+     "sil/tehlike" anlamına geliyor, odak halkası hata gibi okunurdu. */
+  --color-focus: #f8efea; /* koyu zemin üstünde 17,47:1 */
+
   /* ── Animasyon (karar K-20) ───────────────────────────────────────────── */
   --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -131,10 +137,15 @@
 
   /* Tasarım: *{box-sizing:border-box} — Tailwind preflight zaten uygular */
 
-  /* Odak göstergesi (karar K-08 — tasarımda site tarafında yoktu).
-     Yalnızca klavye kullanıcısına görünür; fare tıklamasında çıkmaz. */
+  /* Odak göstergesi (karar K-08).
+     Tasarımda site tarafında hiç yoktu; admin'de `input:focus` için
+     `2px solid #a3a3a3` vardı ama o beyaz üstünde 2,52:1 — WCAG 1.4.11'in
+     UI bileşenleri için istediği 3:1'in altında. Tek ve erişilebilir bir
+     odak sistemiyle değiştirildi.
+     `:focus-visible` tercih edildi: fare tıklamasında çıkmaz, yalnız
+     klavye/odak gezintisinde görünür. */
   :focus-visible {
-    outline: 2px solid var(--color-brand-accent);
+    outline: 2px solid var(--color-focus);
     outline-offset: 2px;
     border-radius: 2px;
   }
@@ -156,6 +167,11 @@
 }
 
 @layer utilities {
+  /* Admin (açık tema) kökü — odak halkasını zemine göre ters çevirir. */
+  .tema-admin {
+    --color-focus: #0a0a0a; /* beyaz üstünde 19,3:1 */
+  }
+
   /* Tasarım: scrollbar-width:none — nav ve kategori şeridi */
   .no-scrollbar {
     scrollbar-width: none;

@@ -53,3 +53,23 @@ Referans görüntüler: `../vault/Sarnıç Kasap/_referans/` (4 genişlik: 1440/
 Playwright, önbellekteki Chromium'u `executablePath` ile kullanır:
 `~/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`
 (`npx playwright install` ÇALIŞTIRMA — paket 1248 ister, önbellekte 1234 var.)
+
+### ⚠️ Turbopack CSS önbelleği
+
+`app/globals.css` içindeki `@theme` tokenları değiştirildiğinde `next build`
+**eski CSS'i yeniden kullanabiliyor** — hata vermeden. Bu, görsel karşılaştırmayı
+sessizce yanıltır: kod doğru, ekranda eski stil.
+
+Token değiştirdiysen derlemeden önce:
+```bash
+rm -rf .next && npx next build
+```
+Doğrulama: `grep -o '\-\-color-<token>:[^;]*' .next/static/chunks/*.css`
+
+### Oturum okuma
+
+`auth()` doğrudan çağrılmaz — `lib/session.ts` içindeki `oturumAl()` /
+`oturumZorunlu()` kullanılır. Sebep: Auth.js CSRF jetonu için
+`crypto.getRandomValues()` çağırıyor; Cache Components altında bu, prerender'ı
+bozuyor. Yardımcılar `connection()` ile rotayı istek zamanına taşıyor.
+Oturuma bağlı sayfa/layout'lara ayrıca `export const instant = false` gerekir.
