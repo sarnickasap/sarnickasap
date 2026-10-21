@@ -166,6 +166,19 @@
   }
 }
 
+/* Mobil menü açılışı (karar K-20, 200ms).
+   `prefers-reduced-motion` koruması zaten @layer base içinde global. */
+@keyframes menu-ac {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer utilities {
   /* Admin (açık tema) kökü — odak halkasını zemine göre ters çevirir. */
   .tema-admin {
