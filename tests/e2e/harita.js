@@ -34,8 +34,11 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const sonrakiYukseklik = await p.evaluate(()=>document.documentElement.scrollHeight);
   ok(oncekiYukseklik===sonrakiYukseklik, `Düzen kaymadı (${oncekiYukseklik} → ${sonrakiYukseklik} px)`);
 
-  const src = await p.locator("#iletisim iframe").getAttribute("src");
-  ok(decodeURIComponent(src).includes("Gaziemir"), "Harita adresi doğru");
+  const src = decodeURIComponent(await p.locator("#iletisim iframe").getAttribute("src"));
+  ok(src.includes("Gaziemir"), "Harita adresi doğru");
+  /* İşletme adı sorguda OLMALI: yalnız adresle Google dükkânı bulamıyor,
+     pin düşmüyor ve yanlış bölge gösteriyor (canlıda bu hata vardı). */
+  ok(src.includes("Sarnıç Kasap,"), "İşletme adı sorguda — pin için şart");
 
   await br.close();
   console.log(f?`\n❌ ${f} BAŞARISIZ`:"\n✅ Tümü geçti"); process.exit(f?1:0);

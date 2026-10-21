@@ -22,6 +22,8 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const src = await p.locator("#iletisim iframe").getAttribute("src");
   ok(decodeURIComponent(src).includes("Atatürk, B. Menderes Cad. 126/D, Gaziemir, İzmir"),
      "Harita adresten türetiliyor (K-16)");
+  ok(decodeURIComponent(src).startsWith("https://maps.google.com/maps?q=Sarnıç Kasap,"),
+     "Sorgu işletme adıyla başlıyor (pin için şart)");
   ok(src.includes("output=embed") && src.includes("z=16"), "Harita biçimi tasarımdaki gibi");
   const filtre = await p.locator("#iletisim iframe").evaluate(e=>getComputedStyle(e).filter);
   ok(filtre.includes("grayscale(1)") && filtre.includes("invert(0.92)"), `Harita filtresi: ${filtre}`);

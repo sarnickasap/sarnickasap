@@ -6,6 +6,7 @@ import {
   CalismaSaatleriIskelet,
 } from "./calisma-saatleri";
 import { Harita } from "./harita";
+import { haritaSorgusu } from "@/lib/format";
 
 /* ──────────────────────────────────────────────────────────────────────────
    İletişim — vault "Iletisim Bolumu" notundan birebir.
@@ -23,8 +24,9 @@ import { Harita } from "./harita";
      sağ      min-h 420 · r12 · overflow-hidden · 1px #1f1f1f · bg #171717
 
    Harita (K-16): tasarımda sorgu SABİTTİ, admin'den adres değişse bile
-   harita değişmiyordu. Artık adresten türetiliyor. Biçim aynı
-   (maps.google.com/maps?q=…&output=embed) — API anahtarı gerektirmez.
+   harita değişmiyordu. Artık adresten türetiliyor — İŞLETME ADI ÖNE
+   EKLENEREK (bkz. lib/format.ts → haritaSorgusu). Yalnız adresle
+   sorgulanınca Google dükkânı bulamıyor ve yanlış bölge gösteriyordu.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function Iletisim({
@@ -40,10 +42,7 @@ export function Iletisim({
   waLink: string;
   saatler: Saat[];
 }) {
-  const haritaSrc =
-    "https://maps.google.com/maps?q=" +
-    encodeURIComponent(address) +
-    "&z=16&output=embed";
+  const haritaSrc = haritaSorgusu(address);
 
   return (
     <section id="iletisim" className="border-t border-line">

@@ -30,6 +30,28 @@ export const WA_MESAJ = {
   urun: (ad: string) => `Merhaba, ${ad} almak istiyorum. Miktar: `,
 } as const;
 
+/** İşletme adı — harita sorgusunda ve yapılandırılmış veride kullanılır. */
+export const ISLETME_ADI = "Sarnıç Kasap";
+
+/**
+ * Google Haritalar gömme sorgusu.
+ *
+ * ⚠️ İşletme adı ÖNE eklenmeli. Yalnız adresle sorgulandığında Google
+ * dükkânı bulamıyor: işaretçi düşmüyor ve harita **tamamen farklı bir
+ * bölgeyi** gösteriyordu (ölçüldü — canlıda bu hata vardı).
+ * Ad + adres ile hem doğru konuma pin düşüyor hem de bilgi kartında
+ * işletme adı, puanı ve "Haritalar'da aç" bağlantısı çıkıyor.
+ *
+ * Biçim API anahtarı gerektirmez (tasarımdaki `output=embed` ile aynı).
+ */
+export function haritaSorgusu(adres: string): string {
+  return (
+    "https://maps.google.com/maps?q=" +
+    encodeURIComponent(`${ISLETME_ADI}, ${adres}`) +
+    "&z=16&output=embed"
+  );
+}
+
 /** Tasarım: oldPrice > newPrice ise '%N indirim', değilse boş string. */
 export function indirimOrani(eski: number, yeni: number): string {
   if (!(eski > yeni)) return "";
