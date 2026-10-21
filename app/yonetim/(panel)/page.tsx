@@ -11,11 +11,12 @@ import {
   siteInfo,
 } from "@/lib/db/schema";
 import { Panel } from "@/components/admin/panel";
+import { kullanicilariGetir } from "@/lib/actions/kullanicilar";
 
 export const instant = false;
 
 export default async function PanelSayfasi() {
-  await oturumZorunlu();
+  const kendim = await oturumZorunlu();
 
   const [urunler, kategoriler, firsatlar, galeriOgeleri, yorumlar, bilgiler, saatler] =
     await Promise.all([
@@ -41,6 +42,7 @@ export default async function PanelSayfasi() {
       db.select().from(siteInfo).where(eq(siteInfo.id, 1)),
       db.select().from(hours).orderBy(asc(hours.dayIndex)),
     ]);
+  const kullanicilar = await kullanicilariGetir();
 
   return (
     <Panel
@@ -52,6 +54,12 @@ export default async function PanelSayfasi() {
         yorumlar,
         bilgi: bilgiler[0],
         saatler,
+        seo: {
+          seoTitle: bilgiler[0].seoTitle,
+          seoDescription: bilgiler[0].seoDescription,
+        },
+        kullanicilar,
+        benimId: kendim.id ?? "",
       }}
     />
   );

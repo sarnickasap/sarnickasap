@@ -13,6 +13,11 @@ import {
   type AdminBilgi,
   type AdminSaat,
 } from "./iletisim-sekmesi";
+import { SeoSekmesi } from "./seo-sekmesi";
+import {
+  KullanicilarSekmesi,
+  type AdminKullanici,
+} from "./kullanicilar-sekmesi";
 import { kayitDurumMetni } from "@/lib/kaydet";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -30,6 +35,9 @@ export type PanelVerisi = {
   yorumlar: AdminYorum[];
   bilgi: AdminBilgi;
   saatler: AdminSaat[];
+  seo: { seoTitle: string; seoDescription: string };
+  kullanicilar: AdminKullanici[];
+  benimId: string;
 };
 
 export function Panel({ veri }: { veri: PanelVerisi }) {
@@ -53,6 +61,7 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
             kampanyalar: veri.firsatlar.filter((d) => d.active).length,
             galeri: veri.galeri.length,
             yorumlar: veri.yorumlar.filter((r) => r.visible).length,
+            kullanicilar: veri.kullanicilar.length,
           }}
         />
 
@@ -87,10 +96,18 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
               onDegisti={kaydedildi}
             />
           )}
-          {(sekme === "seo" || sekme === "kullanicilar") && (
-            <p className="m-0 text-14 text-admin-muted">
-              Bu sekme sıradaki adımda eklenecek.
-            </p>
+          {sekme === "seo" && (
+            <SeoSekmesi
+              seoTitle={veri.seo.seoTitle}
+              seoDescription={veri.seo.seoDescription}
+              onDegisti={kaydedildi}
+            />
+          )}
+          {sekme === "kullanicilar" && (
+            <KullanicilarSekmesi
+              kullanicilar={veri.kullanicilar}
+              benimId={veri.benimId}
+            />
           )}
         </main>
       </div>
