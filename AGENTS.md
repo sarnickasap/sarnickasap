@@ -7,3 +7,49 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Sarnıç Kasap — proje kuralları
+
+Bu proje, Claude Design ile üretilmiş bir tasarımın **birebir (piksel düzeyinde)**
+uygulamasıdır. Tasarım yeniden yorumlanmaz, "iyileştirilmez".
+
+**Kaynak tasarım:** `../Sarnıç Kasap Web Sitesi/` (salt okunur referans)
+**Kalıcı bağlam:** `../vault/Sarnıç Kasap/` — Obsidian vault
+
+Koda dokunmadan önce vault'taki şu notları oku:
+`00 - Proje Özeti` → `04 - Kararlar` → `05 - Açık Sorular` → `06 - İlerleme Günlüğü`
+
+### ⚠️ --spacing: 1px
+
+`app/globals.css` içinde Tailwind boşluk tabanı **1px**'e çekilmiştir:
+
+| Sınıf | Bu projede | Normal Tailwind'de |
+|---|---|---|
+| `p-24` | 24px | 96px |
+| `gap-14` | 14px | 56px |
+| `py-112` | 112px | 448px |
+
+Sınıf adındaki sayı **doğrudan tasarımdaki piksel değeridir**. Bu bilinçli bir
+karardır: her sınıf adı `02 - Design Tokens.md`'deki değere doğrudan izlenebilir.
+Tailwind'in alışıldık `p-4 = 16px` davranışı burada geçerli değildir.
+
+### Renk tokenları
+
+Tasarımdaki hex değerleri `@theme` içinde isimlendirilmiştir. Ham hex yazma,
+token kullan. İki token kontrast için bilinçli olarak değiştirilmiştir (karar K-21):
+`--color-muted-dark` (#737373→#8a8a8a) ve `--color-faint-light` (#a3a3a3→#6b6b6b).
+Aynı hex'lerin kontrastı yeterli olan diğer kullanımları korunmuştur.
+
+### Değiştirilmeyecekler
+
+Tasarımda **yok** ve eklenmeyecek: gölge (`box-shadow`), medya sorgusu
+(responsive içseldir: `auto-fit`/`minmax`/`clamp`), tasarımda olmayan renk/ölçü.
+
+Tasarımdan **onaylı 10 sapma** için bkz. `04 - Kararlar.md` → "Tasarımdan sapmalar".
+
+### Görsel doğrulama
+
+Referans görüntüler: `../vault/Sarnıç Kasap/_referans/` (4 genişlik: 1440/1280/834/390)
+Playwright, önbellekteki Chromium'u `executablePath` ile kullanır:
+`~/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing`
+(`npx playwright install` ÇALIŞTIRMA — paket 1248 ister, önbellekte 1234 var.)

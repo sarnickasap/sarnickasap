@@ -1,26 +1,188 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ──────────────────────────────────────────────────────────────────────────
+   SARNIÇ KASAP — DESIGN TOKENS
+   Kaynak: vault → "02 - Design Tokens.md"
+   Her değer tasarım dosyasından BİREBİR alınmıştır. Yuvarlama yok, Tailwind
+   varsayılan ölçeğine eşleme yok.
+
+   ⚠️  --spacing: 1px
+   Bu projede boşluk ölçeği 1px tabanlıdır: `p-22` = 22px, `gap-14` = 14px,
+   `py-112` = 112px. Sınıf adındaki sayı doğrudan tasarımdaki piksel değeridir.
+   Tailwind'in alışıldık `p-4 = 16px` davranışı GEÇERLİ DEĞİLDİR.
+
+   ⚠️  Kontrast düzeltmeleri (karar K-21) — sadece 2 token:
+   --color-muted-dark  #737373 → #8a8a8a   (koyu zemin üstü, 4,18 → 5,55:1)
+   --color-faint-light #a3a3a3 → #6b6b6b   (beyaz zemin üstü, 2,52 → 5,47:1)
+   Aynı hex'lerin kontrastı YETERLİ olan diğer kullanımları değiştirilmemiştir:
+   #a3a3a3 koyu zemin üstünde 7,85:1 ✓ · #737373 beyaz zemin üstünde 4,74:1 ✓
+   ────────────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ── Boşluk tabanı ────────────────────────────────────────────────────── */
+  --spacing: 1px;
+
+  /* ── Site paleti (koyu tema) ──────────────────────────────────────────── */
+  --color-ink: #0a0a0a; /* sayfa + kart zemini */
+  --color-ink-2: #0f0f0f; /* alternatif bölüm zemini */
+  --color-stripe-a: #121212; /* yer tutucu şerit A */
+  --color-stripe-b: #161616; /* yer tutucu şerit B */
+  --color-hover: #171717; /* hover zemini, görsel zemini */
+  --color-line: #1f1f1f; /* kenarlık / ızgara çizgisi */
+  --color-badge: #262626; /* "Tükendi" rozeti zemini */
+  --color-pill: #2a1012; /* fırsat süre pili zemini */
+  --color-edge: #333333; /* ikincil kenarlık, sönük yıldız */
+  --color-dot: #525252; /* hero meta ayracı */
+  --color-muted-dark: #8a8a8a; /* K-21 ← #737373 */
+  --color-muted: #a3a3a3; /* gövde donuk metin (koyu zemin) */
+  --color-soft: #d4d4d4; /* hero meta, pasif sekme */
+  --color-read: #e5e5e5; /* yorum gövdesi, iletişim metni */
+  --color-cream: #f8efea; /* MARKA KREMİ — başlıklar */
+  --color-body: #fafafa; /* gövde metni */
+
+  /* ── Marka kırmızıları ────────────────────────────────────────────────── */
+  --color-brand: #b8222a; /* birincil buton, fırsat bölümü */
+  --color-brand-hover: #9e1c23;
+  --color-brand-accent: #e0464e; /* eyebrow etiketleri, iletişim ikonları */
+  --color-discount: #f87171; /* indirim oranı */
+  --color-star: #facc15; /* dolu yıldız */
+  --color-open: #22c55e; /* "şu an açık" noktası */
+
+  /* ── Admin paleti (açık tema) ─────────────────────────────────────────── */
+  --color-admin-bg: #fafafa;
+  --color-admin-card: #ffffff;
+  --color-admin-off: #f5f5f5; /* pasif toggle zemini */
+  --color-admin-row: #f0f0f0; /* satır ayracı, sekme hover */
+  --color-admin-border: #e5e5e5;
+  --color-admin-dash: #d4d4d4; /* kesikli yer tutucu */
+  --color-admin-hair: #f5f5f5; /* önizleme / saat satırı ayracı */
+  --color-faint-light: #6b6b6b; /* K-21 ← #a3a3a3 */
+  --color-admin-muted: #737373; /* beyaz üstünde 4,74:1 — korundu */
+  --color-admin-2nd: #525252;
+  --color-admin-tab: #404040; /* pasif sekme metni, textarea */
+  --color-admin-ink-hover: #262626; /* siyah buton hover */
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+  --color-ok-bg: #f0fdf4;
+  --color-ok-border: #bbf7d0;
+  --color-ok-text: #15803d;
+
+  /* ── Tipografi aileleri ───────────────────────────────────────────────── */
+  --font-display: var(--font-dm-sans), sans-serif; /* DM Sans — başlıklar */
+  --font-sans: var(--font-inter), system-ui, sans-serif; /* Inter — gövde */
+  --font-mono: ui-monospace, monospace; /* yer tutucu yazıları */
+
+  /* ── Font boyutları (tasarımdaki tam px değerleri) ────────────────────── */
+  --text-11: 11px;
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-15: 15px;
+  --text-16: 16px;
+  --text-17: 17px;
+  --text-18: 18px;
+  --text-20: 20px;
+  --text-24: 24px;
+  --text-28: 28px;
+  --text-30: 30px;
+  /* Akışkan başlıklar — tasarımdaki clamp() ifadeleri birebir */
+  --text-h1: clamp(44px, 7vw, 84px);
+  --text-h2: clamp(32px, 4.5vw, 48px);
+
+  /* ── Satır yükseklikleri ──────────────────────────────────────────────── */
+  --leading-h1: 0.98;
+  --leading-h2: 1.05;
+  --leading-145: 1.45;
+  --leading-15: 1.5;
+  --leading-155: 1.55;
+  --leading-16: 1.6;
+  --leading-17: 1.7;
+
+  /* ── Harf aralıkları ──────────────────────────────────────────────────── */
+  --tracking-h1: -0.035em;
+  --tracking-h2: -0.025em;
+  --tracking-deal: -0.015em; /* fırsat kartı H3 */
+  --tracking-product: -0.01em; /* ürün kartı H3 */
+  --tracking-admin-h1: -0.02em;
+  --tracking-eyebrow: 0.12em;
+  --tracking-table: 0.06em; /* admin önizleme başlığı */
+  --tracking-star: 2px;
+
+  /* ── Köşe yarıçapları (tasarımda yalnızca bu üçü) ─────────────────────── */
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-pill: 999px;
+
+  /* ── Animasyon (karar K-20) ───────────────────────────────────────────── */
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* ──────────────────────────────────────────────────────────────────────────
+   TABAN STİLLER
+   Tasarımdaki <style> bloklarının birebir karşılığı.
+   ────────────────────────────────────────────────────────────────────────── */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  /* Tasarım: html{scroll-behavior:smooth;scroll-padding-top:72px} */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 72px;
+  }
+
+  /* Tasarım: *{box-sizing:border-box} — Tailwind preflight zaten uygular */
+
+  /* Odak göstergesi (karar K-08 — tasarımda site tarafında yoktu).
+     Yalnızca klavye kullanıcısına görünür; fare tıklamasında çıkmaz. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Hareket azaltma tercihi — K-20 gereği TÜM hareket kapatılır */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Tasarım: scrollbar-width:none — nav ve kategori şeridi */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Tasarım: repeating-linear-gradient(135deg,#121212 0 12px,#161616 12px 24px) */
+  .placeholder-stripes {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--color-stripe-a) 0 12px,
+      var(--color-stripe-b) 12px 24px
+    );
+  }
+
+  /* Tasarım: harita iframe filtresi */
+  .map-filter {
+    filter: grayscale(1) invert(0.92) contrast(0.9);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
 }
