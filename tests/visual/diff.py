@@ -60,8 +60,37 @@ def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
         a = a.crop((0, 0, a.size[0], max(1, a.size[1] - k)))
         b = b.crop((0, 0, b.size[0], max(1, b.size[1] - k)))
 
+    kirpildi = None
     if a.size != b.size:
-        return {"boyutFarkli": True, "ref": a.size, "uyg": b.size}
+        # Kesirli yükseklikli bir öğenin ekran görüntüsü, sayfadaki mutlak
+        # konumuna göre bir piksel aşağı/yukarı yuvarlanabiliyor. 1-2 cihaz
+        # pikselini aşmayan farkı ortak bölgeyi karşılaştırarak ele alıyoruz;
+        # daha büyük fark gerçek bir düzen sorunudur.
+        dw = abs(a.size[0] - b.size[0])
+        dh = abs(a.size[1] - b.size[1])
+        if dw > 2 or dh > 2:
+            return {"boyutFarkli": True, "ref": a.size, "uyg": b.size}
+        w = min(a.size[0], b.size[0])
+        h = min(a.size[1], b.size[1])
+        kirpildi = (dw, dh)
+
+        # Yuvarlama farkı üstte de olabilir altta da. Olası hizalamaları
+        # deneyip en az fark vereni seç — yanlış hizalama her satırı
+        # "farklı" gösterirdi.
+        buyuk_a_x = a.size[0] >= b.size[0]
+        buyuk_a_y = a.size[1] >= b.size[1]
+        en_iyi, en_az = None, None
+        for oy in range(dh + 1):
+            for ox in range(dw + 1):
+                ax, ay = (ox if buyuk_a_x else 0), (oy if buyuk_a_y else 0)
+                bx, by = (0 if buyuk_a_x else ox), (0 if buyuk_a_y else oy)
+                aa = a.crop((ax, ay, ax + w, ay + h))
+                bb = b.crop((bx, by, bx + w, by + h))
+                skor = sum(ImageChops.difference(aa, bb).convert("L").getdata())
+                if en_az is None or skor < en_az:
+                    en_az, en_iyi = skor, (aa, bb, ox, oy)
+        a, b, ox, oy = en_iyi
+        kirpildi = (dw, dh, ox, oy)
 
     diff = ImageChops.difference(a, b)
     # Kanal başına en büyük sapma
@@ -97,6 +126,7 @@ def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
     return {
         "boyutFarkli": False,
         "boyut": a.size,
+        "kirpildi": kirpildi,
         "onayliSapma": onayli,
         "farkliPiksel": farkli,
         "toplamPiksel": toplam,
@@ -130,13 +160,19 @@ def main():
             )
             continue
 
+        yuvarlama = (
+            f"  (yakalama {r['kirpildi'][0]}×{r['kirpildi'][1]} px yuvarlama farkı;"
+            f" hizalama ofseti {r['kirpildi'][2]},{r['kirpildi'][3]})"
+            if r.get("kirpildi")
+            else ""
+        )
         k21 = (
             f"  ·  {r['onayliSapma']:,} px onaylı K-21 kontrast sapması"
             if r["onayliSapma"]
             else ""
         )
         if r["farkliPiksel"] == 0:
-            satirlar.append(f"  {w:>5}px  ✅ birebir aynı   ({boyut}){k21}")
+            satirlar.append(f"  {w:>5}px  ✅ birebir aynı   ({boyut}){k21}{yuvarlama}")
         else:
             hepsiTemiz = False
             yuzde = r["oran"] * 100

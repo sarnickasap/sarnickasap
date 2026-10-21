@@ -9,6 +9,11 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const p=await ctx.newPage();
   await p.goto(B,{waitUntil:"networkidle"});
 
+  /* Masaüstü nav bağlantı sayısını çekmece AÇILMADAN say: çekmece de
+     <header> içinde render ediliyor, açıkken seçici ikisini birden sayıyor. */
+  const masaustu = await p.evaluate(() =>
+    document.querySelectorAll("header nav a").length);
+
   const dugme=p.locator('button[aria-controls="mobil-menu"]');
   ok(await dugme.isVisible(), "390px: hamburger görünür");
   ok(await dugme.getAttribute("aria-expanded")==="false", "aria-expanded=false");
@@ -18,7 +23,11 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const panel=p.locator("#mobil-menu");
   await panel.waitFor({state:"visible"});
   ok(await panel.getAttribute("role")==="dialog" && await panel.getAttribute("aria-modal")==="true", "role=dialog + aria-modal");
-  ok((await panel.locator("nav a").count())===6, `6 bağlantı (${await panel.locator("nav a").count()})`);
+  /* Çekmecedeki bağlantı sayısı masaüstü nav'ıyla aynı olmalı.
+     Sabit 6 yazılmıyor: Fırsatlar ve Yorumlar veri yoksa gizleniyor (K-08). */
+  const cekmece = await panel.locator("nav a").count();
+  ok(cekmece === masaustu && cekmece > 0,
+     `Çekmece ve masaüstü nav aynı bağlantıları gösteriyor (${cekmece})`);
   ok(await p.evaluate(()=>getComputedStyle(document.body).overflow)==="hidden", "Gövde kaydırma kilitli");
 
   const odak=async()=>p.evaluate(()=>document.activeElement?.textContent?.trim()||document.activeElement?.getAttribute("aria-label"));

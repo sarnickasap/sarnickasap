@@ -30,11 +30,13 @@ const NAV_LINK =
 export function SiteHeader({
   waLink,
   firsatVar,
+  yorumVar,
 }: {
   waLink: string;
   firsatVar: boolean;
+  yorumVar: boolean;
 }) {
-  const baglantilar = gorunurNavBaglantilari(firsatVar);
+  const baglantilar = gorunurNavBaglantilari({ firsatVar, yorumVar });
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-[rgba(10,10,10,0.88)] backdrop-blur-[10px]">

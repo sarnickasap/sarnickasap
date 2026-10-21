@@ -60,14 +60,33 @@ async function yakala(page, url, sel, dosya) {
      bölümün üstüne biniyor ve ölçtüğümüz bölümle ilgisi olmayan bir
      fark üretiyor (ör. mobil menü farkı ürün kartının üstünde çıkıyordu).
      `visibility` kullanılıyor — düzen korunur, yalnız boyama durur. */
-  if (!sel.trim().startsWith("header")) {
+  if (!sel.trim().startsWith("header") && sel !== "@tamsayfa") {
     await page.evaluate(() => {
       const h = document.querySelector("header");
       if (h) h.style.visibility = "hidden";
     });
   }
 
+  /* Harita iframe'ini gizle. İçeriği Google'dan geliyor; iki sayfada farklı
+     hızda yükleniyor ve karoları hiç aynı olmuyor — ölçülebilir bir şey değil.
+     Haritanın kutusu, src'si ve filtresi ayrıca tests/e2e/harita.js ile
+     doğrulanıyor. */
+  await page.evaluate(() => {
+    document.querySelectorAll("iframe").forEach((f) => {
+      f.style.visibility = "hidden";
+    });
+  });
+
   await page.waitForTimeout(600);
+  if (sel === "@tamsayfa") {
+    await page.screenshot({ path: dosya, fullPage: true });
+    const b = await page.evaluate(() => ({
+      width: document.documentElement.scrollWidth,
+      height: document.documentElement.scrollHeight,
+    }));
+    return b;
+  }
+
   const el = await page.$(sel);
   if (!el) throw new Error(`Seçici bulunamadı: ${sel} (${url})`);
   await el.screenshot({ path: dosya });
