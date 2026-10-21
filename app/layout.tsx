@@ -25,13 +25,28 @@ const dmSans = DM_Sans({
   axes: ["opsz"],
   variable: "--font-dm-sans",
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
   variable: "--font-inter",
   display: "swap",
+  adjustFontFallback: false,
 });
+
+/* ⚠️ `adjustFontFallback: false` — next/font varsayılan olarak ölçüleri
+   ayarlanmış bir yedek font ("Inter Fallback") üretip font yığınına ekliyor.
+   Fontta OLMAYAN bir glif (ör. "→" U+2192) o yedekten çiziliyor ve
+   tasarımdan farklı genişlikte oluyor:
+     tasarım  (Inter, system-ui, sans-serif)        → ok 12,53 px
+     ayarlı yedekle                                 → ok 14,99 px
+   Bu 2,5 px fark, admin "Toplu fiyat" önizlemesinde tüm fiyat sütununu
+   kaydırıp 35.622 piksel farka yol açıyordu.
+   Kapatınca yığın tasarımdakiyle birebir aynı oluyor.
+
+   Bedeli: font yüklenirken oluşan düzen kaymasını azaltan ayar devre dışı.
+   Fontlar self-host ve preload edildiği için pencere çok kısa. */
 
 /* Geçici metadata — D1 aşamasında veritabanındaki SEO alanlarından
    generateMetadata ile üretilecek (karar K-11). */

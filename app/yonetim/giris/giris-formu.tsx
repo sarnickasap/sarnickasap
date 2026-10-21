@@ -7,7 +7,7 @@ import { girisYap, type GirisDurumu } from "@/lib/actions/auth";
 /* Admin form elemanı stilleri — vault "Admin Form Elemanlari" notundan birebir:
    h38 · padding 0 10px · 1px #e5e5e5 · r8 · beyaz · 14px/400 */
 const INPUT =
-  "h-38 rounded-8 border border-admin-border bg-admin-card px-10 text-14 font-normal text-black";
+  "h-38 rounded-8 border border-admin-border bg-admin-card px-10 text-14 font-normal text-form";
 
 function Gonder() {
   const { pending } = useFormStatus();

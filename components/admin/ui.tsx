@@ -12,15 +12,21 @@ import { ArtiIkonu, CopIkonu } from "@/components/icons";
    istediği 3:1'in altındaydı.
    ────────────────────────────────────────────────────────────────────────── */
 
-export const GIRDI_TABAN =
-  "rounded-8 border border-admin-border bg-admin-card text-black min-w-0";
+/** Form alanı tabanı: yalnızca çakışmayan ortak özellikler. */
+export const GIRDI =
+  "rounded-8 border border-admin-border bg-admin-card min-w-0";
 
-/** h38 · px10 · 14px/400 — iletişim formu, filtreler */
-export const GIRDI_38 = `${GIRDI_TABAN} h-38 px-10 text-14 font-normal`;
-/** h36 · px10 · 14px — satır içi alanlar */
-export const GIRDI_36 = `${GIRDI_TABAN} h-36 px-10 text-14`;
-/** h34 · px10 · 13px — galeri kartı */
-export const GIRDI_34 = `${GIRDI_TABAN} h-34 px-10 text-13`;
+/* ⚠️ Taban sabitte YÜKSEKLİK, PADDING, FONT BOYUTU ve RENK YOK — bilerek.
+   `${GIRDI} px-8` ya da `${GIRDI} text-13` yazmak İŞE YARAMAZ: Tailwind'de
+   çakışan yardımcılar arasında sınıf dizisindeki sıra değil, üretilen
+   CSS'teki sıra belirleyicidir. Taban `px-10`/`text-14` içerirken üste
+   eklenen `px-8`/`text-13` sessizce etkisiz kalıyordu:
+     · Kampanyalar fiyat alanları 2px kaydı (padding)
+     · Ürünler açıklama alanı 14px kaldı, 13px olacaktı (font)
+     · Ürünler açıklama alanı siyah kaldı, #525252 olacaktı (renk)
+   Her biri piksel karşılaştırmasında on binlerce fark üretti.
+
+   Bu dört özellik HER ZAMAN kullanım yerinde açıkça verilir. */
 
 export function SiyahButon({
   children,

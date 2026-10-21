@@ -122,6 +122,19 @@ def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
     harita.paste(kirmizi, mask=mask)
     harita.save(fark_yol)
 
+    # Kalan farkların tamamı GRİ TONUNDA mı?
+    # Eğer öyleyse düzen, renk ve font sorunları elenmiş demektir: geriye
+    # yalnızca K-21 ile yeniden renklendirilen metnin kenar yumuşatmasındaki
+    # ikincil kayma kalır. Renkli bir fark ise gerçek bir sorun işaretidir.
+    gri_tonu = 0
+    for y in range(a.size[1]):
+        for x in range(a.size[0]):
+            if not gp[x, y]:  # K-21 ile açıklananlar hariç, GERÇEK farklar
+                continue
+            pa, pb = ap[x, y], bp[x, y]
+            if max(pa) - min(pa) <= 4 and max(pb) - min(pb) <= 4:
+                gri_tonu += 1
+
     ekstrem = diff.getextrema()
     return {
         "boyutFarkli": False,
@@ -132,6 +145,7 @@ def karsilastir(ref_yol, uyg_yol, fark_yol, alt_kirp=0):
         "toplamPiksel": toplam,
         "oran": farkli / toplam,
         "kutu": kutu,
+        "griTonu": gri_tonu,
         "maxSapma": max(e[1] for e in ekstrem),
     }
 
@@ -178,9 +192,15 @@ def main():
             yuzde = r["oran"] * 100
             x0, y0, x1, y1 = r["kutu"]
             # DPR 2 → CSS pikseline çevir
+            tumGri = (
+                "  ← tamamı gri tonunda (düzen/renk/font farkı YOK)"
+                if r["griTonu"] == r["farkliPiksel"] and r["farkliPiksel"]
+                else f"  ← {r['griTonu']:,}'i gri tonunda"
+            )
             satirlar.append(
                 f"  {w:>5}px  ❌ {r['farkliPiksel']:,} farklı piksel "
                 f"({yuzde:.3f}%) · max sapma {r['maxSapma']}{k21}\n"
+                f"           {tumGri}\n"
                 f"            fark bölgesi (CSS px): "
                 f"x {x0//2}–{x1//2}, y {y0//2}–{y1//2}\n"
                 f"            harita: {fark_yol}"

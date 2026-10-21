@@ -3,8 +3,7 @@
 import { useState } from "react";
 import {
   DurumToggle,
-  GIRDI_36,
-  GIRDI_38,
+  GIRDI,
   Kart,
   SayfaBasligi,
   SilButonu,
@@ -105,13 +104,13 @@ export function UrunlerSekmesi({
           onChange={(e) => setArama(e.target.value)}
           placeholder="Ürün ara"
           aria-label="Ürün ara"
-          className={`${GIRDI_38} flex-[2_1_200px] px-12`}
+          className={`${GIRDI} h-38 flex-[2_1_200px] px-12 text-14 font-normal text-form`}
         />
         <select
           value={filtre}
           onChange={(e) => setFiltre(e.target.value)}
           aria-label="Kategoriye göre süz"
-          className={`${GIRDI_38} flex-[1_1_160px]`}
+          className={`${GIRDI} h-38 flex-[1_1_160px] px-10 text-14 font-normal text-form`}
         >
           {[TUMU, ...kategoriler.map((k) => k.name)].map((c) => (
             <option key={c} value={c}>
@@ -132,7 +131,7 @@ export function UrunlerSekmesi({
               onChange={(e) => yaz(p.id, { name: e.target.value })}
               placeholder="Ürün adı"
               aria-label="Ürün adı"
-              className={`${GIRDI_36} flex-[2_1_170px] font-medium`}
+              className={`${GIRDI} h-36 flex-[2_1_170px] px-10 text-14 font-medium text-form`}
             />
 
             <select
@@ -141,7 +140,7 @@ export function UrunlerSekmesi({
                 yaz(p.id, { categoryId: Number(e.target.value) }, true)
               }
               aria-label="Kategori"
-              className={`${GIRDI_36} flex-[1_1_140px] px-8`}
+              className={`${GIRDI} h-36 flex-[1_1_140px] px-8 text-14 text-form`}
             >
               {kategoriler.map((k) => (
                 <option key={k.id} value={k.id}>
@@ -162,7 +161,7 @@ export function UrunlerSekmesi({
                   yaz(p.id, { price: e.target.value === "" ? 0 : Number(e.target.value) })
                 }
                 aria-label="Kilo fiyatı"
-                className="h-full w-full min-w-0 flex-1 border-0 px-8 text-right text-14 outline-none"
+                className="h-full w-full min-w-0 flex-1 border-0 px-8 text-right text-14 text-form outline-none"
               />
               <span className="pr-10 pl-4 text-13 whitespace-nowrap text-admin-muted">
                 ₺/kg
@@ -174,7 +173,7 @@ export function UrunlerSekmesi({
               onChange={(e) => yaz(p.id, { note: e.target.value })}
               placeholder="Açıklama"
               aria-label="Açıklama"
-              className={`${GIRDI_36} flex-[2_1_170px] text-13 text-admin-2nd`}
+              className={`${GIRDI} h-36 flex-[2_1_170px] px-10 text-13 text-admin-2nd`}
             />
 
             <DurumToggle

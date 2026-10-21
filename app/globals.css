@@ -72,6 +72,13 @@
      header'ında 96% piksel farkına yol açmıştı (sapma 76).
      Bu ezme sayesinde `bg-black` ve `bg-ink` aynı ve doğru değeri verir. */
   --color-black: #0a0a0a;
+
+  /* Form alanlarının metin rengi. Tasarım input/select/textarea'ya `color`
+     VERMİYOR; yalnızca `font:inherit` var. Dolayısıyla tarayıcının varsayılanı
+     (saf siyah) geçerli oluyor. Tailwind preflight ise `color: inherit`
+     dayatıp #0a0a0a yapıyordu — admin Ürünler sekmesinde 81.115 piksel
+     farka yol açan tek sebep buydu (geometri birebirdi). */
+  --color-form: #000000;
   --color-danger: #dc2626;
   --color-danger-bg: #fef2f2;
   --color-ok-bg: #f0fdf4;
@@ -79,8 +86,25 @@
   --color-ok-text: #15803d;
 
   /* ── Tipografi aileleri ───────────────────────────────────────────────── */
-  --font-display: var(--font-dm-sans), sans-serif; /* DM Sans — başlıklar */
-  --font-sans: var(--font-inter), system-ui, sans-serif; /* Inter — gövde */
+  /* ⚠️ Aile adları DOĞRUDAN yazılıyor; next/font'un ürettiği
+     `--font-dm-sans` / `--font-inter` değişkenleri KULLANILMIYOR.
+
+     Sebep: next/font o değişkenlere ölçü-ayarlı bir yedek font ekliyor
+     ("Inter Fallback"). Fontta olmayan bir glif — ör. "→" (U+2192) —
+     o yedekten çiziliyor ve tasarımdan farklı genişlikte oluyor:
+       tasarım (Inter, system-ui, sans-serif)  → ok 12,53 px
+       yedekli yığın                           → ok 14,99 px
+     Bu 2,5 px, admin "Toplu fiyat" önizlemesinde fiyat sütununu kaydırıp
+     35.622 piksel farka yol açıyordu.
+     `adjustFontFallback: false` Next 16'da dikkate ALINMIYOR (denendi,
+     üretilen CSS'te yedek yine duruyor), bu yüzden yığın burada
+     tasarımdakiyle birebir aynı yazıldı.
+
+     next/font yine de kullanılıyor: @font-face kuralları ve self-host
+     edilen dosyalar ondan geliyor, aileler "Inter" ve "DM Sans" adlarıyla
+     kaydediliyor. */
+  --font-display: "DM Sans", sans-serif; /* DM Sans — başlıklar */
+  --font-sans: Inter, system-ui, sans-serif; /* Inter — gövde */
   --font-mono: ui-monospace, monospace; /* yer tutucu yazıları */
 
   /* ── Font boyutları (tasarımdaki tam px değerleri) ────────────────────── */
@@ -181,6 +205,25 @@
   }
 
   /* Tasarım: *{box-sizing:border-box} — Tailwind preflight zaten uygular */
+
+  /* Tasarım `::placeholder` rengini hiç tanımlamıyor → tarayıcı varsayılanı
+     geçerli (Chromium'da #757575, beyaz üstünde 4,6:1 — AA geçiyor).
+     Tailwind preflight ise `color-mix(in oklab, currentColor 50%, transparent)`
+     dayatıyordu. `revert` tarayıcı stil sayfasına geri döner; böylece
+     tasarımla her tarayıcıda aynı davranır. */
+  ::placeholder {
+    color: revert;
+    opacity: 1;
+  }
+
+  /* Tasarım onay kutusuna margin vermiyor → tarayıcının varsayılanı geçerli
+     (Chromium: 3px 3px 3px 4px, yatayda toplam 7px). Tailwind preflight bunu
+     sıfırlıyordu ve admin saat satırında "Kapalı" etiketi 7px daralıp
+     satırdaki her şeyi kaydırıyordu (37.003 piksel fark). */
+  input[type="checkbox"],
+  input[type="radio"] {
+    margin: revert;
+  }
 
   /* Odak göstergesi (karar K-08).
      Tasarımda site tarafında hiç yoktu; admin'de `input:focus` için

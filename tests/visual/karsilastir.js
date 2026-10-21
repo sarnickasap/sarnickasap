@@ -106,13 +106,18 @@ async function yakala(page, url, sel, dosya) {
   /* Admin sekmesi seçimi — iki tarafta da AYNI sekme açık olmalı,
      yoksa karşılaştırma anlamsız olur. */
   if (sekme) {
+    /* Unicode normalizasyonu: macOS kabuğu Türkçe harfleri AYRIK biçimde
+       geçirebiliyor ("Ü" = U+0055 U+0308), DOM'da ise BİRLEŞİK (U+00DC).
+       Karşılaştırmadan önce ikisi de NFC'ye çevriliyor. */
     const bulundu = await page.evaluate((etiket) => {
+      const n = (s) => (s ?? "").normalize("NFC").trim();
+      const hedef = n(etiket);
       const b = [...document.querySelectorAll("aside button, nav button")].find(
-        (x) => x.textContent?.trim().startsWith(etiket),
+        (x) => n(x.textContent).startsWith(hedef),
       );
       if (b) { b.click(); return true; }
       return false;
-    }, sekme);
+    }, sekme.normalize("NFC"));
     if (!bulundu) throw new Error(`Sekme bulunamadı: ${sekme} (${url})`);
     await page.waitForTimeout(700);
   }
