@@ -54,6 +54,19 @@ async function yakala(page, url, sel, dosya) {
   await page.goto(url, { waitUntil: "networkidle", timeout: 45000 });
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => window.scrollTo(0, 0));
+
+  /* Sticky header'ı gizle (header'ın kendisini ölçmüyorsak).
+     Uzun bir bölümü yakalarken Playwright kaydırıyor; sticky header
+     bölümün üstüne biniyor ve ölçtüğümüz bölümle ilgisi olmayan bir
+     fark üretiyor (ör. mobil menü farkı ürün kartının üstünde çıkıyordu).
+     `visibility` kullanılıyor — düzen korunur, yalnız boyama durur. */
+  if (!sel.trim().startsWith("header")) {
+    await page.evaluate(() => {
+      const h = document.querySelector("header");
+      if (h) h.style.visibility = "hidden";
+    });
+  }
+
   await page.waitForTimeout(600);
   const el = await page.$(sel);
   if (!el) throw new Error(`Seçici bulunamadı: ${sel} (${url})`);
