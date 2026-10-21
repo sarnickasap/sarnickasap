@@ -14,7 +14,12 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
     await p.click("button[type=submit]");
     await p.waitForURL(u=>!u.toString().includes("giris"),{timeout:20000});
   }
-  await p.waitForSelector("header"); await p.waitForTimeout(800);
+  await p.waitForSelector("header");
+  /* Yumuşak geçişte giriş sayfası bir süre DOM'da kalabiliyor; panel tek
+     <main> olarak oturana kadar bekle (yoksa seçiciler iki öğe buluyor). */
+  await p.waitForFunction(() => document.querySelectorAll("main").length === 1,
+    null, { timeout: 15000 }).catch(() => {});
+  await p.waitForTimeout(500);
 
   await p.evaluate(()=>{const b=[...document.querySelectorAll("aside button")].find(x=>x.textContent?.trim().startsWith("SEO")); if (b) b.click();});
   await p.waitForTimeout(600);

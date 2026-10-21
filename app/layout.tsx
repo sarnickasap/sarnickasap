@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
+import { siteBilgisiGetir } from "@/lib/data";
+import { SITE_URL } from "@/lib/seo";
 
 /* Tasarım şu Google Fonts isteğini yapıyor:
    family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700
@@ -48,12 +50,32 @@ const inter = Inter({
    Bedeli: font yüklenirken oluşan düzen kaymasını azaltan ayar devre dışı.
    Fontlar self-host ve preload edildiği için pencere çok kısa. */
 
-/* Geçici metadata — D1 aşamasında veritabanındaki SEO alanlarından
-   generateMetadata ile üretilecek (karar K-11). */
-export const metadata: Metadata = {
-  title: "Sarnıç Kasap",
-  description: "Gaziemir'de taze et, doğru kesim.",
-};
+/* Metadata veritabanındaki SEO alanlarından üretiliyor (K-11) — başlık ve
+   açıklama panelin SEO sekmesinden yönetiliyor. */
+export async function generateMetadata(): Promise<Metadata> {
+  const info = await siteBilgisiGetir();
+  const baslik = info.seoTitle || "Sarnıç Kasap";
+  const aciklama = info.seoDescription || info.heroSub;
+
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: baslik, template: "%s — Sarnıç Kasap" },
+    description: aciklama,
+    applicationName: "Sarnıç Kasap",
+    openGraph: {
+      type: "website",
+      locale: "tr_TR",
+      siteName: "Sarnıç Kasap",
+      title: baslik,
+      description: aciklama,
+      url: SITE_URL,
+      images: [{ url: "/logo.png", width: 1420, height: 1350, alt: "Sarnıç Kasap" }],
+    },
+    twitter: { card: "summary", title: baslik, description: aciklama },
+    alternates: { canonical: SITE_URL },
+    robots: { index: true, follow: true },
+  };
+}
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

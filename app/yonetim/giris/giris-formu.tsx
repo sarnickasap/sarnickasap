@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import { girisYap, type GirisDurumu } from "@/lib/actions/auth";
 
@@ -24,6 +24,11 @@ function Gonder() {
 
 export function GirisFormu() {
   const [durum, action] = useActionState<GirisDurumu, FormData>(girisYap, {});
+
+  /* Tam sayfa yükleme — yumuşak geçiş giriş sayfasını DOM'da bırakıyordu. */
+  useEffect(() => {
+    if (durum.basarili) window.location.href = "/yonetim";
+  }, [durum.basarili]);
 
   return (
     <form action={action} className="flex flex-col gap-14">

@@ -17,6 +17,7 @@ import {
   urunlerGetir,
 } from "@/lib/data";
 import { WA_MESAJ, telLink, waLink } from "@/lib/format";
+import { yapilandirilmisVeri } from "@/lib/seo";
 
 export default async function AnaSayfa() {
   const [info, firsatlar, saatler, urunler, kategoriler] = await Promise.all([
@@ -32,9 +33,16 @@ export default async function AnaSayfa() {
   ]);
 
   const wa = waLink(info.whatsapp, WA_MESAJ.genelSiparis);
+  const jsonLd = await yapilandirilmisVeri();
 
   return (
     <div className="min-h-screen bg-ink text-body">
+      {/* schema.org LocalBusiness — adres, telefon ve çalışma saatleri
+          panelden gelir, ikinci bir yerde elle güncellenmez (K-11). */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <SiteHeader waLink={wa} firsatVar={firsatlar.length > 0}
         yorumVar={yorumlar.length > 0} />
       <Hero

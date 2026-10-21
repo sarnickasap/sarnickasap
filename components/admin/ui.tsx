@@ -76,8 +76,14 @@ export function SayfaBasligi({
 /**
  * Durum toggle — 3 yerde aynı ölçüler, farklı metinler.
  * Açık : 1px #bbf7d0 · bg #f0fdf4 · #15803d
- * Kapalı: 1px #e5e5e5 · bg #f5f5f5 · #737373
+ * Kapalı: 1px #e5e5e5 · bg #f5f5f5 · #737373 → **#6b6b6b**
  * Tasarımda hover tanımlı DEĞİL.
+ *
+ * ⚠️ K-21 genişletmesi: Tasarımın `#737373` metni `#f5f5f5` zemin üstünde
+ * 4,35:1 — 13px metin için gereken 4,5'in ALTINDA. İlk kontrast taramamda
+ * bu rengi yalnız BEYAZ zemin üstünde ölçmüştüm (4,74:1, geçiyor) ve pasif
+ * toggle'ın gri zeminini gözden kaçırmıştım. axe taraması yakaladı.
+ * Zaten tanımlı `--color-faint-light` (#6b6b6b) kullanıldı → 4,89:1.
  */
 export function DurumToggle({
   acik,
@@ -99,7 +105,7 @@ export function DurumToggle({
         "h-36 w-92 flex-none cursor-pointer rounded-8 border text-13 font-medium " +
         (acik
           ? "border-ok-border bg-ok-bg text-ok-text"
-          : "border-admin-border bg-admin-off text-admin-muted")
+          : "border-admin-border bg-admin-off text-faint-light")
       }
     >
       {acik ? acikMetin : kapaliMetin}

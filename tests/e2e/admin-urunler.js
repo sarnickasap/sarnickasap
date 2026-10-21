@@ -53,7 +53,12 @@ async function giris(p){
 
   // Sayfayı yenile — kalıcı mı?
   await p.reload({waitUntil:"networkidle"});
-  await p.waitForSelector("header"); await p.waitForTimeout(800);
+  await p.waitForSelector("header");
+  /* Yumuşak geçişte giriş sayfası bir süre DOM'da kalabiliyor; panel tek
+     <main> olarak oturana kadar bekle (yoksa seçiciler iki öğe buluyor). */
+  await p.waitForFunction(() => document.querySelectorAll("main").length === 1,
+    null, { timeout: 15000 }).catch(() => {});
+  await p.waitForTimeout(500);
   ok(await p.locator('input[aria-label="Kilo fiyatı"]').first().inputValue()==="999",
      "Fiyat veritabanına yazıldı (yenilemeden sonra duruyor)");
 
