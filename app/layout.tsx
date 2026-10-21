@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { siteBilgisiGetir } from "@/lib/data";
 import { SITE_URL } from "@/lib/seo";
 
@@ -82,7 +83,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="tr" className={`${dmSans.variable} ${inter.variable}`}>
       {/* Tasarım: body{font-family:Inter;-webkit-font-smoothing:antialiased}
           Zemin rengi bölüm bazında veriliyor — site koyu, admin açık. */}
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        {/* Vercel Analytics (K-24) — çerezsiz, kişisel veri toplamıyor.
+            Vercel panelinde Web Analytics'in AÇIK olması gerekir. */}
+        <Analytics />
+      </body>
     </html>
   );
 }
