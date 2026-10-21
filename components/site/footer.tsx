@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { cacheLife } from "next/cache";
+import { Logo } from "@/components/logo";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Site Footer — vault "Site Footer" notundan birebir.
@@ -32,12 +32,10 @@ export async function SiteFooter() {
     <footer className="border-t border-line">
       <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-16 px-24 py-32 text-13 text-muted-dark">
         <div className="flex items-center gap-12">
-          <Image
-            src="/logo.png"
+          <Logo
+            genislik={32}
+            yukseklik={31}
             alt=""
-            width={32}
-            height={31}
-            unoptimized
             className="h-31 w-32 object-contain"
           />
           <span>© {yil} Sarnıç Kasap · Gaziemir, İzmir</span>

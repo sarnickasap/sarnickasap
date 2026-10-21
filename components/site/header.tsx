@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { MesajIkonu } from "@/components/icons";
+import { Logo } from "@/components/logo";
 import { gorunurNavBaglantilari } from "./nav-baglantilari";
 import { MobilMenu } from "./mobil-menu";
 
@@ -42,17 +42,10 @@ export function SiteHeader({
     <header className="sticky top-0 z-20 border-b border-line bg-[rgba(10,10,10,0.88)] backdrop-blur-[10px]">
       <div className="mx-auto flex max-w-[1280px] items-center gap-24 px-24 py-10">
         <a href="#top" className="flex flex-none items-center" aria-label="Sayfa başına dön">
-          <Image
-            src="/logo.png"
+          <Logo
+            genislik={48}
+            yukseklik={46}
             alt="Sarnıç Kasap"
-            width={48}
-            height={46}
-            priority
-            /* unoptimized: tasarım ham PNG'yi tarayıcıda ölçeklendiriyor.
-               next/image yeniden kodlayınca logo görünür biçimde yumuşuyordu
-               (ölçüldü: 938 piksel sapma, max 70). Aynı baytları sunmak
-               piksel eşitliğinin tek yolu. */
-            unoptimized
             className="block h-46 w-48 object-contain"
           />
         </a>

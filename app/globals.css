@@ -65,6 +65,13 @@
   --color-admin-2nd: #525252;
   --color-admin-tab: #404040; /* pasif sekme metni, textarea */
   --color-admin-ink-hover: #262626; /* siyah buton hover */
+
+  /* ⚠️ Tailwind'in yerleşik `black` değerini EZİYOR.
+     Tasarımda hiçbir yerde saf siyah (#000000) YOK; "siyah" dediği her yer
+     #0a0a0a. `bg-black` yazıldığında sessizce #000000 gelmesi admin
+     header'ında 96% piksel farkına yol açmıştı (sapma 76).
+     Bu ezme sayesinde `bg-black` ve `bg-ink` aynı ve doğru değeri verir. */
+  --color-black: #0a0a0a;
   --color-danger: #dc2626;
   --color-danger-bg: #fef2f2;
   --color-ok-bg: #f0fdf4;

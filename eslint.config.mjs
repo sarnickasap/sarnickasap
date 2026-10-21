@@ -5,6 +5,12 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    /* Test ve görsel karşılaştırma betikleri Node'da CommonJS olarak
+       çalışıyor; `require()` orada doğru kullanım. */
+    files: ["tests/**/*.js"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
@@ -12,6 +18,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Görsel karşılaştırma çıktıları (üretilen PNG'ler)
+    "tests/visual/ciktilar/**",
   ]),
 ]);
 

@@ -1,19 +1,45 @@
+import { asc, eq } from "drizzle-orm";
 import { oturumZorunlu } from "@/lib/session";
-import { cikisYap } from "@/lib/actions/auth";
+import { db } from "@/lib/db";
+import { categories, deals, gallery, products, reviews } from "@/lib/db/schema";
+import { Panel } from "@/components/admin/panel";
 
 export const instant = false;
 
-/* Geçici panel iskeleti — C2 aşamasında gerçek admin kabuğu gelecek. */
-export default async function Panel() {
-  const user = await oturumZorunlu();
+export default async function PanelSayfasi() {
+  await oturumZorunlu();
+
+  const [urunler, kategoriler, aktifFirsatlar, galeriOgeleri, gorunurYorumlar] =
+    await Promise.all([
+      db
+        .select({
+          id: products.id,
+          name: products.name,
+          categoryId: products.categoryId,
+          price: products.price,
+          note: products.note,
+          stock: products.stock,
+        })
+        .from(products)
+        .orderBy(asc(products.sort)),
+      db
+        .select({ id: categories.id, name: categories.name })
+        .from(categories)
+        .orderBy(asc(categories.sort)),
+      db.select().from(deals).where(eq(deals.active, true)),
+      db.select().from(gallery),
+      db.select().from(reviews).where(eq(reviews.visible, true)),
+    ]);
+
   return (
-    <main className="tema-admin min-h-screen bg-admin-bg p-20">
-      <p className="text-14">Girişli: {user.email}</p>
-      <form action={cikisYap}>
-        <button className="mt-12 h-36 rounded-8 border border-admin-border bg-admin-card px-12 text-13 font-medium text-danger">
-          Çıkış yap
-        </button>
-      </form>
-    </main>
+    <Panel
+      veri={{
+        urunler,
+        kategoriler,
+        firsatSayisi: aktifFirsatlar.length,
+        galeriSayisi: galeriOgeleri.length,
+        yorumSayisi: gorunurYorumlar.length,
+      }}
+    />
   );
 }

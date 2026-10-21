@@ -26,8 +26,15 @@ const { spawnSync } = require("child_process");
 const EXE =
   "/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 
-const TASARIM = "http://localhost:8765/Sarnic%20Kasap.dc.html";
-const UYGULAMA = "http://localhost:3100/";
+/* Varsayılan: müşteriye dönük site. `--admin` ile yönetim paneline geçilir. */
+const SITE = {
+  tasarim: "http://localhost:8765/Sarnic%20Kasap.dc.html",
+  uygulama: "http://localhost:3100/",
+};
+const ADMIN = {
+  tasarim: "http://localhost:8765/Sarnic%20Kasap%20Admin.dc.html",
+  uygulama: "http://localhost:3100/yonetim",
+};
 
 /* Referans görüntüler bu saatle alındı — açık/kapalı durumu ve vurgulu gün
    sabitlensin diye aynısı kullanılmalı (bkz. "07 - Görsel Karşılaştırma"). */
@@ -48,10 +55,28 @@ const altKirp = Number(
   (args.find((a) => a.startsWith("--altKirp=")) ?? "--altKirp=0").split("=")[1],
 );
 
+const adminMi = args.includes("--admin");
+const { tasarim: TASARIM, uygulama: UYGULAMA } = adminMi ? ADMIN : SITE;
+
+/* Admin panelinde sekme seçmek için: --sekme="Kampanyalar" */
+const sekme = (args.find((a) => a.startsWith("--sekme=")) ?? "").split("=")[1];
+
 const CIKTI = path.join(__dirname, "ciktilar", ad);
 
 async function yakala(page, url, sel, dosya) {
   await page.goto(url, { waitUntil: "networkidle", timeout: 45000 });
+
+  /* Panel korumalı — giriş sayfasına düştüysek oturum aç. */
+  if (page.url().includes("/yonetim/giris")) {
+    await page.fill("input[name=email]", process.env.ADMIN_EMAIL ?? "");
+    await page.fill("input[name=password]", process.env.ADMIN_PW ?? "");
+    await page.click("button[type=submit]");
+    await page.waitForURL((u) => !u.toString().includes("giris"), { timeout: 20000 });
+    await page.waitForLoadState("networkidle");
+    /* Giriş sonrası panel akışla geliyor; networkidle tek başına yetmiyor. */
+    await page.waitForSelector("header", { timeout: 20000 });
+    await page.waitForTimeout(800);
+  }
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => window.scrollTo(0, 0));
 
@@ -78,6 +103,20 @@ async function yakala(page, url, sel, dosya) {
   });
 
   await page.waitForTimeout(600);
+  /* Admin sekmesi seçimi — iki tarafta da AYNI sekme açık olmalı,
+     yoksa karşılaştırma anlamsız olur. */
+  if (sekme) {
+    const bulundu = await page.evaluate((etiket) => {
+      const b = [...document.querySelectorAll("aside button, nav button")].find(
+        (x) => x.textContent?.trim().startsWith(etiket),
+      );
+      if (b) { b.click(); return true; }
+      return false;
+    }, sekme);
+    if (!bulundu) throw new Error(`Sekme bulunamadı: ${sekme} (${url})`);
+    await page.waitForTimeout(700);
+  }
+
   if (sel === "@tamsayfa") {
     await page.screenshot({ path: dosya, fullPage: true });
     const b = await page.evaluate(() => ({

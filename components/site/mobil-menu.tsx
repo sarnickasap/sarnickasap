@@ -28,6 +28,9 @@ export function MobilMenu({ baglantilar }: { baglantilar: readonly Baglanti[] })
   useEffect(() => {
     if (!acik) return;
 
+    /* Ref'i efekt içinde yerel değişkene kopyala: temizlik çalışırken
+       dugmeRef.current başka bir düğümü gösteriyor olabilir. */
+    const dugme = dugmeRef.current;
     const oncekiOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
@@ -65,7 +68,7 @@ export function MobilMenu({ baglantilar }: { baglantilar: readonly Baglanti[] })
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = oncekiOverflow;
-      dugmeRef.current?.focus();
+      dugme?.focus();
     };
   }, [acik, kapat]);
 

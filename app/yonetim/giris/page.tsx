@@ -1,5 +1,5 @@
-import Image from "next/image";
 import type { Metadata } from "next";
+import { Logo } from "@/components/logo";
 import { redirect } from "next/navigation";
 import { oturumAl } from "@/lib/session";
 import { GirisFormu } from "./giris-formu";
@@ -35,13 +35,11 @@ export default async function GirisSayfasi() {
       <div className="flex w-full max-w-[380px] flex-col gap-24">
         {/* Marka bloğu — admin header'daki düzenin açık tema karşılığı */}
         <div className="flex items-center gap-14">
-          <Image
-            src="/logo.png"
+          <Logo
+            genislik={40}
+            yukseklik={38}
             alt="Sarnıç Kasap"
-            width={40}
-            height={38}
             className="h-38 w-40 object-contain"
-            priority
           />
           <div className="flex flex-col">
             <span className="font-display text-16 font-bold text-black">

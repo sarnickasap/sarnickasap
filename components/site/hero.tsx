@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { Suspense } from "react";
+import { Logo } from "@/components/logo";
 import { MesajIkonu, TelefonIkonu } from "@/components/icons";
 import type { Saat } from "@/lib/saatler";
 import { AcikKapali, AcikKapaliIskelet } from "./acik-kapali";
@@ -80,19 +80,10 @@ export function Hero({
       </div>
 
       <div className="flex justify-center">
-        <Image
-          src="/logo.png"
+        <Logo
+          genislik={1420}
+          yukseklik={1350}
           alt="Sarnıç Kasap logosu"
-          /* Gerçek iç boyutlar — oran tam doğru olsun diye.
-             500×475 yazmıştım; doğrusu 475,35 ve bu yuvarlama hatası
-             `height:auto` ile ölçeklenince taban kenarında kayma yaratıyordu.
-             Tasarım: width:100%;max-width:500px;height:auto */
-          width={1420}
-          height={1350}
-          priority
-          /* unoptimized — header'daki sebep: tasarım ham PNG'yi tarayıcıda
-             ölçekliyor, yeniden kodlama görünür yumuşama yaratıyor. */
-          unoptimized
           className="block h-auto w-full max-w-[500px]"
         />
       </div>
