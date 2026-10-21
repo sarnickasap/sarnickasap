@@ -152,6 +152,11 @@ async function yakala(page, url, sel, dosya) {
       deviceScaleFactor: 2,
       locale: "tr-TR",
       timezoneId: "Europe/Istanbul",
+      /* Tasarımda hiç animasyon yok (K-03). Doğru eşdeğerlik, uygulamanın
+         HAREKET AZALTMA modudur: K-20 gereği o modda tüm hareket kapalı ve
+         içerik doğrudan görünür. Aksi hâlde görünüm alanı dışındaki bölümler
+         henüz açılmamış olur ve sahte fark üretirdi. */
+      reducedMotion: "reduce",
     });
     await ctx.clock.setFixedTime(SAAT);
     const page = await ctx.newPage();

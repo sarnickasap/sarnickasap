@@ -35,6 +35,10 @@ export default function Hata({
         >
           Tekrar dene
         </button>
+        {/* Bilerek <Link> DEĞİL: hata sınırı bozuk bir render durumunu
+            yakaladı; yumuşak geçiş aynı hatayı tekrar tetikleyebilir.
+            Tam sayfa yükleme temiz bir başlangıç verir. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/"
           className="flex h-48 items-center rounded-8 border border-edge px-22 text-15 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white"

@@ -7,6 +7,7 @@ import { Galeri } from "@/components/site/galeri";
 import { Yorumlar } from "@/components/site/yorumlar";
 import { Iletisim } from "@/components/site/iletisim";
 import { SiteFooter } from "@/components/site/footer";
+import { GoruntuyeGirince } from "@/components/site/goruntuye-girince";
 import {
   aktifFirsatlarGetir,
   calismaSaatleriGetir,
@@ -54,15 +55,25 @@ export default async function AnaSayfa() {
         saatler={saatler}
       />
       {/* B3+ bölümleri buraya gelecek */}
-      <Firsatlar firsatlar={firsatlar} whatsapp={info.whatsapp} />
-      <Urunler
-        urunler={urunler}
-        kategoriler={kategoriler.map((k) => k.name)}
-        whatsapp={info.whatsapp}
-      />
-      <Hakkimizda about={info.about} />
-      <Galeri ogeler={galeri} />
-      <Yorumlar yorumlar={yorumlar} />
+      <GoruntuyeGirince>
+        <Firsatlar firsatlar={firsatlar} whatsapp={info.whatsapp} />
+      </GoruntuyeGirince>
+      <GoruntuyeGirince>
+        <Urunler
+          urunler={urunler}
+          kategoriler={kategoriler.map((k) => k.name)}
+          whatsapp={info.whatsapp}
+        />
+      </GoruntuyeGirince>
+      <GoruntuyeGirince>
+        <Hakkimizda about={info.about} />
+      </GoruntuyeGirince>
+      <GoruntuyeGirince>
+        <Galeri ogeler={galeri} />
+      </GoruntuyeGirince>
+      <GoruntuyeGirince>
+        <Yorumlar yorumlar={yorumlar} />
+      </GoruntuyeGirince>
       <Iletisim
         address={info.address}
         phone={info.phone}

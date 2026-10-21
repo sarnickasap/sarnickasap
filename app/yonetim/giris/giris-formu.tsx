@@ -25,8 +25,13 @@ function Gonder() {
 export function GirisFormu() {
   const [durum, action] = useActionState<GirisDurumu, FormData>(girisYap, {});
 
-  /* Tam sayfa yükleme — yumuşak geçiş giriş sayfasını DOM'da bırakıyordu. */
+  /* Tam sayfa yükleme — bilerek `router.push` DEĞİL.
+     Yumuşak geçişte giriş sayfası DOM'da kalıyordu: görünmez ama ikinci bir
+     <main> landmark'ı ve gizli bir şifre alanı bırakıyordu (ölçüldü:
+     yenilemeye kadar 2 adet <main>). Oturum açılışında tam yüklemenin
+     maliyeti önemsiz. */
   useEffect(() => {
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     if (durum.basarili) window.location.href = "/yonetim";
   }, [durum.basarili]);
 
