@@ -199,3 +199,13 @@ yapıldı; kullanıcı gerçek kataloğunu girdikten sonra seed artık doğru
 referans değil.
 
 ⚠️ Yedek dosyası **şifre hash'i içerir**. `yedekler/` `.gitignore`'da.
+
+### Takım ağırdır — kararsız hataları yüke bağla
+
+Tek koşum: bir `next build` + 20 ardışık Playwright tarayıcısı + Neon gidiş
+dönüşleri. Makine bellek baskısı altındayken `admin-kullanicilar`,
+`admin-seo` ve `erisilebilirlik` zaman aşımına düşebiliyor — üçü de tek
+başına koşturulduğunda geçiyor.
+
+Bir test takımda düşüp **tek başına geçiyorsa** önce yükü düşün; koda
+dokunmadan önce `node tests/kos.js <ad>` ile tek tek doğrula.
