@@ -141,3 +141,30 @@ her ekleme/silmede **yanlış alarm** veriyordu. Sayıları sayfadan türet ve
 (Next.js satır içi bootstrap script'i yazıyor; nonce PPR kabuğunu bozar).
 Yeni bir dış kaynak (font, CDN, API) eklerken CSP'yi güncelle — aksi halde
 tarayıcı **sessizce** engeller. Regresyon: `node tests/kos.js guvenlik`.
+
+### ⚠️ `npm run db:seed` ÜRETİMİ SİLER
+
+Yerel geliştirme `.env.local` ile **üretim** veritabanına bağlanıyor. Seed
+ürünleri, fırsatları, galeriyi, kategorileri, saatleri ve site bilgilerini
+silip yer tutucu verilerle değiştirir.
+
+Artık koruma var: ne kaybedileceğini sayıp durur. Bilerek sıfırlamak için
+`SEED_ONAY="evet, sil" npm run db:seed`. Bu komutu **asla** refleksle
+çalıştırma.
+
+### Testlerde sabit `waitForTimeout` ile kayıt bekleme
+
+Gecikmeli kayıt 600 ms + sunucu gidiş dönüşü. Sabit bekleme bir koşumda
+yetmedi, `panelTazele` bekleyen yazmayı iptal etti ve **üretimde Pazar
+kapanış saati yanlış kaldı**. Kayıt damgasının ilerlemesini bekle ve
+"Kaydedilemedi" görürsen testi düşür (`admin-iletisim`'deki `kayitBekle`).
+
+Aynısı animasyon ölçümü için de geçerli: `animasyon` testi 900 ms sabit
+bekleyip opaklığı 0.994'te yakalıyordu. Opaklık `#galeri`'de değil
+**`GoruntuyeGirince` sarmalayıcısında** — bekleme doğru öğeyi hedeflemeli.
+
+### Backend değişmezleri
+
+`node tests/kos.js backend` — CHECK kısıtları, indeksler, son yönetici
+koruması, seed koruması. Bu kontroller uygulama katmanını atlayan yolları
+(seed, onarım betikleri, `drizzle-kit studio`, doğrudan SQL) koruyor.

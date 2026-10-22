@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, ne } from "drizzle-orm";
+import { eq, ne, sql } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -19,6 +19,8 @@ import { oturumZorunlu } from "@/lib/session";
    ────────────────────────────────────────────────────────────────────────── */
 
 const SIFRE_MIN = 12;
+
+const kimlik = z.number().int().positive();
 
 const yeniKullanici = z.object({
   email: z.string().email("Geçerli bir e-posta girin").max(255),
@@ -77,13 +79,17 @@ export async function kullaniciEkle(
   return { basarili: `${email} eklendi.` };
 }
 
-export async function kullaniciSil(id: number): Promise<KullaniciSonuc> {
+export async function kullaniciSil(girdiId: number): Promise<KullaniciSonuc> {
   const kendim = await oturumZorunlu();
+  const ayris = kimlik.safeParse(girdiId);
+  if (!ayris.success) return { hata: "Geçersiz hesap." };
+  const id = ayris.data;
 
   if (String(id) === kendim.id) {
     return { hata: "Kendi hesabınızı silemezsiniz." };
   }
 
+  // Kullanıcıya anlamlı mesaj verebilmek için önce bakılıyor…
   const digerleri = await db
     .select({ id: users.id })
     .from(users)
@@ -92,7 +98,19 @@ export async function kullaniciSil(id: number): Promise<KullaniciSonuc> {
     return { hata: "Son yöneticiyi silemezsiniz — panele girilemez olurdu." };
   }
 
-  await db.delete(users).where(eq(users.id, id));
+  /* …ama asıl koruma SİLME İFADESİNİN İÇİNDE.
+     Yukarıdaki "oku sonra sil" deseni yarışa açıktı: iki yönetici aynı anda
+     birbirini silerse ikisi de kontrolü geçer, iki silme de işler ve
+     panelde HİÇ hesap kalmaz. Aşağıdaki koşul tek ifadede değerlendiği
+     için son hesabın silinmesi veritabanı seviyesinde imkânsız. */
+  const sonuc = await db
+    .delete(users)
+    .where(sql`${users.id} = ${id} and (select count(*) from ${users}) > 1`)
+    .returning({ id: users.id });
+
+  if (sonuc.length === 0) {
+    return { hata: "Son yöneticiyi silemezsiniz — panele girilemez olurdu." };
+  }
   return { basarili: "Hesap silindi." };
 }
 

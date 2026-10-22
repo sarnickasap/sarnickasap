@@ -48,7 +48,8 @@ export function YorumlarSekmesi({
   function yaz(id: number, alan: Partial<AdminYorum>, hemen = false) {
     setListe((l) => l.map((r) => (r.id === id ? { ...r, ...alan } : r)));
     const calistir = () => yorumGuncelle({ id, ...alan }).then(onDegisti);
-    if (hemen) void calistir();
+    // `hemen` yolu da aynı sarmalıdan geçmeli — yoksa hatası yutulur
+    if (hemen) gecikmeli(`yorum-${id}-${Object.keys(alan)[0]}`, calistir, true);
     else gecikmeli(`yorum-${id}-${Object.keys(alan)[0]}`, calistir);
   }
 

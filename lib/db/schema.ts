@@ -1,5 +1,8 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
+  index,
   integer,
   numeric,
   pgTable,
@@ -8,6 +11,13 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+
+/* ── Veritabanı seviyesi korumalar hakkında ──
+   Server action'lar zod ile doğruluyor, ama veritabanına yazan TEK yol
+   onlar değil: seed betiği, onarım betikleri, `drizzle-kit studio` ve
+   doğrudan SQL hepsi zod'u atlıyor. Son savunma hattı tabloda olmalı.
+   Aşağıdaki CHECK'ler zaten geçerli olan verinin dışına çıkılmasını
+   engelliyor; mevcut hiçbir satırı reddetmiyorlar. */
 
 /* ──────────────────────────────────────────────────────────────────────────
    Veri modeli — kaynak: `sarnic-store.js` içindeki DEFAULT nesnesi.
@@ -44,13 +54,23 @@ export const siteInfo = pgTable("site_info", {
  * Saatler `HH:MM` metni olarak tutulur — tasarım `<input type="time">`
  * değerlerini doğrudan metin olarak karşılaştırıyor (`hm >= t.open`).
  */
-export const hours = pgTable("hours", {
-  dayIndex: integer("day_index").primaryKey(),
-  day: varchar("day", { length: 16 }).notNull(),
-  open: varchar("open", { length: 5 }).notNull(),
-  close: varchar("close", { length: 5 }).notNull(),
-  closed: boolean("closed").notNull().default(false),
-});
+export const hours = pgTable(
+  "hours",
+  {
+    dayIndex: integer("day_index").primaryKey(),
+    day: varchar("day", { length: 16 }).notNull(),
+    open: varchar("open", { length: 5 }).notNull(),
+    close: varchar("close", { length: 5 }).notNull(),
+    closed: boolean("closed").notNull().default(false),
+  },
+  (t) => [
+    // 0–6 dışında bir gün, açık/kapalı hesabını sessizce bozardı
+    check("hours_gun_araligi", sql`${t.dayIndex} between 0 and 6`),
+    // Saat metin olarak karşılaştırılıyor (`hm >= t.open`); biçim bozulursa
+    // karşılaştırma sessizce yanlış sonuç verir
+    check("hours_bicim", sql`${t.open} ~ '^[0-2][0-9]:[0-5][0-9]$' and ${t.close} ~ '^[0-2][0-9]:[0-5][0-9]$'`),
+  ],
+);
 
 /**
  * Kategoriler. Tasarımda sabit bir dizi (`CATS`) — düzenleme arayüzü YOK,
@@ -76,7 +96,13 @@ export const products = pgTable("products", {
   note: text("note").notNull().default(""),
   stock: boolean("stock").notNull().default(true),
   sort: integer("sort").notNull().default(0),
-});
+}, (t) => [
+  /* Kategoriye göre süzme ve `urunlerGetir` birleşimi bu sütunu kullanıyor;
+     indeks yoktu. */
+  index("products_category_id_idx").on(t.categoryId),
+  // Eksi fiyat sitede "-500 ₺" olarak basılırdı
+  check("products_fiyat_pozitif", sql`${t.price} >= 0`),
+]);
 
 export const deals = pgTable("deals", {
   id: serial("id").primaryKey(),
@@ -92,7 +118,9 @@ export const deals = pgTable("deals", {
   until: varchar("until", { length: 64 }).notNull().default(""),
   active: boolean("active").notNull().default(false),
   sort: integer("sort").notNull().default(0),
-});
+}, (t) => [
+  check("deals_fiyat_pozitif", sql`${t.oldPrice} >= 0 and ${t.newPrice} >= 0`),
+]);
 
 export const gallery = pgTable("gallery", {
   id: serial("id").primaryKey(),
@@ -108,7 +136,10 @@ export const reviews = pgTable("reviews", {
   rating: integer("rating").notNull().default(5),
   visible: boolean("visible").notNull().default(false),
   sort: integer("sort").notNull().default(0),
-});
+}, (t) => [
+  // Tasarım yıldızları 1–5 arası basıyor; dışı sessizce bozuk görünürdü
+  check("reviews_puan_araligi", sql`${t.rating} between 1 and 5`),
+]);
 
 /**
  * * Çalışılan markalar / üreticiler (K-31) — TASARIMDA YOK.
@@ -130,12 +161,22 @@ export const brands = pgTable("brands", {
  * Bellekte tutulamaz: sunucusuz ortamda her istek başka bir örneğe
  * düşebilir, bellek sayacı işe yaramaz.
  */
-export const loginAttempts = pgTable("login_attempts", {
-  id: serial("id").primaryKey(),
-  /** Normalleştirilmiş e-posta ya da "ip:1.2.3.4" */
-  anahtar: varchar("anahtar", { length: 255 }).notNull(),
-  zaman: timestamp("zaman", { withTimezone: true }).notNull().defaultNow(),
-});
+export const loginAttempts = pgTable(
+  "login_attempts",
+  {
+    id: serial("id").primaryKey(),
+    /** Normalleştirilmiş e-posta ya da "ip:1.2.3.4" */
+    anahtar: varchar("anahtar", { length: 255 }).notNull(),
+    zaman: timestamp("zaman", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    /* HER giriş denemesi bu tabloda iki COUNT çalıştırıyor
+       (anahtar + zaman penceresi). İndeks yoktu: tam tarama. Tablo
+       saldırı anında en hızlı büyüyen tablo, yani indeksin en çok
+       gerektiği an tam da o an. */
+    index("login_attempts_anahtar_zaman_idx").on(t.anahtar, t.zaman),
+  ],
+);
 
 /** * Yönetim kullanıcıları (K-06). Tasarımda yok — giriş şifreli olacak ve
  *  panelden yeni admin eklenebilecek. */

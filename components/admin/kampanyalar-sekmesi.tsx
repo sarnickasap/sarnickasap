@@ -57,7 +57,8 @@ export function KampanyalarSekmesi({
   function yaz(id: number, alan: Partial<AdminFirsat>, hemen = false) {
     setListe((l) => l.map((d) => (d.id === id ? { ...d, ...alan } : d)));
     const calistir = () => firsatGuncelle({ id, ...alan }).then(onDegisti);
-    if (hemen) void calistir();
+    // `hemen` yolu da aynı sarmalıdan geçmeli — yoksa hatası yutulur
+    if (hemen) gecikmeli(`firsat-${id}-${Object.keys(alan)[0]}`, calistir, true);
     else gecikmeli(`firsat-${id}-${Object.keys(alan)[0]}`, calistir);
   }
 

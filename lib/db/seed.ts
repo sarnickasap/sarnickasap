@@ -119,6 +119,48 @@ async function main() {
     );
   }
 
+  /* ─────────────────────────────────────────────────────────────────────
+     🚨 YIKICI İŞLEM KORUMASI
+
+     Aşağısı ürünleri, fırsatları, galeriyi, kategorileri, çalışma
+     saatlerini ve site bilgilerini SİLİP yer tutucu verilerle değiştirir.
+
+     Yerel geliştirme `.env.local` ile ÜRETİM veritabanına bağlanıyor.
+     Yani `npm run db:seed` gerçek fiyatları, fırsatları ve iletişim
+     bilgisini yok eder — hiçbir uyarı olmadan. Bu projede iki kez üretim
+     verisi kaybedildi; bu betik üçüncüsünün en kolay yoluydu.
+
+     Artık ne silineceği önce SAYILIR, ekrana yazılır ve açık onay istenir:
+         SEED_ONAY="evet, sil" npm run db:seed
+     ───────────────────────────────────────────────────────────────────── */
+  const sayim = {
+    ürün: (await db.select().from(products)).length,
+    fırsat: (await db.select().from(deals)).length,
+    galeri: (await db.select().from(gallery)).length,
+    kategori: (await db.select().from(categories)).length,
+    saat: (await db.select().from(hours)).length,
+    "site bilgisi": (await db.select().from(siteInfo)).length,
+  };
+  const toplam = Object.values(sayim).reduce((a, b) => a + b, 0);
+
+  if (toplam > 0 && process.env.SEED_ONAY !== "evet, sil") {
+    console.error("\n🚨 DURDURULDU — seed yıkıcıdır ve veritabanı BOŞ DEĞİL.\n");
+    console.error("Silinecek kayıtlar:");
+    for (const [ad, n] of Object.entries(sayim)) {
+      if (n > 0) console.error(`   ${String(n).padStart(3)} ${ad}`);
+    }
+    const [bilgi] = await db.select().from(siteInfo).limit(1);
+    if (bilgi) {
+      console.error(`\nBu veritabanındaki iletişim bilgisi: ${bilgi.phone} · ${bilgi.address}`);
+    }
+    console.error(
+      "\nYerel geliştirme ÜRETİM veritabanını kullanıyor. Gerçekten" +
+        "\nyer tutucu verilere dönmek istiyorsan:" +
+        '\n\n   SEED_ONAY="evet, sil" npm run db:seed\n',
+    );
+    process.exit(1);
+  }
+
   console.log("→ Mevcut veriler temizleniyor…");
   await db.delete(products);
   await db.delete(deals);

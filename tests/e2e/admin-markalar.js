@@ -75,7 +75,6 @@ const PNG = Buffer.from(
   await marka(ADLAR[0]).locator('input[type=file]').setInputFiles(kotuSvg);
   /* Sabit bekleme KULLANMA: uyarı metni geç doluyor ve koşul boş string
      okuyordu — mesaj doğru olduğu hâlde test düşüyordu. */
-  const uyari=p.locator('main [role=alert]');
   const uyariMetni=await p.waitForFunction(()=>{
     const e=document.querySelector('main [role=alert]');
     const t=e?.innerText?.trim();

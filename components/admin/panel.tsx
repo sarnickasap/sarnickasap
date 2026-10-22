@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminHeader } from "./admin-header";
 import { AdminSidebar, type SekmeAnahtari } from "./admin-sidebar";
 import { UrunlerSekmesi, type AdminUrun } from "./urunler-sekmesi";
@@ -19,7 +19,7 @@ import {
   KullanicilarSekmesi,
   type AdminKullanici,
 } from "./kullanicilar-sekmesi";
-import { kayitDurumMetni } from "@/lib/kaydet";
+import { kayitDurumMetni, kayitSonucuDinle } from "@/lib/kaydet";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Panel kabuğu — vault "Admin Sidebar" notundaki gövde düzeni:
@@ -46,11 +46,31 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
   const [sekme, setSekme] = useState<SekmeAnahtari>("urunler");
   const [sonKayit, setSonKayit] = useState<Date | null>(null);
 
-  const kaydedildi = () => setSonKayit(new Date());
+  /* Kayıt durumu (K-34). Eskiden başarısız kayıt sessizdi: iyimser arayüz
+     yeni değeri ekranda tutuyor, kullanıcı kaydedildi sanıyordu.
+     Hata, tasarımın KENDİ durum metni alanında gösteriliyor — yeni arayüz
+     öğesi eklenmedi.
+
+     Hem başarı hem hata TEK yayından geliyor; hata yalnızca gerçekten
+     çözülen bir kayıtla temizlenir (bkz. lib/kaydet.ts). */
+  const [kayitHatasi, setKayitHatasi] = useState(false);
+  useEffect(
+    () =>
+      kayitSonucuDinle((s) => {
+        setKayitHatasi(!s.tamam);
+        if (s.tamam) setSonKayit(new Date());
+      }),
+    [],
+  );
+
+  const kaydedildi = () => {
+    setKayitHatasi(false);
+    setSonKayit(new Date());
+  };
 
   return (
     <div className="tema-admin flex min-h-screen flex-col bg-admin-bg text-black">
-      <AdminHeader durumMetni={kayitDurumMetni(sonKayit)} />
+      <AdminHeader durumMetni={kayitDurumMetni(sonKayit, kayitHatasi)} />
 
       <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-start gap-24 px-20 pt-24 pb-64">
         <AdminSidebar

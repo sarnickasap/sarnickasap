@@ -69,7 +69,8 @@ export function UrunlerSekmesi({
   function yaz(id: number, alan: Partial<AdminUrun>, hemen = false) {
     setListe((l) => l.map((p) => (p.id === id ? { ...p, ...alan } : p)));
     const calistir = () => urunGuncelle({ id, ...alan }).then(onDegisti);
-    if (hemen) void calistir();
+    // `hemen` yolu da aynı sarmalıdan geçmeli — yoksa hatası yutulur
+    if (hemen) gecikmeli(`urun-${id}-${Object.keys(alan)[0]}`, calistir, true);
     else gecikmeli(`urun-${id}-${Object.keys(alan)[0]}`, calistir);
   }
 

@@ -1,7 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { updateTag } from "next/cache";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import {
@@ -13,7 +12,7 @@ import {
   reviews,
   siteInfo,
 } from "@/lib/db/schema";
-import { SITE_TAG } from "@/lib/data";
+import { icerikDegisti } from "@/lib/actions/tazelik";
 import { oturumZorunlu } from "@/lib/session";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -31,11 +30,16 @@ async function yetkiVeTazele() {
   await oturumZorunlu();
 }
 
-function tazele() {
-  updateTag(SITE_TAG);
-}
+/** Tek kaynak: lib/actions/tazelik.ts — markalar da aynısını kullanıyor. */
+const tazele = icerikDegisti;
 
 /* ── Ürünler ─────────────────────────────────────────────────────────────── */
+
+/* Silme eylemleri `id`yi ham sayı olarak alıyordu. Server action bir HTTP
+   uç noktası; NaN/Infinity/ondalık gelirse Drizzle'ı aşıp veritabanından
+   ham hata dönüyordu. Güncelleme yolları zaten doğruluyordu — silme yolu
+   aynı korumayı almalı. */
+const kimlik = z.number().int().positive();
 
 const urunAlan = z.object({
   id: z.number().int().positive(),
@@ -51,7 +55,7 @@ export async function urunGuncelle(girdi: z.input<typeof urunAlan>) {
   const { id, ...alanlar } = urunAlan.parse(girdi);
   if (Object.keys(alanlar).length === 0) return;
   await db.update(products).set(alanlar).where(eq(products.id, id));
-  tazele();
+  await tazele();
 }
 
 export async function urunEkle(kategoriAdi: string | null) {
@@ -73,22 +77,58 @@ export async function urunEkle(kategoriAdi: string | null) {
       sort: enKucuk - 1,
     })
     .returning();
-  tazele();
+  await tazele();
   return yeni;
 }
 
 export async function urunSil(id: number) {
   await yetkiVeTazele();
-  await db.delete(products).where(eq(products.id, id));
-  tazele();
+  await db.delete(products).where(eq(products.id, kimlik.parse(id)));
+  await tazele();
 }
 
+/** Fiyat tavanı — `urunGuncelle` ile aynı sınır.
+ *  Veritabanı sütunu numeric(10,2): tavanı 99.999.999,99. */
+const FIYAT_TAVAN = 1_000_000;
+
+const topluAlan = z.object({
+  kategoriAdi: z.string().max(64),
+  /* Alt sınır -100: "%100 indirim" = sıfır, altı anlamsız.
+     Üst sınır 1000: tek seferde en çok 11 kat. Sınırsızken `numeric(10,2)`
+     taşıyordu — aşağıdaki nota bak. */
+  yuzde: z.number().finite().min(-100).max(1000),
+  yuvarlama: z.union([z.literal(1), z.literal(5), z.literal(10)]),
+});
+
 /** Toplu fiyat güncelleme — tasarımdaki bulkCalc ile birebir:
- *  Math.max(0, Math.round(price * (1 + pct/100) / round) * round) */
-export async function topluFiyat(kategoriAdi: string, yuzde: number, yuvarlama: number) {
+ *  Math.max(0, Math.round(price * (1 + pct/100) / round) * round)
+ *
+ *  ── Düzeltilen iki kusur ──
+ *
+ *  1. DOĞRULAMA YOKTU. `yuzde` ve `yuvarlama` istemciden ham geliyordu;
+ *     server action bir HTTP uç noktası olduğu için paneldeki alanlarla
+ *     sınırlı değil. Ölçüldü: %10.000.000 → 1.500 ₺ ürün 150.001.500 olur
+ *     ve PostgreSQL `numeric field overflow` fırlatır.
+ *
+ *  2. DÖNGÜ HÂLİNDE N AYRI UPDATE idi — işlem değildi. Yukarıdaki taşma
+ *     ortada patlayınca ÖNCEKİ satırlar değişmiş kalıyordu: kullanıcının
+ *     fiyat listesi yarı güncellenmiş, yarı eski. Artık TEK bir UPDATE;
+ *     ya hepsi yazılır ya hiçbiri.
+ *
+ *  Hesap JS'te kalıyor (SQL'e taşınmadı) çünkü paneldeki ÖNİZLEME de aynı
+ *  JS formülünü kullanıyor; SQL `numeric` ile JS kayan nokta yuvarlamanın
+ *  .5 sınırında ayrışması önizlemeyle yazılanı birbirinden koparırdı. */
+export async function topluFiyat(
+  kategoriAdiGirdi: string,
+  yuzdeGirdi: number,
+  yuvarlamaGirdi: number,
+) {
   await yetkiVeTazele();
-  const r = Math.max(1, Math.round(yuvarlama) || 1);
-  const pct = Number(yuzde) || 0;
+  const { kategoriAdi, yuzde, yuvarlama } = topluAlan.parse({
+    kategoriAdi: kategoriAdiGirdi,
+    yuzde: Number(yuzdeGirdi) || 0,
+    yuvarlama: Math.max(1, Math.round(yuvarlamaGirdi) || 1),
+  });
 
   const satirlar = await db
     .select({ id: products.id, price: products.price, cat: categories.name })
@@ -96,11 +136,27 @@ export async function topluFiyat(kategoriAdi: string, yuzde: number, yuvarlama: 
     .innerJoin(categories, eq(products.categoryId, categories.id));
 
   const hedef = satirlar.filter((p) => kategoriAdi === "Tümü" || p.cat === kategoriAdi);
-  for (const p of hedef) {
-    const yeni = Math.max(0, Math.round((p.price * (1 + pct / 100)) / r) * r);
-    await db.update(products).set({ price: yeni }).where(eq(products.id, p.id));
-  }
-  tazele();
+  if (hedef.length === 0) return 0;
+
+  const yeniler = hedef.map((p) => ({
+    id: p.id,
+    yeni: Math.min(
+      FIYAT_TAVAN,
+      Math.max(0, Math.round((p.price * (1 + yuzde / 100)) / yuvarlama) * yuvarlama),
+    ),
+  }));
+
+  // Tek ifade → atomik. Yarım kalmış fiyat listesi olamaz.
+  await db.execute(sql`
+    UPDATE ${products} AS p SET price = v.yeni
+    FROM (VALUES ${sql.join(
+      yeniler.map((g) => sql`(${g.id}::int, ${g.yeni}::numeric)`),
+      sql`, `,
+    )}) AS v(id, yeni)
+    WHERE p.id = v.id
+  `);
+
+  await tazele();
   return hedef.length;
 }
 
@@ -121,7 +177,7 @@ export async function firsatGuncelle(girdi: z.input<typeof firsatAlan>) {
   const { id, ...alanlar } = firsatAlan.parse(girdi);
   if (Object.keys(alanlar).length === 0) return;
   await db.update(deals).set(alanlar).where(eq(deals.id, id));
-  tazele();
+  await tazele();
 }
 
 export async function firsatEkle() {
@@ -139,14 +195,14 @@ export async function firsatEkle() {
       sort: enKucuk - 1,
     })
     .returning();
-  tazele();
+  await tazele();
   return yeni;
 }
 
 export async function firsatSil(id: number) {
   await yetkiVeTazele();
-  await db.delete(deals).where(eq(deals.id, id));
-  tazele();
+  await db.delete(deals).where(eq(deals.id, kimlik.parse(id)));
+  await tazele();
 }
 
 /* ── Galeri ──────────────────────────────────────────────────────────────── */
@@ -162,7 +218,7 @@ export async function galeriGuncelle(girdi: z.input<typeof galeriAlan>) {
   const { id, ...alanlar } = galeriAlan.parse(girdi);
   if (Object.keys(alanlar).length === 0) return;
   await db.update(gallery).set(alanlar).where(eq(gallery.id, id));
-  tazele();
+  await tazele();
 }
 
 export async function galeriEkle() {
@@ -173,14 +229,14 @@ export async function galeriEkle() {
     .insert(gallery)
     .values({ url: "", caption: "", sort: enBuyuk + 1 })
     .returning();
-  tazele();
+  await tazele();
   return yeni;
 }
 
 export async function galeriSil(id: number) {
   await yetkiVeTazele();
-  await db.delete(gallery).where(eq(gallery.id, id));
-  tazele();
+  await db.delete(gallery).where(eq(gallery.id, kimlik.parse(id)));
+  await tazele();
 }
 
 /* ── Yorumlar ────────────────────────────────────────────────────────────── */
@@ -198,7 +254,7 @@ export async function yorumGuncelle(girdi: z.input<typeof yorumAlan>) {
   const { id, ...alanlar } = yorumAlan.parse(girdi);
   if (Object.keys(alanlar).length === 0) return;
   await db.update(reviews).set(alanlar).where(eq(reviews.id, id));
-  tazele();
+  await tazele();
 }
 
 export async function yorumEkle() {
@@ -208,14 +264,14 @@ export async function yorumEkle() {
     .insert(reviews)
     .values({ name: "", text: "", rating: 5, visible: false, sort: enKucuk - 1 })
     .returning();
-  tazele();
+  await tazele();
   return yeni;
 }
 
 export async function yorumSil(id: number) {
   await yetkiVeTazele();
-  await db.delete(reviews).where(eq(reviews.id, id));
-  tazele();
+  await db.delete(reviews).where(eq(reviews.id, kimlik.parse(id)));
+  await tazele();
 }
 
 /* ── İletişim bilgileri ve saatler ───────────────────────────────────────── */
@@ -239,7 +295,7 @@ export async function bilgiGuncelle(girdi: z.input<typeof bilgiAlan>) {
     .update(siteInfo)
     .set({ ...alanlar, updatedAt: new Date() })
     .where(eq(siteInfo.id, 1));
-  tazele();
+  await tazele();
 }
 
 const saatAlan = z.object({
@@ -254,5 +310,5 @@ export async function saatGuncelle(girdi: z.input<typeof saatAlan>) {
   const { dayIndex, ...alanlar } = saatAlan.parse(girdi);
   if (Object.keys(alanlar).length === 0) return;
   await db.update(hours).set(alanlar).where(eq(hours.dayIndex, dayIndex));
-  tazele();
+  await tazele();
 }

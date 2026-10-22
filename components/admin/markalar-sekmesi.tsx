@@ -42,7 +42,8 @@ export function MarkalarSekmesi({
   function yaz(id: number, alan: Partial<AdminMarka>, hemen = false) {
     setListe((l) => l.map((m) => (m.id === id ? { ...m, ...alan } : m)));
     const calistir = () => markaGuncelle({ id, ...alan }).then(onDegisti);
-    if (hemen) void calistir();
+    // `hemen` yolu da aynı sarmalıdan geçmeli — yoksa hatası yutulur
+    if (hemen) gecikmeli(`marka-${id}-${Object.keys(alan)[0]}`, calistir, true);
     else gecikmeli(`marka-${id}-${Object.keys(alan)[0]}`, calistir);
   }
 

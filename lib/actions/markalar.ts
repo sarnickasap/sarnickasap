@@ -2,11 +2,10 @@
 
 import { eq } from "drizzle-orm";
 import { put, del } from "@vercel/blob";
-import { updateTag } from "next/cache";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { brands } from "@/lib/db/schema";
-import { SITE_TAG } from "@/lib/data";
+import { icerikDegisti } from "@/lib/actions/tazelik";
 import { oturumZorunlu } from "@/lib/session";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -46,6 +45,9 @@ const MAKS_BAYT = 1024 * 1024; // 1 MB — logo için fazlasıyla yeterli
    yapıların hiçbirine ihtiyaç duymaz, dolayısıyla meşru dosya engellenmez. */
 const SVG_YASAK = /<script|<foreignObject|<iframe|\son\w+\s*=|javascript:|<!ENTITY|<use[^>]+href\s*=\s*["']?(?:https?:)?\/\//i;
 
+/** Silme/yükleme yolları da güncelleme yolu kadar doğrulanmalı. */
+const kimlik = z.number().int().positive();
+
 const markaAlan = z.object({
   id: z.number().int().positive(),
   name: z.string().max(128).optional(),
@@ -58,7 +60,7 @@ export async function markaGuncelle(girdi: z.input<typeof markaAlan>) {
   const { id, ...alanlar } = markaAlan.parse(girdi);
   if (Object.keys(alanlar).length === 0) return;
   await db.update(brands).set(alanlar).where(eq(brands.id, id));
-  updateTag(SITE_TAG);
+  await icerikDegisti();
 }
 
 export async function markaEkle() {
@@ -68,12 +70,13 @@ export async function markaEkle() {
     .insert(brands)
     .values({ name: "Yeni marka", logoUrl: "", linkUrl: "", visible: true, sort: enBuyuk + 1 })
     .returning();
-  updateTag(SITE_TAG);
+  await icerikDegisti();
   return yeni;
 }
 
-export async function markaSil(id: number) {
+export async function markaSil(girdiId: number) {
   await oturumZorunlu();
+  const id = kimlik.parse(girdiId);
   const [marka] = await db.select().from(brands).where(eq(brands.id, id)).limit(1);
 
   // Logo dosyasını da sil — yetim blob bırakma
@@ -82,7 +85,7 @@ export async function markaSil(id: number) {
   }
 
   await db.delete(brands).where(eq(brands.id, id));
-  updateTag(SITE_TAG);
+  await icerikDegisti();
 }
 
 export type YuklemeSonuc = { hata?: string; url?: string };
@@ -93,10 +96,11 @@ export async function logoYukle(
 ): Promise<YuklemeSonuc> {
   await oturumZorunlu();
 
-  const id = Number(formData.get("id"));
+  const idHam = Number(formData.get("id"));
   const dosya = formData.get("logo");
 
-  if (!Number.isInteger(id) || id <= 0) return { hata: "Geçersiz marka." };
+  if (!kimlik.safeParse(idHam).success) return { hata: "Geçersiz marka." };
+  const id = idHam;
   if (!(dosya instanceof File) || dosya.size === 0)
     return { hata: "Dosya seçilmedi." };
   const uzanti = IZINLI[dosya.type];
@@ -128,6 +132,6 @@ export async function logoYukle(
   }
 
   await db.update(brands).set({ logoUrl: url }).where(eq(brands.id, id));
-  updateTag(SITE_TAG);
+  await icerikDegisti();
   return { url };
 }

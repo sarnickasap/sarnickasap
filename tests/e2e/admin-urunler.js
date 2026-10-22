@@ -73,6 +73,16 @@ async function giris(p,k){
 
   // Fiyat düzenleme + otomatik kayıt
   const ilkFiyat=p.locator('input[aria-label="Kilo fiyatı"]').first();
+  /* Sitemap tazeliği: `app/sitemap.ts` lastModified olarak
+     site_info.updated_at kullanıyor. Bu damga eskiden YALNIZCA iletişim
+     bilgisi değişince yazılıyordu; fiyat değişikliği sayfayı değiştirdiği
+     hâlde sitemap "değişmedi" diyordu (K-34). */
+  const lastmod=async()=>{
+    const t=await (await fetch(B+"/sitemap.xml")).text();
+    return t.match(/<lastmod>([^<]+)/)?.[1] ?? null;
+  };
+  const lastmodOnce=await lastmod();
+
   const eski=await ilkFiyat.inputValue();
   await ilkFiyat.fill("999");
   const damga=await kayitBekle(p, null);
@@ -88,6 +98,11 @@ async function giris(p,k){
   await p.waitForTimeout(500);
   ok(await p.locator('input[aria-label="Kilo fiyatı"]').first().inputValue()==="999",
      "Fiyat veritabanına yazıldı (yenilemeden sonra duruyor)");
+
+  const lastmodSonra=await lastmod();
+  ok(!!lastmodOnce && !!lastmodSonra &&
+     new Date(lastmodSonra).getTime() > new Date(lastmodOnce).getTime(),
+     `Fiyat değişince sitemap lastmod ilerledi (${lastmodOnce} → ${lastmodSonra})`);
 
   // Sitede göründü mü (updateTag çalışıyor mu)
   const s=await ctx.newPage();

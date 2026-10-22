@@ -25,9 +25,55 @@ const EPOSTA = "gecici-test@sarnickasap.invalid";
   const sifre = crypto.randomBytes(24).toString("base64url");
   const hash = await bcrypt.hash(sifre, 12);
 
+  /* Temizlik HER çıkış yolunda çalışmalı.
+     Ölçüldü: Neon'a ağ hatası (EPIPE) süreci `finally` dışından düşürdü ve
+     geçici yönetici ÜRETİMDE kaldı. Şifre rastgele ve hiçbir yere
+     yazılmıyor, yani kullanılabilir değil — ama fazladan bir yönetici satırı
+     `admin-kullanicilar` gibi testlerin varsayımını da bozuyor. */
   let olusturuldu = false;
+  let temizlendi = false;
+
+  async function temizle(sebep) {
+    if (!olusturuldu || temizlendi) return;
+    for (let deneme = 1; deneme <= 4; deneme++) {
+      try {
+        await sql`delete from users where email = ${EPOSTA}`;
+        await sql`delete from login_attempts where anahtar = ${"e:" + EPOSTA}`;
+        const [{ n }] = await sql`select count(*)::int n from users where email = ${EPOSTA}`;
+        if (n === 0) {
+          temizlendi = true;
+          console.log(`\n✅ geçici yönetici silindi${sebep ? ` (${sebep})` : ""}`);
+          return;
+        }
+      } catch (e) {
+        console.log(`   temizlik ${deneme}. deneme başarısız: ${String(e).slice(0, 70)}`);
+        await new Promise((r) => setTimeout(r, deneme * 800));
+      }
+    }
+    console.log(
+      `\n❌❌ UYARI: geçici yönetici SİLİNEMEDİ. Hemen elle silin:\n` +
+        `   delete from users where email = '${EPOSTA}';\n`,
+    );
+    process.exitCode = 1;
+  }
+
+  // Beklenmedik çıkış yolları da kapansın
+  for (const olay of ["SIGINT", "SIGTERM"]) {
+    process.on(olay, () => {
+      void temizle(olay).then(() => process.exit(1));
+    });
+  }
+  process.on("uncaughtException", (e) => {
+    console.error("Beklenmedik hata:", e);
+    void temizle("uncaughtException").then(() => process.exit(1));
+  });
+  process.on("unhandledRejection", (e) => {
+    console.error("Yakalanmamış söz reddi:", e);
+    void temizle("unhandledRejection").then(() => process.exit(1));
+  });
+
   try {
-    await sql`delete from users where email = ${EPOSTA}`; // artık varsa temizle
+    await sql`delete from users where email like 'gecici-test%'`; // artık varsa temizle
     await sql`insert into users (email, password_hash, name) values (${EPOSTA}, ${hash}, 'Geçici Test')`;
     olusturuldu = true;
     console.log(`▶ geçici yönetici açıldı: ${EPOSTA}\n`);
@@ -38,16 +84,6 @@ const EPOSTA = "gecici-test@sarnickasap.invalid";
     });
     process.exitCode = r.status ?? 1;
   } finally {
-    if (olusturuldu) {
-      await sql`delete from users where email = ${EPOSTA}`;
-      // Hız sınırı kayıtları da kalmasın
-      await sql`delete from login_attempts where anahtar = ${"e:" + EPOSTA}`;
-      const [{ n }] = await sql`select count(*)::int n from users where email = ${EPOSTA}`;
-      if (n === 0) console.log(`\n✅ geçici yönetici silindi`);
-      else {
-        console.log(`\n❌❌ UYARI: geçici yönetici SİLİNEMEDİ (${n} kayıt) — hemen elle silin!`);
-        process.exitCode = 1;
-      }
-    }
+    await temizle();
   }
 })();

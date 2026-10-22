@@ -22,7 +22,18 @@ const opak = (p,sel)=>p.evaluate((s)=>{
     ok(await opak(p,"#galeri")===0, `Görünüm dışındaki bölüm gizli (opacity ${await opak(p,"#galeri")})`);
 
     await p.evaluate(()=>document.querySelector("#galeri")?.scrollIntoView());
-    await p.waitForTimeout(900);
+    /* Sabit bekleme KULLANMA: geçiş 900 ms'de hep bitmiyor ve ölçüm
+       0.994 gibi ara değerde yakalanıp testi kararsız yapıyordu.
+
+       DİKKAT: opaklık `#galeri`'de değil, `GoruntuyeGirince` SARMALAYICISINDA
+       (bkz. yukarıdaki `opak`). İlk düzeltmemde `#galeri`'yi bekledim; o hep
+       1 olduğu için bekleme anında dönüyor ve test daha da kötüleşiyordu. */
+    await p.waitForFunction(()=>{
+      const sar=document.querySelector("#galeri")?.parentElement;
+      if(!sar) return false;
+      const bitti=sar.getAnimations().every(a=>a.playState==="finished");
+      return bitti && Number(getComputedStyle(sar).opacity)===1;
+    },null,{timeout:8000}).catch(()=>{});
     ok(await opak(p,"#galeri")===1, `Kaydırınca açıldı (opacity ${await opak(p,"#galeri")})`);
 
     // Hero animasyonsuz olmalı — sayfa açılır açılmaz görünür

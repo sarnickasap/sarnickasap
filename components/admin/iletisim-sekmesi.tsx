@@ -70,7 +70,8 @@ export function IletisimSekmesi({
   function yazSaat(dayIndex: number, alan: Partial<AdminSaat>, hemen = false) {
     setS((l) => l.map((x) => (x.dayIndex === dayIndex ? { ...x, ...alan } : x)));
     const calistir = () => saatGuncelle({ dayIndex, ...alan }).then(onDegisti);
-    if (hemen) void calistir();
+    // `hemen` yolu da aynı sarmalıdan geçmeli — yoksa hatası yutulur
+    if (hemen) gecikmeli(`saat-${dayIndex}-${Object.keys(alan)[0]}`, calistir, true);
     else gecikmeli(`saat-${dayIndex}-${Object.keys(alan)[0]}`, calistir);
   }
 

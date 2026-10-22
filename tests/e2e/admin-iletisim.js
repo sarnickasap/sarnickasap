@@ -24,6 +24,24 @@ const panelTazele=async(p,ad)=>{ await p.reload({waitUntil:"networkidle"}); awai
 /** Etiket metninden girdiyi bul — alanların aria-label'ı yok, <label> içindeler. */
 const alan=(p,etiket)=>p.locator("main label").filter({hasText:etiket}).locator("input, textarea").first();
 
+/* Yazmanın GERÇEKTEN bittiğini bekle — sabit süre kullanma.
+
+   Gecikmeli kayıt 600 ms sonra tetikleniyor ve her yazma bir sunucu gidiş
+   dönüşü. Sabit 2200 ms çoğu zaman yetiyordu ama yetmediği bir koşumda
+   `panelTazele` bekleyen yazmayı iptal etti ve ÜRETİMDE Pazar kapanış
+   saati yanlış kaldı. Artık başlıktaki damga ilerleyene kadar bekleniyor. */
+async function kayitBekle(p, oncekiDamga){
+  await p.waitForFunction((eski)=>{
+    const t=document.querySelector("header")?.innerText ?? "";
+    const m=t.match(/Kaydedildi \d{2}:\d{2}/);
+    return (!!m && m[0]!==eski) || /Kaydedilemedi/.test(t);
+  }, oncekiDamga, {timeout:25000}).catch(()=>{});
+  const t=await p.locator("header").innerText();
+  if (/Kaydedilemedi/.test(t)) throw new Error("Panel kaydedemedi: "+t.slice(0,80));
+  return t.match(/Kaydedildi \d{2}:\d{2}/)?.[0] ?? null;
+}
+const damgaOku=async(p)=>(await p.locator("header").innerText()).match(/Kaydedildi \d{2}:\d{2}/)?.[0] ?? null;
+
 (async()=>{
   const br=await chromium.launch({executablePath:EXE});
   const k=kimlikZorunlu(br);
@@ -47,11 +65,12 @@ const alan=(p,etiket)=>p.locator("main label").filter({hasText:etiket}).locator(
   // ── 2. DEĞİŞTİR ──
   const YENI={Telefon:"0500 000 00 00", Adres:"TEST—Deneme Mahallesi 1/A, Gaziemir",
               "Giriş başlığı":"TEST—Giriş başlığı denemesi"};
-  for (const a of ALANLAR){ await alan(p,a).fill(YENI[a]); await p.waitForTimeout(250); }
+  let damga=await damgaOku(p);
+  for (const a of ALANLAR){ await alan(p,a).fill(YENI[a]); damga=await kayitBekle(p,damga); }
   await p.locator('input[aria-label="Pazar açılış saati"]').fill("11:00");
-  await p.waitForTimeout(250);
+  damga=await kayitBekle(p,damga);
   await p.locator('input[aria-label="Pazar kapanış saati"]').fill("16:00");
-  await p.waitForTimeout(2200);
+  damga=await kayitBekle(p,damga);
 
   await panelTazele(p,"İletişim");
   for (const a of ALANLAR)
@@ -70,11 +89,12 @@ const alan=(p,etiket)=>p.locator("main label").filter({hasText:etiket}).locator(
      "Giriş başlığı sitede güncellendi");
 
   // ── 4. GERİ YÜKLE ──
-  for (const a of ALANLAR){ await alan(p,a).fill(yedek[a]); await p.waitForTimeout(250); }
+  damga=await damgaOku(p);
+  for (const a of ALANLAR){ await alan(p,a).fill(yedek[a]); damga=await kayitBekle(p,damga); }
   await p.locator('input[aria-label="Pazar açılış saati"]').fill(pazarAcilis);
-  await p.waitForTimeout(250);
+  damga=await kayitBekle(p,damga);
   await p.locator('input[aria-label="Pazar kapanış saati"]').fill(pazarKapanis);
-  await p.waitForTimeout(2200);
+  damga=await kayitBekle(p,damga);
 
   // ── 5. GERİ YÜKLEMEYİ DOĞRULA (yenileyerek) ──
   await panelTazele(p,"İletişim");
