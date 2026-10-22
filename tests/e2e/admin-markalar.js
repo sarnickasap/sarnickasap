@@ -43,23 +43,36 @@ const PNG = Buffer.from(
   const kart=()=>p.locator('main .grid > div');
   const basta=await kart().count();
 
-  // ── Ekleme + logo yükleme ──
-  for (let i=0;i<ADLAR.length;i++){
+  /* ── Ekleme + logo yükleme ──
+     ⚠️ KONUMA GÖRE HEDEFLEME YASAK (AGENTS.md). Eskiden `nth(basta+i)` ile
+     sona bakılıyordu; bu, ekleme sıralamasının sona eklediği VARSAYIMINA
+     dayanıyor. `admin-kampanyalar`'da aynı varsayım yanlış çıktı ve mevcut
+     iki fırsat silindi. Marka tablosu şu an boş olduğu için zarar görülmedi,
+     ama kullanıcı logo yükledikten sonra ONUN markalarını bozabilirdi.
+     Yeni kayıt varsayılan adıyla bulunur, tek olduğu doğrulanır, adı
+     yazılır ve bundan sonra hep adla hedeflenir. */
+  for (const ad of ADLAR){
+    const oncekiSayi=await kart().count();
     await p.locator('main button:has-text("Marka ekle")').click();
-    await p.waitForTimeout(900);
-    const son=kart().nth(basta+i);
-    await son.locator('input[aria-label="Marka adı"]').fill(ADLAR[i]);
-    await p.waitForTimeout(150);
-    await son.locator('input[type=file]').setInputFiles(png);
+    await p.waitForFunction((n)=>document.querySelectorAll('main input[aria-label="Marka adı"]').length===n+1,
+      oncekiSayi,{timeout:20000}).catch(()=>{});
+    const varsayilan=p.locator('main .grid > div').filter({has:p.locator('input[value="Yeni marka"]')});
+    ok(await varsayilan.count()===1, `Yeni kart varsayılan adıyla tek bulundu (${await varsayilan.count()})`);
+    await varsayilan.first().locator('input[aria-label="Marka adı"]').fill(ad);
+    await p.waitForFunction((a)=>document.querySelector(`main input[value="${a}"]`)!==null,ad,{timeout:15000}).catch(()=>{});
+    await p.locator('main .grid > div').filter({has:p.locator(`input[value="${ad}"]`)})
+      .locator('input[type=file]').setInputFiles(png);
     await p.waitForTimeout(2500);
   }
+  /** Bundan sonra kartlar hep ADLA hedeflenir. */
+  const marka=(ad)=>p.locator('main .grid > div').filter({has:p.locator(`input[value="${ad}"]`)});
   ok(await kart().count()===basta+ADLAR.length, `${ADLAR.length} marka eklendi (${await kart().count()-basta})`);
-  const src=await kart().nth(basta).locator("img").getAttribute("src");
+  const src=await marka(ADLAR[0]).locator("img").getAttribute("src");
   ok(!!src?.includes("blob.vercel-storage.com"), `Logo Vercel Blob'da: ${src?.slice(0,46)}…`);
   ok(!!src?.endsWith(".png"), `Uzanti MIME'dan türetildi (.png): ${src?.split("/").pop()}`);
 
   // ── Güvenlik: betik içeren SVG reddedilmeli (K-32) ──
-  await kart().nth(basta).locator('input[type=file]').setInputFiles(kotuSvg);
+  await marka(ADLAR[0]).locator('input[type=file]').setInputFiles(kotuSvg);
   /* Sabit bekleme KULLANMA: uyarı metni geç doluyor ve koşul boş string
      okuyordu — mesaj doğru olduğu hâlde test düşüyordu. */
   const uyari=p.locator('main [role=alert]');
@@ -70,13 +83,13 @@ const PNG = Buffer.from(
   },null,{timeout:20000}).then(h=>h.jsonValue()).catch(()=>null);
   ok(!!uyariMetni && /güvenlik/i.test(uyariMetni),
      `Betikli SVG reddedildi: ${uyariMetni ? uyariMetni.slice(0,60) : "UYARI YOK"}`);
-  const srcSonra=await kart().nth(basta).locator("img").getAttribute("src");
+  const srcSonra=await marka(ADLAR[0]).locator("img").getAttribute("src");
   ok(srcSonra===src, "Reddedilen yükleme mevcut logoyu değiştirmedi");
 
   // ── Temiz SVG kabul edilmeli ──
-  await kart().nth(basta).locator('input[type=file]').setInputFiles(temizSvg);
+  await marka(ADLAR[0]).locator('input[type=file]').setInputFiles(temizSvg);
   await p.waitForTimeout(2500);
-  const svgSrc=await kart().nth(basta).locator("img").getAttribute("src");
+  const svgSrc=await marka(ADLAR[0]).locator("img").getAttribute("src");
   ok(!!svgSrc?.endsWith(".svg"), `Temiz SVG kabul edildi (.svg): ${svgSrc?.split("/").pop()}`);
 
   // ── TEMİZLİK: eklenen her markayı sil ──

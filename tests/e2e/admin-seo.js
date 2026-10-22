@@ -38,19 +38,34 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   await p.waitForTimeout(300);
   ok((await main()).includes("Google kırpabilir"), "Sınır aşımı uyarısı çıkıyor");
 
-  // Kaydedildi mi
-  await baslik.fill("Sarnıç Kasap — Gaziemir'de taze et");
-  await p.waitForTimeout(1800);
+  // Kaydedildi mi — sabit metin DEĞİL, testin kendi işareti
+  const DENEME="TEST—SEO başlığı denemesi";
+  await baslik.fill(DENEME);
+  await p.waitForTimeout(2000);
   ok((await p.locator("header").innerText()).match(/Kaydedildi \d{2}:\d{2}/)!==null, "Otomatik kayıt tetiklendi");
 
-  await p.reload({waitUntil:"networkidle"}); await p.waitForSelector("header"); await p.waitForTimeout(800);
-  await p.evaluate(()=>{const b=[...document.querySelectorAll("aside button")].find(x=>x.textContent?.trim().startsWith("SEO")); if (b) b.click();});
-  await p.waitForTimeout(600);
-  ok(await p.locator('main input').first().inputValue()==="Sarnıç Kasap — Gaziemir'de taze et", "Veritabanına yazıldı");
+  const seoAc=async()=>{ await p.reload({waitUntil:"networkidle"}); await p.waitForSelector("header");
+    await p.waitForFunction(()=>document.querySelectorAll("main").length===1,null,{timeout:15000}).catch(()=>{});
+    await p.waitForTimeout(500);
+    await p.evaluate(()=>{const b=[...document.querySelectorAll("aside button")].find(x=>x.textContent?.trim().startsWith("SEO")); if (b) b.click();});
+    await p.waitForTimeout(700); };
 
-  // Geri al
-  await p.locator('main input').first().fill(eski);
-  await p.waitForTimeout(1800);
+  await seoAc();
+  ok(await p.locator('main input').first().inputValue()===DENEME, "Veritabanına yazıldı");
+
+  /* ── GERİ AL ve DOĞRULA ──
+     Eskiden geri alma sabit 1800 ms bekliyor ve HİÇ doğrulanmıyordu.
+     Tutmazsa kullanıcının SEO başlığı test metniyle — ya da bir adım önceki
+     70 karakterlik "xxx…" ile — canlıda kalırdı. Üç deneme hakkı var. */
+  let geri=null;
+  for (let d=1; d<=3; d++){
+    await p.locator('main input').first().fill(eski);
+    await p.waitForTimeout(2200);
+    await seoAc();
+    geri=await p.locator('main input').first().inputValue();
+    if (geri===eski) break;
+  }
+  ok(geri===eski, `GERİ ALMA DOĞRULANDI: başlık "${(geri??"").slice(0,42)}…"`);
 
   await br.close();
   console.log(f?`\n❌ ${f} BAŞARISIZ`:"\n✅ Tümü geçti"); process.exit(f?1:0);

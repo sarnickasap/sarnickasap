@@ -103,11 +103,24 @@ olmamalı. `tests/gecici-admin.js` bunu çözer.
 Yerel geliştirme **canlı Neon veritabanını** kullanıyor.
 
 - Silmeyi **kendi oluşturduğun e-postaya / ön eke göre** hedefle.
-- `.first()`, `.nth(0)` gibi **konuma dayalı silme YASAK.** Bir kez
-  `admin-kullanicilar` testi `.first()` ile **gerçek yöneticinin hesabını**
-  sildi; şifre hash'i geri getirilemedi, hesap yeni şifreyle açılmak zorunda
-  kaldı.
-- Koşum sonunda silmeyi **doğrula** (`count === 0`).
+- `.first()`, `.nth(n)` gibi **konuma dayalı hedefleme YASAK** — yalnızca
+  silmede değil, **her türlü düzenlemede**. İki kez üretim verisi kaybedildi:
+  1. `admin-kullanicilar` `.first()` ile **gerçek yöneticinin hesabını**
+     sildi; şifre hash'i geri gelmedi.
+  2. `admin-kampanyalar` `nth(once)` ile listenin sonuna baktı, ama
+     `firsatEkle` yeni kaydı `sort: enKucuk - 1` ile **BAŞA** ekliyor;
+     mevcut iki fırsatın adı değiştirilip **silindi**.
+- "Ekle"den sonra yeni kaydı **varsayılan/boş değerinden** bul ve
+  **tam bir tane** olduğunu doğrula; sonra kendi değerini yaz ve bundan
+  sonra hep o değerle hedefle.
+- Ekleme sonrası **sabit bekleme kullanma**; sayının arttığını
+  `waitForFunction` ile bekle (Neon gecikmesinde 1,3 sn yetmiyor).
+- Koşum sonunda silmeyi/geri almayı **doğrula** (`count === 0`, yenileyip
+  değer karşılaştır).
+
+> Ekleme eylemlerinin sıralaması tek tip DEĞİL: `firsatEkle` başa
+> (`enKucuk - 1`), `markaEkle` sona (`enBuyuk + 1`) ekliyor. Konuma asla
+> güvenme.
 
 ### axe taramasında `reducedMotion: "reduce"` zorunlu
 

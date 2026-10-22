@@ -47,46 +47,63 @@ export default async function AnaSayfa() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: guvenliJsonLd(jsonLd) }}
       />
-      <SiteHeader waLink={wa} firsatVar={firsatlar.length > 0}
-        yorumVar={yorumlar.length > 0} />
-      <Hero
-        heroTitle={info.heroTitle}
-        heroSub={info.heroSub}
-        phone={info.phone}
+      <SiteHeader
         waLink={wa}
-        telLink={telLink(info.whatsapp)}
-        saatler={saatler}
+        firsatVar={firsatlar.length > 0}
+        yorumVar={yorumlar.length > 0}
       />
-      {/* B3+ bölümleri buraya gelecek */}
-      <GoruntuyeGirince>
-        <Firsatlar firsatlar={firsatlar} whatsapp={info.whatsapp} />
-      </GoruntuyeGirince>
-      <GoruntuyeGirince>
-        <Urunler
-          urunler={urunler}
-          kategoriler={kategoriler.map((k) => k.name)}
-          whatsapp={info.whatsapp}
+
+      {/* ⚠️ TASARIM SAPMASI (K-33, kullanıcı onayı ile).
+          Tasarım kaynağında (Sarnic Kasap.dc.html) `<main>` YOK — yalnızca
+          header, nav, section'lar ve footer var. Admin tasarımında var.
+
+          Eklendi çünkü ekran okuyucu kullanıcısının ana içeriğe atlayacağı
+          bir landmark'ı yoktu. `<main>` tarayıcıda yalnızca `display: block`
+          demek; bölümler zaten blok akışında olduğu için DÜZEN DEĞİŞMİYOR —
+          ölçüldü, dört genişlikte birebir aynı (bkz. 07 - Görsel Karşılaştırma).
+
+          `id` ileride "içeriğe atla" bağlantısı istenirse hedef olsun diye. */}
+      <main id="ana-icerik">
+        <Hero
+          heroTitle={info.heroTitle}
+          heroSub={info.heroSub}
+          phone={info.phone}
+          waLink={wa}
+          telLink={telLink(info.whatsapp)}
+          saatler={saatler}
         />
-      </GoruntuyeGirince>
-      <GoruntuyeGirince>
-        <Hakkimizda about={info.about} />
-      </GoruntuyeGirince>
-      <GoruntuyeGirince>
-        <Markalar markalar={markalar} />
-      </GoruntuyeGirince>
-      <GoruntuyeGirince>
-        <Galeri ogeler={galeri} />
-      </GoruntuyeGirince>
-      <GoruntuyeGirince>
-        <Yorumlar yorumlar={yorumlar} />
-      </GoruntuyeGirince>
-      <Iletisim
-        address={info.address}
-        phone={info.phone}
-        telLink={telLink(info.whatsapp)}
-        waLink={wa}
-        saatler={saatler}
-      />
+        {/* B3+ bölümleri buraya gelecek */}
+        <GoruntuyeGirince>
+          <Firsatlar firsatlar={firsatlar} whatsapp={info.whatsapp} />
+        </GoruntuyeGirince>
+        <GoruntuyeGirince>
+          <Urunler
+            urunler={urunler}
+            kategoriler={kategoriler.map((k) => k.name)}
+            whatsapp={info.whatsapp}
+          />
+        </GoruntuyeGirince>
+        <GoruntuyeGirince>
+          <Hakkimizda about={info.about} />
+        </GoruntuyeGirince>
+        <GoruntuyeGirince>
+          <Markalar markalar={markalar} />
+        </GoruntuyeGirince>
+        <GoruntuyeGirince>
+          <Galeri ogeler={galeri} />
+        </GoruntuyeGirince>
+        <GoruntuyeGirince>
+          <Yorumlar yorumlar={yorumlar} />
+        </GoruntuyeGirince>
+        <Iletisim
+          address={info.address}
+          phone={info.phone}
+          telLink={telLink(info.whatsapp)}
+          waLink={wa}
+          saatler={saatler}
+        />
+      </main>
+
       <SiteFooter />
     </div>
   );

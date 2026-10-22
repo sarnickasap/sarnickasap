@@ -102,6 +102,54 @@ async function yakala(page, url, sel, dosya) {
     });
   });
 
+  /* ── "Bugün" vurgusunu nötrle ──
+     Yukarıdaki SAAT sabiti YALNIZCA TARAYICIYA uygulanıyor. Tasarım vurgulu
+     günü kendi JS'iyle istemcide hesapladığı için sahte saate uyuyor; ama
+     uygulamada vurgu SUNUCUDA hesaplanıyor (lib/saatler.ts `istanbulSimdi`)
+     ve sahte saat oraya ulaşmıyor.
+
+     Sonuç: referans günü (21 Eki Çarşamba) dışında HER GÜN iki farklı satır
+     vurgulu çıkıyor ve #iletisim ~185.000 piksel sahte fark veriyor. Bir kez
+     bu yüzden gerçek bir regresyon sanıldı.
+
+     Çözüm: iki sayfada da çalışma saatleri satırlarının hepsi AYNI
+     (vurgusuz) görünüme indiriliyor. Değerler sabit yazılmıyor — satırların
+     ÇOĞUNLUK arka planı ve rengi ölçülüp hepsine uygulanıyor, yani token
+     değişirse kendiliğinden uyuyor.
+
+     Vurgunun kendisi ayrıca tests/e2e/site-butunluk.js'te
+     `[aria-current="date"]` sayısıyla doğrulanıyor — kapsam dışı kalmıyor. */
+  await page.evaluate(() => {
+    const GUN = /^(Pazartesi|Salı|Çarşamba|Perşembe|Cuma|Cumartesi|Pazar)\b/;
+    const satirlar = [...document.querySelectorAll("div, li, tr")].filter(
+      (e) =>
+        GUN.test((e.innerText ?? "").trim()) &&
+        e.children.length <= 3 &&
+        (e.innerText ?? "").includes(":"),
+    );
+    if (satirlar.length < 3) return;
+
+    const cogunluk = (deger) => {
+      const say = {};
+      deger.forEach((v) => (say[v] = (say[v] ?? 0) + 1));
+      return Object.entries(say).sort((a, b) => b[1] - a[1])[0][0];
+    };
+    const stil = satirlar.map((e) => getComputedStyle(e));
+    const bg = cogunluk(stil.map((c) => c.backgroundColor));
+    const renk = cogunluk(stil.map((c) => c.color));
+    const agirlik = cogunluk(stil.map((c) => c.fontWeight));
+
+    satirlar.forEach((e) => {
+      e.style.setProperty("background-color", bg, "important");
+      e.style.setProperty("color", renk, "important");
+      e.style.setProperty("font-weight", agirlik, "important");
+      [...e.children].forEach((c) => {
+        c.style.setProperty("color", renk, "important");
+        c.style.setProperty("font-weight", agirlik, "important");
+      });
+    });
+  });
+
   await page.waitForTimeout(600);
   /* Admin sekmesi seçimi — iki tarafta da AYNI sekme açık olmalı,
      yoksa karşılaştırma anlamsız olur. */
