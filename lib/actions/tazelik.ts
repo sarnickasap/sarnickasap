@@ -35,6 +35,18 @@ export async function icerikDegisti() {
         .update(siteInfo)
         .set({ updatedAt: new Date() })
         .where(eq(siteInfo.id, 1));
+
+      /* Damga yazıldıktan SONRA bir kez daha tazele.
+
+         Yukarıdaki ilk `updateTag` damga yazılmadan önce çalışıyor; o anda
+         yeniden üretilen `sitemap.xml` ESKİ damgayı alıyordu, yani lastmod
+         sürekli bir değişiklik geride kalıyordu (test yakaladı:
+         19:25:46.794 → 19:25:46.794, hiç ilerlememiş).
+
+         İkinci tazeleme yanıt yolunun dışında olduğu için kullanıcıya
+         gecikme yansımıyor; maliyeti kayıt başına bir fazladan yeniden
+         üretim. */
+      updateTag(SITE_TAG);
     } catch (e) {
       console.error("Tazelik damgası yazılamadı:", e);
     }
