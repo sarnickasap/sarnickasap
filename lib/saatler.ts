@@ -45,6 +45,16 @@ export function istanbulSimdi(now: Date = new Date()) {
   };
 }
 
+/** Europe/Istanbul'daki takvim yılı. Footer telif satırı için. */
+export function istanbulYili(now: Date = new Date()): number {
+  return Number(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Istanbul",
+      year: "numeric",
+    }).format(now),
+  );
+}
+
 export type Saat = {
   dayIndex: number;
   day: string;

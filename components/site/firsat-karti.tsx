@@ -46,7 +46,7 @@ export function FirsatKarti({
       </div>
 
       <div className="flex flex-1 flex-col gap-6">
-        <h3 className="m-0 font-display text-24 font-semibold tracking-deal text-cream">
+        <h3 className="m-0 font-display text-24 font-semibold tracking-deal text-cream break-words">
           {firsat.title}
         </h3>
         <p className="m-0 text-14 leading-15 text-muted">{firsat.description}</p>

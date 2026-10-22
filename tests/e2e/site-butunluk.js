@@ -44,6 +44,30 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const kotu = await p.locator('a[target="_blank"]:not([rel*="noopener"])').count();
   ok(kotu===0, `target="_blank" bağlantıların hepsinde rel="noopener" (eksik: ${kotu})`);
 
+  /* ── SEO adresleri tek ve YÖNLENMEYEN ana makinede olmalı ──
+     Hata: `SITE_URL` apex'te kalmıştı, apex ise www'ye 308 yönlendiriyor.
+     canonical / og:url / JSON-LD url / sitemap / robots hepsi yönlenen
+     adresi gösteriyordu. Hepsi aynı kaynaktan geldiği için tek kontrol
+     yeterli, ama her birini ayrı doğrula — biri elle yazılırsa yakalanır. */
+  const seo=await p.evaluate(()=>({
+    canonical:document.querySelector('link[rel=canonical]')?.getAttribute("href"),
+    ogUrl:document.querySelector('meta[property="og:url"]')?.getAttribute("content"),
+    ogImage:document.querySelector('meta[property="og:image"]')?.getAttribute("content"),
+    ld:(()=>{try{return JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent).url}catch{return null}})(),
+  }));
+  const TEMEL="http://localhost:3100";
+  const sm=await (await fetch(TEMEL+"/sitemap.xml")).text();
+  const rb=await (await fetch(TEMEL+"/robots.txt")).text();
+  const adresler={canonical:seo.canonical, "og:url":seo.ogUrl, "og:image":seo.ogImage,
+                  "json-ld url":seo.ld, sitemap:sm.match(/<loc>([^<]+)/)?.[1],
+                  "robots sitemap":rb.match(/Sitemap:\s*(\S+)/)?.[1]};
+  const makine=(u)=>{try{return new URL(u).host}catch{return "(okunamadı)"}};
+  const makineler=[...new Set(Object.values(adresler).map(makine))];
+  ok(makineler.length===1, `Tüm SEO adresleri tek ana makinede: ${makineler.join(", ")}`);
+  for (const [ad,u] of Object.entries(adresler))
+    ok(!!u && !/^https?:\/\/sarnickasap\.com/.test(u),
+       `${ad} yönlenmeyen adreste: ${u ?? "YOK"}`);
+
   await br.close();
   console.log(f?`\n❌ ${f} BAŞARISIZ`:"\n✅ Tümü geçti"); process.exit(f?1:0);
 })();

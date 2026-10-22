@@ -1,5 +1,6 @@
 import { cacheLife } from "next/cache";
 import { Logo } from "@/components/logo";
+import { istanbulYili } from "@/lib/saatler";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Site Footer — vault "Site Footer" notundan birebir.
@@ -22,7 +23,11 @@ import { Logo } from "@/components/logo";
 async function yilGetir() {
   "use cache";
   cacheLife("days");
-  return new Date().getFullYear();
+  /* Europe/Istanbul'a sabit. Ham `new Date().getFullYear()` sunucu UTC'de
+     çalıştığı için 1 Ocak 00:00–03:00 (TR) arası ESKİ yılı gösteriyordu —
+     oysa açık/kapalı durumu ve saat tablosu Istanbul'a sabitlenmişti.
+     Yılda üç saatlik bir tutarsızlık; izleyici kitlesi Türkiye'de. */
+  return istanbulYili();
 }
 
 export async function SiteFooter() {

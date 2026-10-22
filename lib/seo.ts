@@ -30,8 +30,16 @@ export function guvenliJsonLd(veri: unknown): string {
     .replace(/\u2029/g, "\\u2029");
 }
 
+/* Birincil ana makine **www** (kullanıcı kararı: "www kalsın").
+   Apex `sarnickasap.com` → `www.sarnickasap.com` 308 ile yönleniyor.
+
+   HATA: varsayılan apex'te kalmıştı ve `NEXT_PUBLIC_SITE_URL` hiçbir yerde
+   tanımlı olmadığı için canonical, og:url, JSON-LD `url`, `metadataBase`,
+   `sitemap.xml` ve `robots.txt` hep **yönlenen** adresi gösteriyordu.
+   Canonical'ın 308 dönen bir adresi işaret etmesi çelişkili bir sinyal.
+   Tek kaynak burası; başka yerde elle yazılmıyor. */
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://sarnickasap.com";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sarnickasap.com";
 
 /** schema.org gün adları — hours tablosundaki sıra Pazartesi=0 */
 const SCHEMA_GUN = [

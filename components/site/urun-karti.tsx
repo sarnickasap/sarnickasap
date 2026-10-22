@@ -49,7 +49,7 @@ export function UrunKarti({
       </div>
 
       <div className="flex flex-1 flex-col gap-4">
-        <h3 className="m-0 font-display text-20 font-semibold tracking-product text-cream">
+        <h3 className="m-0 font-display text-20 font-semibold tracking-product text-cream break-words">
           {urun.name}
         </h3>
         <p className="m-0 text-13 leading-145 text-muted">{urun.note}</p>
