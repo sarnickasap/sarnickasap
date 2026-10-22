@@ -22,6 +22,17 @@ const PNG = Buffer.from(
   "base64");
 
 (async()=>{
+  /* Önceki ÇÖKEN koşumdan kalan kayıtları süpür.
+     Test "Yeni marka" adlı kartın tek olduğunu varsayıyor; artık bir kayıt
+     varsa varsayım bozuluyor ve test yanlışlıkla düşüyordu. Süpürme
+     yalnızca TEST veritabanında — `tests/kos.js` bunu garanti ediyor. */
+  if (process.env.DATABASE_URL && /\/sarnic_test(\?|$)/.test(process.env.DATABASE_URL)) {
+    const { neon } = require("@neondatabase/serverless");
+    const sql = neon(process.env.DATABASE_URL);
+    const n = await sql`delete from brands where name = 'Yeni marka' or name like 'TEST—%' returning id`;
+    if (n.length) console.log(`   (önceki koşumdan ${n.length} marka süpürüldü)`);
+  }
+
   const br=await chromium.launch({executablePath:EXE});
   const k=kimlikZorunlu(br);
   const dizin=fs.mkdtempSync(path.join(os.tmpdir(),"marka-test-"));
