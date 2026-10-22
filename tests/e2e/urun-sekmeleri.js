@@ -1,3 +1,9 @@
+/* Ürün sekmeleri: filtreleme, aria durumları, stok dışı davranışı.
+
+   ÖNEMLİ — sabit ürün sayısı YAZMA. Fiyat/ürün listesini kullanıcı
+   yönetiyor; her ekleme bu testi kırıyordu (19→20 yanlış alarmı).
+   Sayılar artık sayfanın kendisinden türetiliyor; test ilişkileri
+   doğruluyor, içeriği değil. */
 const { chromium } = require("playwright");
 const EXE="/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
@@ -8,36 +14,46 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
 
   const sekmeler=p.locator('#urunler [role=group] button');
   const kartlar=p.locator('#urunler .grid > div');
-  ok(await sekmeler.count()===8, `8 sekme (Tümü + 7 kategori) — bulunan ${await sekmeler.count()}`);
+  const n=await sekmeler.count();
+  ok(n>=2, `Tümü + en az 1 kategori sekmesi — bulunan ${n}`);
   ok(await sekmeler.first().getAttribute("aria-pressed")==="true", 'Varsayılan "Tümü" seçili');
-  ok(await kartlar.count()===19, `Tümü → 19 ürün (${await kartlar.count()})`);
 
-  await sekmeler.nth(1).click();  // Dana
+  const tumu=await kartlar.count();
+  ok(tumu>0, `Tümü → ${tumu} ürün`);
+
+  // Her kategoriyi gez: toplamları Tümü'ye eşit olmalı, aria tek seçili kalmalı
+  let toplam=0, ariaSorun=0;
+  for (let i=1;i<n;i++){
+    await sekmeler.nth(i).click();
+    await p.waitForTimeout(200);
+    const ad=(await sekmeler.nth(i).textContent()).trim();
+    const adet=await kartlar.count();
+    toplam+=adet;
+    if (await sekmeler.nth(i).getAttribute("aria-pressed")!=="true") ariaSorun++;
+    if (await sekmeler.first().getAttribute("aria-pressed")!=="false") ariaSorun++;
+    ok(adet<=tumu, `${ad} → ${adet} ürün (≤ ${tumu})`);
+  }
+  ok(toplam===tumu, `Kategori toplamları Tümü'ye eşit (${toplam} = ${tumu})`);
+  ok(ariaSorun===0, `aria-pressed her sekmede tek seçili (${ariaSorun} sapma)`);
+
+  // Stok dışı ürünlerde ok butonu olmamalı — ilişki testi, sabit sayı değil
+  await sekmeler.first().click();
   await p.waitForTimeout(200);
-  ok(await kartlar.count()===4, `Dana → 4 ürün (${await kartlar.count()})`);
-  ok(await sekmeler.nth(1).getAttribute("aria-pressed")==="true", "Dana aria-pressed=true");
-  ok(await sekmeler.first().getAttribute("aria-pressed")==="false", "Tümü aria-pressed=false");
+  ok(await kartlar.count()===tumu, "Tümü'ye dönünce ürün sayısı aynı");
+  const tukendi=await p.locator('#urunler .grid >> text=Tükendi').count();
+  const oklar=await p.locator('#urunler .grid a[href^="https://wa.me"]').count();
+  ok(oklar===tumu-tukendi,
+     `Ok butonu yalnızca stoktaki üründe: ${tumu} ürün − ${tukendi} tükendi = ${oklar} ok`);
 
-  await sekmeler.nth(3).click(); // Tavuk
-  await p.waitForTimeout(200);
-  ok(await kartlar.count()===3, `Tavuk → 3 ürün (${await kartlar.count()})`);
-
-  // Stok dışı ürün: Kuzu kol
-  await sekmeler.nth(2).click(); // Kuzu
-  await p.waitForTimeout(200);
-  const tukendi=p.locator('#urunler .grid >> text=Tükendi');
-  ok(await tukendi.count()===1, `Kuzu'da 1 "Tükendi" rozeti (${await tukendi.count()})`);
-  const oklar=p.locator('#urunler .grid a[href^="https://wa.me"]');
-  ok(await oklar.count()===2, `Stok dışı üründe ok butonu yok: 3 üründen 2 ok (${await oklar.count()})`);
-
-  // WhatsApp mesajı birebir mi
-  const href=await oklar.first().getAttribute("href");
-  ok(decodeURIComponent(href).includes("Merhaba, Kuzu pirzola almak istiyorum. Miktar: "),
-     `Mesaj metni birebir: ${decodeURIComponent(href).split("text=")[1]}`);
-
-  await p.locator('#urunler [role=group] button').first().click();
-  await p.waitForTimeout(200);
-  ok(await kartlar.count()===19, "Tümü'ye dönünce 19 ürün");
+  // WhatsApp mesajı birebir mi — ürün adı karttan okunuyor
+  if (oklar>0){
+    const kart=p.locator('#urunler .grid > div').filter({has:p.locator('a[href^="https://wa.me"]')}).first();
+    // h3 → ürün adı. (Kartın ilk span'i kategori etiketi; onu alma.)
+    const ad=(await kart.locator("h3").first().textContent()).trim();
+    const href=decodeURIComponent(await kart.locator('a[href^="https://wa.me"]').getAttribute("href"));
+    ok(href.includes(`Merhaba, ${ad} almak istiyorum. Miktar: `),
+       `Mesaj metni birebir: ${href.split("text=")[1]}`);
+  }
 
   await br.close();
   console.log(f?`\n❌ ${f} BAŞARISIZ`:"\n✅ Tümü geçti"); process.exit(f?1:0);

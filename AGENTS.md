@@ -80,3 +80,51 @@ Oturuma bağlı sayfa/layout'lara ayrıca `export const instant = false` gerekir
 yerelde gereken ve bilerek Vercel'e eklenmeyen `AUTH_TRUST_HOST="true"`
 satırı pull sonrası kaybolur ve giriş `UntrustedHost` hatası verir.
 Pull yaptıysan satırı geri ekle.
+
+### ⚠️ Testleri çıktıya göre DEĞERLENDİRME — çıkış koduna bak
+
+```bash
+node tests/kos.js                 # tüm e2e, çıkış kodu tabanlı
+node tests/kos.js admin markalar  # ada göre süz
+node tests/gecici-admin.js        # geçici yönetici açar, koşar, siler
+```
+
+`0 = geçti · 2 = atlandı · diğer = başarısız`. **Çıktı üretmeden 0 dönen test
+`ŞÜPHELİ` sayılır ve başarısız raporlanır.** Sebep: `grep -c "❌"` ile
+değerlendirirken ilk satırda çöken testler (eksik `ADMIN_EMAIL`) hiç `❌`
+basmıyor, "0 hata → geçti" okunuyordu. Dört admin testi ve erişilebilirlik
+testinin panel bölümü bu yüzden uzun süre hiç koşmadı.
+
+Admin testleri `ADMIN_EMAIL` / `ADMIN_PW` ister; **`.env.local`'de yok** ve
+olmamalı. `tests/gecici-admin.js` bunu çözer.
+
+### ⚠️ Üretim veritabanına yazan test kendi verisini silmek ZORUNDA
+
+Yerel geliştirme **canlı Neon veritabanını** kullanıyor.
+
+- Silmeyi **kendi oluşturduğun e-postaya / ön eke göre** hedefle.
+- `.first()`, `.nth(0)` gibi **konuma dayalı silme YASAK.** Bir kez
+  `admin-kullanicilar` testi `.first()` ile **gerçek yöneticinin hesabını**
+  sildi; şifre hash'i geri getirilemedi, hesap yeni şifreyle açılmak zorunda
+  kaldı.
+- Koşum sonunda silmeyi **doğrula** (`count === 0`).
+
+### axe taramasında `reducedMotion: "reduce"` zorunlu
+
+Kaydırmayla açılan bölümün üst öğesi `opacity: 0` iken axe etkin opaklığı
+hesaba katıp **sahte `color-contrast` ihlali** üretir. Ölçülen örnek:
+`#urunler` eyebrow, rengi `#e0464e` (K-21'de onaylı), etkin opaklık 0.000.
+`reduce` ile 1.000 ve sonuç kararlı.
+
+### Testlerde sabit içerik sayısı yazma
+
+Ürün/marka listesini kullanıcı yönetiyor. Sabit sayılar (19 ürün, 5 logo)
+her ekleme/silmede **yanlış alarm** veriyordu. Sayıları sayfadan türet ve
+**ilişkileri** doğrula (kategori toplamları = Tümü, ok sayısı = ürün − tükendi).
+
+### Güvenlik başlıkları (K-32)
+
+`next.config.ts` → `headers()`. CSP'de `script-src 'unsafe-inline'` **zorunlu**
+(Next.js satır içi bootstrap script'i yazıyor; nonce PPR kabuğunu bozar).
+Yeni bir dış kaynak (font, CDN, API) eklerken CSP'yi güncelle — aksi halde
+tarayıcı **sessizce** engeller. Regresyon: `node tests/kos.js guvenlik`.

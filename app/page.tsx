@@ -20,7 +20,7 @@ import {
   urunlerGetir,
 } from "@/lib/data";
 import { WA_MESAJ, telLink, waLink } from "@/lib/format";
-import { yapilandirilmisVeri } from "@/lib/seo";
+import { guvenliJsonLd, yapilandirilmisVeri } from "@/lib/seo";
 
 export default async function AnaSayfa() {
   const [info, firsatlar, saatler, urunler, kategoriler] = await Promise.all([
@@ -45,7 +45,7 @@ export default async function AnaSayfa() {
           panelden gelir, ikinci bir yerde elle güncellenmez (K-11). */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: guvenliJsonLd(jsonLd) }}
       />
       <SiteHeader waLink={wa} firsatVar={firsatlar.length > 0}
         yorumVar={yorumlar.length > 0} />

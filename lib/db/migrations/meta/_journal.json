@@ -15,6 +15,13 @@
       "when": 1792614556897,
       "tag": "0001_robust_sharon_carter",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792648549647,
+      "tag": "0002_premium_banshee",
+      "breakpoints": true
     }
   ]
 }

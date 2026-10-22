@@ -1,19 +1,15 @@
 const { chromium } = require("playwright");
+const { kimlikZorunlu, paneleGir } = require("./_ortak");
 const EXE="/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const B="http://localhost:3100";
 let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
 
 (async()=>{
   const br=await chromium.launch({executablePath:EXE});
+  const k=kimlikZorunlu(br);
   const ctx=await br.newContext({viewport:{width:1280,height:1400},locale:"tr-TR"});
   const p=await ctx.newPage();
-  await p.goto(B+"/yonetim",{waitUntil:"networkidle"});
-  if(p.url().includes("giris")){
-    await p.fill("input[name=email]",process.env.ADMIN_EMAIL);
-    await p.fill("input[name=password]",process.env.ADMIN_PW);
-    await p.click("button[type=submit]");
-    await p.waitForURL(u=>!u.toString().includes("giris"),{timeout:20000});
-  }
+  await paneleGir(p, B, k);
   await p.waitForSelector("header");
   /* Yumuşak geçişte giriş sayfası bir süre DOM'da kalabiliyor; panel tek
      <main> olarak oturana kadar bekle (yoksa seçiciler iki öğe buluyor). */

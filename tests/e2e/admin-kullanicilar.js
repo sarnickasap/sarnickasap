@@ -1,18 +1,14 @@
 const { chromium } = require("playwright");
+const { kimlikZorunlu, paneleGir } = require("./_ortak");
 const EXE="/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const B="http://localhost:3100";
 let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
 
 (async()=>{
   const br=await chromium.launch({executablePath:EXE});
+  const k=kimlikZorunlu(br);
   const p=await (await br.newContext({viewport:{width:1280,height:1400},locale:"tr-TR"})).newPage();
-  await p.goto(B+"/yonetim",{waitUntil:"networkidle"});
-  if(p.url().includes("giris")){
-    await p.fill("input[name=email]",process.env.ADMIN_EMAIL);
-    await p.fill("input[name=password]",process.env.ADMIN_PW);
-    await p.click("button[type=submit]");
-    await p.waitForURL(u=>!u.toString().includes("giris"),{timeout:20000});
-  }
+  await paneleGir(p, B, k);
   await p.waitForSelector("header");
   /* Yumuşak geçişte giriş sayfası bir süre DOM'da kalabiliyor; panel tek
      <main> olarak oturana kadar bekle (yoksa seçiciler iki öğe buluyor). */
@@ -25,9 +21,15 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   await p.waitForTimeout(600);
 
   ok((await p.locator("main").innerText()).includes("Yöneticiler"), "Kullanıcılar sekmesi açıldı");
-  ok((await p.locator("main").innerText()).includes(process.env.ADMIN_EMAIL), "Mevcut hesap listede");
+  ok((await p.locator("main").innerText()).includes(k.eposta), "Mevcut hesap listede");
   ok(await p.locator('main :text-is("Siz")').count()===1, "Kendi hesabı 'Siz' olarak işaretli");
-  ok(await p.locator('main button[aria-label*="hesabını sil"]').count()===0, "Tek kullanıcı varken sil butonu yok");
+  /* Sil butonu yalnızca BAŞKA hesaplarda çıkmalı (kendini silemezsin).
+     Eskiden "tek kullanıcı varsa hiç sil butonu yok" diye sabitti; ikinci
+     bir yönetici varken bu yanlış. Artık ilişki kontrol ediliyor. */
+  const silButon=await p.locator('main button[aria-label*="hesabını sil"]').count();
+  ok(!(await p.locator(`main button[aria-label*="${k.eposta}"]`).count()),
+     `Kendi hesabında sil butonu yok (${k.eposta})`);
+  console.log(`   (listede sil butonu sayısı: ${silButon})`);
 
   // Şifre hash'i istemciye sızıyor mu?
   const html = await p.content();
@@ -63,11 +65,23 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   await p.waitForTimeout(1500);
   ok((await p.locator("main").innerText()).includes("zaten kayıtlı"), "Yinelenen e-posta reddedildi");
 
-  // Sil
-  p.once("dialog",d=>d.accept());
-  await p.locator('main button[aria-label*="hesabını sil"]').first().click();
-  await p.waitForTimeout(1500);
-  ok(!(await p.locator("main").innerText()).includes("test@ornek.com"), "Kullanıcı silindi");
+  /* ── Sil ──
+     DİKKAT: burada `.first()` KULLANMA. Bir kez `.first()` ile silindi ve
+     listedeki İLK hesap — gerçek yöneticinin hesabı — üretim veritabanından
+     uçtu (şifre hash'i geri getirilemedi, hesap yeni şifreyle yeniden
+     açılmak zorunda kaldı). Silme her zaman test kendi oluşturduğu
+     e-postaya göre hedeflenir. */
+  const silHedef=p.locator('main button[aria-label*="test@ornek.com"]');
+  ok(await silHedef.count()===1,
+     `Sil butonu test hesabına özel hedeflendi (${await silHedef.count()} eşleşme)`);
+  if (await silHedef.count()===1){
+    p.once("dialog",d=>d.accept());
+    await silHedef.click();
+    await p.waitForTimeout(1500);
+    ok(!(await p.locator("main").innerText()).includes("test@ornek.com"), "Test kullanıcısı silindi");
+  }
+  ok((await p.locator("main").innerText()).includes(k.eposta),
+     "TEMİZLİK SONRASI: yönetici hesabı hâlâ listede");
 
   await br.close();
   console.log(f?`\n❌ ${f} BAŞARISIZ`:"\n✅ Tümü geçti"); process.exit(f?1:0);

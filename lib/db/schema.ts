@@ -125,6 +125,18 @@ export const brands = pgTable("brands", {
   sort: integer("sort").notNull().default(0),
 });
 
+/**
+ * * Başarısız giriş denemeleri — kaba kuvvet sınırlaması (K-32).
+ * Bellekte tutulamaz: sunucusuz ortamda her istek başka bir örneğe
+ * düşebilir, bellek sayacı işe yaramaz.
+ */
+export const loginAttempts = pgTable("login_attempts", {
+  id: serial("id").primaryKey(),
+  /** Normalleştirilmiş e-posta ya da "ip:1.2.3.4" */
+  anahtar: varchar("anahtar", { length: 255 }).notNull(),
+  zaman: timestamp("zaman", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** * Yönetim kullanıcıları (K-06). Tasarımda yok — giriş şifreli olacak ve
  *  panelden yeni admin eklenebilecek. */
 export const users = pgTable("users", {

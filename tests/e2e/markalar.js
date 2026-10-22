@@ -11,6 +11,16 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   {
     const p=await (await br.newContext({viewport:{width:1280,height:900},locale:"tr-TR"})).newPage();
     await p.goto(B+"/",{waitUntil:"networkidle"});
+
+    /* Logolu marka yoksa bölüm tasarım gereği hiç basılmaz (K-31).
+       Eskiden test burada null üzerinde çöküyordu; artık açıkça atlıyor
+       ki "logo yüklenmedi" durumu regresyon gibi görünmesin. */
+    if (await p.locator("#markalar").count()===0){
+      console.log("⏭️  Logolu marka yok → şerit bölümü basılmadı (beklenen).");
+      console.log("    Panelden logo yükleyince bu test kendiliğinden çalışır.");
+      await br.close(); process.exit(2); // 2 = atlandı (bkz. tests/kos.js)
+    }
+
     const sira=await p.evaluate(()=>[...document.querySelectorAll("section[id]")].map(s=>s.id));
     ok(sira.indexOf("markalar")===sira.indexOf("hakkimizda")+1, `Hakkımızda'nın hemen altında: ${sira.join(" → ")}`);
 
@@ -22,14 +32,15 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
     });
     ok(anim.ad==="marka-ak", `Akış animasyonu çalışıyor (${anim.ad}, ${anim.sure})`);
 
-    // 5 logo × 2 kopya
+    // Liste iki kez basılı — sabit sayı değil, oran kontrolü
     const toplam=await p.locator("#markalar li").count();
     const gizli=await p.locator("#markalar li[aria-hidden='true']").count();
-    ok(toplam===10 && gizli===5, `Liste iki kez basılı, kopya gizli (${toplam} öğe, ${gizli} gizli)`);
+    ok(toplam===gizli*2 && gizli>0, `Liste iki kez basılı, kopya gizli (${toplam} öğe, ${gizli} gizli)`);
+    global.MARKA=gizli;
 
     // Ekran okuyucu tek liste görüyor mu
     const altlar=await p.evaluate(()=>[...document.querySelectorAll("#markalar img")].map(i=>i.alt).filter(Boolean));
-    ok(altlar.length===5, `Ekran okuyucu 5 marka adı görüyor (${altlar.length}): ${altlar.slice(0,2).join(", ")}…`);
+    ok(altlar.length===global.MARKA, `Ekran okuyucu ${global.MARKA} marka adı görüyor (${altlar.length}): ${altlar.slice(0,2).join(", ")}…`);
 
     // Fare üstünde duruyor mu
     await p.hover("#markalar .marka-serit");
@@ -55,7 +66,7 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
     ok(d.kopyaGorunur==="none", `Kopyalar gizlendi (${d.kopyaGorunur})`);
     // Hepsi görünür mü
     const gorunur=await p.locator("#markalar li:visible").count();
-    ok(gorunur===5, `5 logonun hepsi görünür (${gorunur})`);
+    ok(gorunur===global.MARKA, `${global.MARKA} logonun hepsi görünür (${gorunur})`);
     await p.context().close();
   }
 

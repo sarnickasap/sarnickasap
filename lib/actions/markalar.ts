@@ -17,8 +17,34 @@ import { oturumZorunlu } from "@/lib/session";
    yeri yok. Yükleme zorunlu bir kolaylık.
    ────────────────────────────────────────────────────────────────────────── */
 
-const IZINLI_TIP = ["image/png", "image/jpeg", "image/svg+xml", "image/webp"];
+/* MIME tipi → uzanti eşlemesi (K-32).
+
+   Önce `dosya.name.split(".").pop()` kullanılıyordu; yani uzanti TARAYICIDAN
+   gelen bir isme güveniyordu. Taramada `logo.noext` adlı bir dosya
+   `markalar/5.noext` olarak yüklendi — depodaki yolu saldırganın seçtiği bir
+   dize belirliyordu. Artık uzanti yalnızca DOĞRULANMIŞ MIME tipinden
+   türetiliyor; dosya adı hiç kullanılmıyor. */
+const IZINLI: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/svg+xml": "svg",
+  "image/webp": "webp",
+};
 const MAKS_BAYT = 1024 * 1024; // 1 MB — logo için fazlasıyla yeterli
+
+/* ── SVG içerik denetimi (K-32) ──
+   Ölçüm: Vercel Blob bir SVG'yi `content-type: image/svg+xml` +
+   `content-disposition: inline` ile sunuyor. Yani blob adresi doğrudan
+   açılırsa SVG içindeki <script> ÇALIŞIR.
+
+   Etki neden düşük: o origin `*.public.blob.vercel-storage.com`, bu sitenin
+   origin'i değil — sarnickasap.com çerezlerine veya DOM'una erişemez. Ayrıca
+   yükleme yalnızca girişli yöneticiye açık.
+
+   Bu denetim tam bir sanitizer DEĞİL, derinlemesine savunma: script, olay
+   işleyicileri ve dış kaynak çağrıları içeren SVG reddedilir. Logolar bu
+   yapıların hiçbirine ihtiyaç duymaz, dolayısıyla meşru dosya engellenmez. */
+const SVG_YASAK = /<script|<foreignObject|<iframe|\son\w+\s*=|javascript:|<!ENTITY|<use[^>]+href\s*=\s*["']?(?:https?:)?\/\//i;
 
 const markaAlan = z.object({
   id: z.number().int().positive(),
@@ -73,15 +99,22 @@ export async function logoYukle(
   if (!Number.isInteger(id) || id <= 0) return { hata: "Geçersiz marka." };
   if (!(dosya instanceof File) || dosya.size === 0)
     return { hata: "Dosya seçilmedi." };
-  if (!IZINLI_TIP.includes(dosya.type))
-    return { hata: "Yalnızca PNG, JPG, SVG veya WEBP yüklenebilir." };
+  const uzanti = IZINLI[dosya.type];
+  if (!uzanti) return { hata: "Yalnızca PNG, JPG, SVG veya WEBP yüklenebilir." };
   if (dosya.size > MAKS_BAYT)
     return { hata: `Dosya 1 MB'tan küçük olmalı (şu an ${Math.round(dosya.size / 1024)} KB).` };
+
+  if (dosya.type === "image/svg+xml") {
+    const metin = await dosya.text();
+    if (SVG_YASAK.test(metin))
+      return {
+        hata: "Bu SVG betik veya dış kaynak içeriyor; güvenlik için reddedildi. PNG olarak yükleyin.",
+      };
+  }
 
   const [marka] = await db.select().from(brands).where(eq(brands.id, id)).limit(1);
   if (!marka) return { hata: "Marka bulunamadı." };
 
-  const uzanti = dosya.name.split(".").pop()?.toLowerCase() ?? "png";
   const { url } = await put(`markalar/${id}.${uzanti}`, dosya, {
     access: "public",
     // Aynı marka için tekrar yüklenince eskisinin üzerine yazılsın diye
