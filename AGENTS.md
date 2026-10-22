@@ -98,9 +98,25 @@ testinin panel bölümü bu yüzden uzun süre hiç koşmadı.
 Admin testleri `ADMIN_EMAIL` / `ADMIN_PW` ister; **`.env.local`'de yok** ve
 olmamalı. `tests/gecici-admin.js` bunu çözer.
 
-### ⚠️ Üretim veritabanına yazan test kendi verisini silmek ZORUNDA
+### ✅ Testler AYRI veritabanında çalışır (K-35)
 
-Yerel geliştirme **canlı Neon veritabanını** kullanıyor.
+`sarnic_test` — aynı Neon projesi, ayrı veritabanı. `.env.local` içinde
+`TEST_DATABASE_URL`. `tests/kos.js` bunu doğrular, gerekirse Next'i o
+veritabanıyla **derler** (`use cache` + PPR statik kabuğu derleme anında
+üretiyor; sunucuyu test veritabanıyla başlatmak YETMİYOR), sunucuyu kendisi
+başlatır ve **nöbetçi kontrolle** sunulan verinin test veritabanından
+geldiğini doğrular.
+
+`node tests/kos.js` ya da `node tests/gecici-admin.js` dışında bir yolla
+test çalıştırma — ikisi de üretime yazmayı reddeder.
+
+> Blob deposu hâlâ **paylaşımlı**. Test yüklemeleri kendi dosyasını siliyor
+> ama test çökerse yetim blob kalabilir. `npx vercel blob list` ile kontrol et.
+
+### ⚠️ Yine de: üretim veritabanına yazan test kendi verisini silmek ZORUNDA
+
+İzolasyon birinci savunma, bu ikinci. Yerel betikler (onarım, inceleme)
+hâlâ **canlı Neon veritabanını** kullanıyor.
 
 - Silmeyi **kendi oluşturduğun e-postaya / ön eke göre** hedefle.
 - `.first()`, `.nth(n)` gibi **konuma dayalı hedefleme YASAK** — yalnızca

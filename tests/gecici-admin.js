@@ -18,10 +18,18 @@ const path = require("path");
 
 const EPOSTA = "gecici-test@sarnickasap.invalid";
 
+/* 🚨 Bu betik yönetici hesabı OLUŞTURUYOR. Yalnızca test veritabanında
+   çalışmalı — bkz. tests/kos.js başındaki koruma notu. */
+const TEST_URL = process.env.TEST_DATABASE_URL;
+if (!TEST_URL || !/\/sarnic_test(\?|$)/.test(TEST_URL)) {
+  console.error("🚨 TEST_DATABASE_URL test veritabanını göstermiyor — çalıştırılmadı.");
+  process.exit(1);
+}
+
 (async () => {
   const bcrypt = require("bcryptjs");
   const { neon } = require("@neondatabase/serverless");
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = neon(TEST_URL);
   const sifre = crypto.randomBytes(24).toString("base64url");
   const hash = await bcrypt.hash(sifre, 12);
 
@@ -80,7 +88,7 @@ const EPOSTA = "gecici-test@sarnickasap.invalid";
 
     const r = spawnSync(process.execPath, [path.join(__dirname, "kos.js"), ...process.argv.slice(2)], {
       stdio: "inherit",
-      env: { ...process.env, ADMIN_EMAIL: EPOSTA, ADMIN_PW: sifre },
+      env: { ...process.env, DATABASE_URL: TEST_URL, ADMIN_EMAIL: EPOSTA, ADMIN_PW: sifre },
     });
     process.exitCode = r.status ?? 1;
   } finally {
