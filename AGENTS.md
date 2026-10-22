@@ -184,3 +184,18 @@ bekleyip opaklığı 0.994'te yakalıyordu. Opaklık `#galeri`'de değil
 `node tests/kos.js backend` — CHECK kısıtları, indeksler, son yönetici
 koruması, seed koruması. Bu kontroller uygulama katmanını atlayan yolları
 (seed, onarım betikleri, `drizzle-kit studio`, doğrudan SQL) koruyor.
+
+### Riskli işlemden önce YEDEK al (K-36)
+
+```bash
+node scripts/yedek.js al        # yedekler/YYYY-MM-DD-HHmm.json
+node scripts/yedek.js listele
+node scripts/yedek.js yukle <dosya>   # YEDEK_ONAY="evet, yukle" ister
+```
+
+Özellikle migration, seed, toplu fiyat ve kullanıcı silme öncesi.
+Dört veri olayının her birinde geri yükleme "seed'de ne vardı" tahminiyle
+yapıldı; kullanıcı gerçek kataloğunu girdikten sonra seed artık doğru
+referans değil.
+
+⚠️ Yedek dosyası **şifre hash'i içerir**. `yedekler/` `.gitignore`'da.

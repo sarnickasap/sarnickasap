@@ -6,9 +6,9 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    /* Test ve görsel karşılaştırma betikleri Node'da CommonJS olarak
-       çalışıyor; `require()` orada doğru kullanım. */
-    files: ["tests/**/*.js"],
+    /* Test, bakım ve görsel karşılaştırma betikleri Node'da CommonJS
+       olarak çalışıyor; `require()` orada doğru kullanım. */
+    files: ["tests/**/*.js", "scripts/**/*.js"],
     rules: { "@typescript-eslint/no-require-imports": "off" },
   },
   // Override default ignores of eslint-config-next.
