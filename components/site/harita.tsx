@@ -1,55 +1,59 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { KonumIkonu } from "@/components/icons";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Harita — görünüme yaklaşana kadar yüklenmez.
+   Harita — TIKLAYINCA yüklenen yüz (facade). Aşama 4, K-26'nın devamı.
 
-   Tasarımda iframe `loading="lazy"` ile doğrudan yazılıydı. Ölçüldü:
-   Chromium'un lazy eşiği çok geniş ve harita 4468px aşağıdayken bile
-   sayfa açılışında **387 KB** Google kaynağı indiriliyordu. Ziyaretçilerin
-   çoğu oraya hiç inmiyor; ayrıca her ziyaretçi için Google'a anında istek
-   gidiyordu.
+   K-26: tasarımdaki `loading="lazy"` iframe, harita 4468 px aşağıdayken
+   bile açılışta 387 KB Google kaynağı indiriyordu. Önce IntersectionObserver
+   ile 400 px kala yükleniyordu; bu, sayfayı sonuna kadar kaydıran her
+   ziyaretçide yine ~387 KB ve Google'a istek demekti.
 
-   Bu bileşen iframe'i ancak 400px yaklaşınca DOM'a ekliyor. Yer tutucu
-   kutusu birebir aynı ölçüde (min-h 420, r12, 1px #1f1f1f, bg #171717),
-   dolayısıyla düzen kayması YOK — zaten harita yüklenene kadar görünen
-   şey de aynı gri kutuydu.
+   Artık iframe yalnızca ziyaretçi "Haritayı göster"e basınca DOM'a girer.
+   Yol tarifi isteyen çoğunluk için iletişim listesinde doğrudan Google
+   Haritalar bağlantısı var (iletisim.tsx) — haritayı açmaya gerek yok.
+
+   Kutu ölçüsü değişmedi (min-h 420, r12, 1px #1f1f1f, bg #171717) →
+   düzen kayması yok. Düğme sitenin ikincil düğme dili (h40 · r8 ·
+   1px #333333 · 14px/500); kutu zemini #171717 olduğu için hover zemini
+   #0a0a0a. Tıklanınca odak iframe'e taşınır (düğme kaybolduğu için odak
+   sayfanın başına düşmesin).
    ────────────────────────────────────────────────────────────────────────── */
 
 export function Harita({ src }: { src: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [yukle, setYukle] = useState(false);
+  const [goster, setGoster] = useState(false);
+  const cerceve = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const gozlemci = new IntersectionObserver(
-      ([giris]) => {
-        if (!giris.isIntersecting) return;
-        setYukle(true);
-        gozlemci.disconnect();
-      },
-      { rootMargin: "400px" },
-    );
-
-    gozlemci.observe(el);
-    return () => gozlemci.disconnect();
-  }, []);
+    if (goster) cerceve.current?.focus();
+  }, [goster]);
 
   return (
-    <div
-      ref={ref}
-      className="min-h-420 overflow-hidden rounded-12 border border-line bg-hover"
-    >
-      {yukle && (
+    <div className="flex min-h-420 flex-col overflow-hidden rounded-12 border border-line bg-hover">
+      {goster ? (
         <iframe
-          title="Sarnıç Kasap konum"
+          ref={cerceve}
+          title="Sarnıç Kasap konumu — Google Haritalar"
           src={src}
           loading="lazy"
-          className="map-filter block h-full min-h-420 w-full border-0"
+          className="map-filter block min-h-420 w-full flex-1 border-0"
         />
+      ) : (
+        <div className="flex flex-1 flex-col items-center justify-center gap-12 p-24 text-center">
+          <KonumIkonu size={28} className="text-brand-accent" />
+          <button
+            type="button"
+            onClick={() => setGoster(true)}
+            className="flex h-40 cursor-pointer items-center justify-center rounded-8 border border-edge bg-transparent px-16 text-14 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-ink hover:text-white"
+          >
+            Haritayı göster
+          </button>
+          <p className="m-0 max-w-[280px] text-12 leading-15 text-muted-dark">
+            Harita Google Haritalar’dan yüklenir.
+          </p>
+        </div>
       )}
     </div>
   );

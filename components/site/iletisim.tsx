@@ -1,12 +1,17 @@
 import { Suspense } from "react";
-import { KonumIkonu, MesajIkonu, TelefonIkonu } from "@/components/icons";
+import {
+  DisBaglantiIkonu,
+  KonumIkonu,
+  MesajIkonu,
+  TelefonIkonu,
+} from "@/components/icons";
 import type { Saat } from "@/lib/saatler";
 import {
   CalismaSaatleri,
   CalismaSaatleriIskelet,
 } from "./calisma-saatleri";
 import { Harita } from "./harita";
-import { haritaSorgusu } from "@/lib/format";
+import { haritaSorgusu, yolTarifiLinki } from "@/lib/format";
 
 /* ──────────────────────────────────────────────────────────────────────────
    İletişim — vault "Iletisim Bolumu" notundan birebir.
@@ -27,6 +32,10 @@ import { haritaSorgusu } from "@/lib/format";
    harita değişmiyordu. Artık adresten türetiliyor — İŞLETME ADI ÖNE
    EKLENEREK (bkz. lib/format.ts → haritaSorgusu). Yalnız adresle
    sorgulanınca Google dükkânı bulamıyor ve yanlış bölge gösteriyordu.
+
+   Aşama 4: adresin altında "Yol tarifi al" (yeni sekmede Google
+   Haritalar) ve harita tıklayınca yüklenir (harita.tsx, K-26 devamı).
+   Bağlantı adres metniyle aynı sütunda: 14px/500 · #f8efea · alt çizgi.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function Iletisim({
@@ -60,7 +69,19 @@ export function Iletisim({
           <div className="flex flex-col gap-16">
             <div className="flex items-start gap-14">
               <KonumIkonu size={20} className="mt-2 flex-none text-brand-accent" />
-              <span className="text-16 leading-15 text-read">{address}</span>
+              <div className="flex flex-col gap-6">
+                <span className="text-16 leading-15 text-read">{address}</span>
+                <a
+                  href={yolTarifiLinki(address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-fit items-center gap-6 text-14 font-medium text-cream underline underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white"
+                >
+                  Yol tarifi al
+                  <DisBaglantiIkonu size={14} className="flex-none" />
+                  <span className="sr-only"> (Google Haritalar, yeni sekmede açılır)</span>
+                </a>
+              </div>
             </div>
 
             <div className="flex items-center gap-14">

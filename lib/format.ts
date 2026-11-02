@@ -54,6 +54,19 @@ export function haritaSorgusu(adres: string): string {
   );
 }
 
+/**
+ * Google Haritalar yol tarifi bağlantısı (aşama 4) — resmî "Maps URLs"
+ * biçimi, API anahtarı gerektirmez, telefonda Haritalar uygulamasını açar.
+ * Hedefe işletme adı da eklenir: harita sorgusundaki dersle aynı, yalnız
+ * adresle Google dükkânı değil sokağı hedefliyor.
+ */
+export function yolTarifiLinki(adres: string): string {
+  return (
+    "https://www.google.com/maps/dir/?api=1&destination=" +
+    encodeURIComponent(`${ISLETME_ADI}, ${adres}`)
+  );
+}
+
 /** Tasarım: oldPrice > newPrice ise '%N indirim', değilse boş string. */
 export function indirimOrani(eski: number, yeni: number): string {
   if (!(eski > yeni)) return "";

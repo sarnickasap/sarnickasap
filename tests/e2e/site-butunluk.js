@@ -16,8 +16,9 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   ok(await p.locator("footer").count()===1, "Footer var");
 
   // Harita adresten türetiliyor mu (K-16)
-  // Harita görünüme yaklaşana kadar yüklenmiyor (D5) — önce oraya kaydır.
+  // Harita yalnızca "Haritayı göster"e basınca yükleniyor (K-26, aşama 4).
   await p.evaluate(()=>document.querySelector("#iletisim")?.scrollIntoView());
+  await p.locator('#iletisim button:has-text("Haritayı göster")').click();
   await p.waitForSelector("#iletisim iframe",{timeout:15000});
   const src = await p.locator("#iletisim iframe").getAttribute("src");
   ok(decodeURIComponent(src).includes("Atatürk, B. Menderes Cad. 126/D, Gaziemir, İzmir"),
@@ -27,6 +28,15 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   ok(src.includes("output=embed") && src.includes("z=16"), "Harita biçimi tasarımdaki gibi");
   const filtre = await p.locator("#iletisim iframe").evaluate(e=>getComputedStyle(e).filter);
   ok(filtre.includes("grayscale(1)") && filtre.includes("invert(0.92)"), `Harita filtresi: ${filtre}`);
+
+  // Yol tarifi bağlantısı (aşama 4)
+  const tarif = p.locator('#iletisim a:has-text("Yol tarifi al")');
+  ok(await tarif.count()===1, "Yol tarifi bağlantısı var");
+  const tarifHref = decodeURIComponent(await tarif.getAttribute("href") ?? "");
+  ok(tarifHref.startsWith("https://www.google.com/maps/dir/?api=1&destination=Sarnıç Kasap,"),
+     `Yol tarifi Google Haritalar biçiminde: ${tarifHref.slice(0,70)}`);
+  ok(await tarif.getAttribute("target")==="_blank" && (await tarif.getAttribute("rel")??"").includes("noopener"),
+     "Yol tarifi yeni sekmede, rel=noopener");
 
   // Çalışma saatleri: bugün vurgulu
   const vurgu = await p.locator('#iletisim [aria-current="date"]').count();

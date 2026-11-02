@@ -1,4 +1,5 @@
-/* Harita: görünüme yaklaşana kadar yüklenmemeli, kutusu düzen kaydırmamalı. */
+/* Harita: TIKLANANA kadar yüklenmemeli (kaydırınca bile), kutusu düzen
+   kaydırmamalı (K-26 → aşama 4 tıkla-yükle yüzü). */
 const { chromium } = require("playwright");
 const EXE="/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const B="http://localhost:3100";
@@ -27,10 +28,18 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
 
   const oncekiYukseklik = await p.evaluate(()=>document.documentElement.scrollHeight);
   await p.evaluate(()=>document.querySelector("#iletisim")?.scrollIntoView());
+  await p.waitForTimeout(1500);
+  ok(istek===0, `Kaydırınca da Google'a istek gitmiyor (${istek} istek)`);
+  ok(await p.locator("#iletisim iframe").count()===0, "Kaydırınca iframe yine yok");
+
+  const dugme = p.locator('#iletisim button:has-text("Haritayı göster")');
+  ok(await dugme.count()===1, "\"Haritayı göster\" düğmesi var");
+  await dugme.click();
   await p.waitForTimeout(3000);
 
-  ok(await p.locator("#iletisim iframe").count()===1, "Kaydırınca iframe eklendi");
-  ok(istek>0, `Harita kaynakları kaydırınca yüklendi (${istek} istek, ${(bayt/1024).toFixed(0)} KB)`);
+  ok(await p.locator("#iletisim iframe").count()===1, "Tıklayınca iframe eklendi");
+  ok(await p.evaluate(()=>document.activeElement?.tagName)==="IFRAME", "Odak iframe'e taşındı");
+  ok(istek>0, `Harita kaynakları tıklayınca yüklendi (${istek} istek, ${(bayt/1024).toFixed(0)} KB)`);
   const sonrakiYukseklik = await p.evaluate(()=>document.documentElement.scrollHeight);
   ok(oncekiYukseklik===sonrakiYukseklik, `Düzen kaymadı (${oncekiYukseklik} → ${sonrakiYukseklik} px)`);
 
