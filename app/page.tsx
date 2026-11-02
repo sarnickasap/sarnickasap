@@ -31,14 +31,19 @@ import {
 } from "@/lib/urun-kaynagi";
 
 export default async function AnaSayfa() {
-  const [info, firsatlar, saatler, dbUrun, dbKategori, katalog] = await Promise.all([
-    siteBilgisiGetir(),
-    aktifFirsatlarGetir(),
-    calismaSaatleriGetir(),
-    urunlerGetir(),
-    kategorilerGetir(),
-    katalogGetir(),
-  ]);
+  const [info, firsatlar, saatler, dbUrun, dbKategori, hamKatalog] =
+    await Promise.all([
+      siteBilgisiGetir(),
+      aktifFirsatlarGetir(),
+      calismaSaatleriGetir(),
+      urunlerGetir(),
+      kategorilerGetir(),
+      katalogGetir(),
+    ]);
+  /* Stok programında henüz "sitede göster" işaretli ürün yoksa katalog boş gelir;
+     site boş liste göstermesin diye o durumda da site DB'sine dönülür. */
+  const katalog =
+    hamKatalog && hamKatalog.products.length > 0 ? hamKatalog : null;
   const [galeri, yorumlar, markalar] = await Promise.all([
     galeriGetir(),
     gorunurYorumlarGetir(),
