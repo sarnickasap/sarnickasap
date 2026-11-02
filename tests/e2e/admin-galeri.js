@@ -14,8 +14,10 @@ const { kimlikZorunlu, paneleGir } = require("./_ortak");
 const EXE="/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const B="http://localhost:3100";
 const ALT="TEST—Vitrin denemesi";
-/* 1×1 PNG — yükleme için gerçek bir görsel dosyası. */
-const PNG={name:"test.png",mimeType:"image/png",buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==","base64")};
+/* 4×4 geçerli PNG (CRC'leri doğru) — tarayıcı küçültme adımı gerçekten
+   çözebilsin diye. Eski 1×1 dizgi bozuktu; <img src> olarak sayılıyordu
+   ama createImageBitmap reddediyor. */
+const PNG={name:"test.png",mimeType:"image/png",buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEElEQVR4nGPYoaQFRwzEcQCvoxBBPorGZAAAAABJRU5ErkJggg==","base64")};
 const DIS_URL="https://example.com/vitrin.jpg";
 let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
 
@@ -31,6 +33,7 @@ const panelTazele=async(p,ad)=>{ await p.reload({waitUntil:"networkidle"}); awai
   const k=kimlikZorunlu(br);
   const ctx=await br.newContext({viewport:{width:1280,height:1400},locale:"tr-TR",reducedMotion:"reduce"});
   const p=await ctx.newPage();
+  p.on("console",m=>{ if(m.type()==="error"&&!/insights|404/.test(m.text())) console.log("   panel konsol error: "+m.text().slice(0,140)); });
   await paneleGir(p, B, k);
   const site=await ctx.newPage();
   await site.goto(B+"/",{waitUntil:"networkidle"});
@@ -82,6 +85,8 @@ const panelTazele=async(p,ad)=>{ await p.reload({waitUntil:"networkidle"}); awai
   await bizim().locator('input[type=file]').setInputFiles(PNG);
   await p.waitForFunction((alt)=>{const k=[...document.querySelectorAll("main .rounded-12")]
     .find(x=>x.querySelector(`input[value="${alt}"]`)); return !!k?.querySelector("img");},ALT,{timeout:30000}).catch(()=>{});
+  const yuklemeUyarisi=await bizim().locator('[role="alert"]').innerText().catch(()=>"");
+  if(yuklemeUyarisi) console.log("   yükleme error: "+yuklemeUyarisi);
   await panelTazele(p,"Galeri");
   ok(await bizim().locator("img").count()===1, "Panelde önizleme görseli çıktı (yükleme)");
   const blobUrl=await bizim().locator('input[aria-label="Görsel bağlantısı"]').inputValue();
