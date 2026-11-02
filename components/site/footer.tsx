@@ -29,6 +29,10 @@ import { urunKaynagiGetir } from "@/lib/urun-verisi";
    Footer'ın 13px / #8a8a8a dili; `basis-full` ile kendi satırında,
    altındaki logo/© ve "Yönetim" satırı aynen kalır. Medya sorgusu yok:
    bağlantılar flex-wrap ile alt satıra iner.
+   `prefetch={false}`: footer her sayfada görünür olunca 7+ RSC ön
+   yüklemesi tetikliyordu (mobil veri + ISR yükü); tarayıcı yeniden
+   yüklemesinde bu istekler açık kalıp `networkidle`'ı da kilitliyordu
+   (admin-galeri zaman aşımı, ölçüldü). Tarayıcılar için bağlantı aynı.
    ────────────────────────────────────────────────────────────────────────── */
 
 const FOOTER_BAGLANTI =
@@ -44,17 +48,31 @@ async function yilGetir() {
   return istanbulYili();
 }
 
-function KategoriBaglantilari({ kategoriler }: { kategoriler: KategoriOzeti[] }) {
+function KategoriBaglantilari({
+  kategoriler,
+}: {
+  kategoriler: KategoriOzeti[];
+}) {
   if (kategoriler.length === 0) return null;
   return (
-    <nav aria-labelledby="footer-kategoriler" className="flex basis-full flex-wrap items-baseline gap-x-16 gap-y-8">
-      <h2 id="footer-kategoriler" className="m-0 text-13 font-medium text-muted">
+    <nav
+      aria-labelledby="footer-kategoriler"
+      className="flex basis-full flex-wrap items-baseline gap-x-16 gap-y-8"
+    >
+      <h2
+        id="footer-kategoriler"
+        className="m-0 text-13 font-medium text-muted"
+      >
         Kategoriler
       </h2>
       <ul className="m-0 flex flex-wrap gap-x-16 gap-y-8 p-0 list-none">
         {kategoriler.map((k) => (
           <li key={k.slug}>
-            <Link href={`/urunler/${k.slug}`} className={FOOTER_BAGLANTI}>
+            <Link
+              href={`/urunler/${k.slug}`}
+              prefetch={false}
+              className={FOOTER_BAGLANTI}
+            >
               {k.ad}
             </Link>
           </li>
