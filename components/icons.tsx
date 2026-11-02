@@ -106,3 +106,20 @@ export const KapatIkonu = ({ size, className }: Props) => (
     <path d="m6 6 12 12" />
   </svg>
 );
+
+/* ── Tasarımda YOK — online sipariş için eklendi (K-37).
+      Lucide `shopping-bag` ve `minus`; aynı çizim dili. */
+
+export const SepetIkonu = ({ size, className }: Props) => (
+  <svg width={size} height={size} className={className} {...ortak}>
+    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+    <path d="M3 6h18" />
+    <path d="M16 10a4 4 0 0 1-8 0" />
+  </svg>
+);
+
+export const EksiIkonu = ({ size, className }: Props) => (
+  <svg width={size} height={size} className={className} {...ortak}>
+    <path d="M5 12h14" />
+  </svg>
+);

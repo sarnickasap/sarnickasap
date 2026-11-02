@@ -28,6 +28,8 @@ export const WA_MESAJ = {
     `Merhaba, "${baslik}" fırsatından ayırtmak istiyorum.`,
   // Sondaki boşluk tasarımda var — müşteri miktarı yazsın diye. Silinmemeli.
   urun: (ad: string) => `Merhaba, ${ad} almak istiyorum. Miktar: `,
+  // Online sipariş sonrası (K-37) — tasarımda yok
+  siparisNo: (no: string) => `Merhaba, ${no} numaralı online siparişim hakkında yazıyorum.`,
 } as const;
 
 /** İşletme adı — harita sorgusunda ve yapılandırılmış veride kullanılır. */

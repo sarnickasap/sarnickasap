@@ -2,6 +2,7 @@ import { MesajIkonu } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { gorunurNavBaglantilari } from "./nav-baglantilari";
 import { MobilMenu } from "./mobil-menu";
+import { SepetDugmesi } from "./sepet-dugmesi";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Site Header — vault "Site Header" notundan birebir.
@@ -21,6 +22,10 @@ import { MobilMenu } from "./mobil-menu";
    Breakpoint uydurulmadı, ÖLÇÜLDÜ: tasarımın nav'ı 493px yer kaplıyor,
    768px'te kullanılabilir alan 496px — yani tasarımın kendi navigasyonu
    tam burada sığmaz oluyor. 768px ve üstü tasarımla birebir aynı.
+
+   Sepet (K-37): yalnızca online sipariş açıkken. Sepet düğmesi ve CTA tek
+   bir gap-8 grubunda — başlığın gap-24'ü iki kez eklenirse 390px'te satır
+   taşıyordu. Sipariş kapalıyken düzen öncekiyle birebir aynı.
    ────────────────────────────────────────────────────────────────────────── */
 
 const NAV_LINK =
@@ -31,10 +36,12 @@ export function SiteHeader({
   waLink,
   firsatVar,
   yorumVar,
+  sepetVar = false,
 }: {
   waLink: string;
   firsatVar: boolean;
   yorumVar: boolean;
+  sepetVar?: boolean;
 }) {
   const baglantilar = gorunurNavBaglantilari({ firsatVar, yorumVar });
 
@@ -65,18 +72,31 @@ export function SiteHeader({
         {/* Mobilde nav'ın yerini tutar, CTA'yı sağa iter */}
         <div className="flex-1 md:hidden" />
 
-        <a
-          href={waLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-40 flex-none items-center gap-8 rounded-8 bg-brand px-16 text-14 font-semibold whitespace-nowrap text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
-        >
-          <MesajIkonu size={16} />
-          Sipariş ver
-        </a>
+        {sepetVar ? (
+          <div className="flex flex-none items-center gap-8">
+            <SepetDugmesi />
+            <SiparisCta waLink={waLink} />
+          </div>
+        ) : (
+          <SiparisCta waLink={waLink} />
+        )}
 
         <MobilMenu baglantilar={baglantilar} />
       </div>
     </header>
+  );
+}
+
+function SiparisCta({ waLink }: { waLink: string }) {
+  return (
+    <a
+      href={waLink}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex h-40 flex-none items-center gap-8 rounded-8 bg-brand px-16 text-14 font-semibold whitespace-nowrap text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
+    >
+      <MesajIkonu size={16} />
+      Sipariş ver
+    </a>
   );
 }

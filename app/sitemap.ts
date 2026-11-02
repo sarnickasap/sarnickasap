@@ -11,5 +11,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 1,
     },
+    /* /sepet, /siparis ve /siparis/tamam BİLEREK yok — noindex (K-37). */
+    {
+      url: `${SITE_URL}/kvkk`,
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
   ];
 }
