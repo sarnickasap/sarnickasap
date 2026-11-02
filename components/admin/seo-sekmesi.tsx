@@ -4,6 +4,7 @@ import { useState } from "react";
 import { GIRDI, Kart, SayfaBasligi } from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { bilgiGuncelle } from "@/lib/actions/admin";
+import { PaylasimGorseli } from "./paylasim-gorseli";
 
 /* ──────────────────────────────────────────────────────────────────────────
    SEO sekmesi — TASARIMDA YOK (onaylı sapma #4, K-11/K-19).
@@ -38,10 +39,12 @@ function Sayac({ uzunluk, sinir }: { uzunluk: number; sinir: number }) {
 export function SeoSekmesi({
   seoTitle,
   seoDescription,
+  ogImageUrl,
   onDegisti,
 }: {
   seoTitle: string;
   seoDescription: string;
+  ogImageUrl: string | null;
   onDegisti: () => void;
 }) {
   const [baslik, setBaslik] = useState(seoTitle);
@@ -113,6 +116,8 @@ export function SeoSekmesi({
           </span>
         </div>
       </Kart>
+
+      <PaylasimGorseli ogImageUrl={ogImageUrl} onDegisti={onDegisti} />
 
       <p className="m-0 text-13 leading-15 text-admin-muted">
         Not: Dükkân adı, adres, telefon ve çalışma saatleri “İletişim &amp;

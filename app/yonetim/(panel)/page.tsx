@@ -61,6 +61,7 @@ export default async function PanelSayfasi() {
         seo: {
           seoTitle: bilgiler[0].seoTitle,
           seoDescription: bilgiler[0].seoDescription,
+          ogImageUrl: bilgiler[0].ogImageUrl,
         },
         kullanicilar,
         benimId: kendim.id ?? "",

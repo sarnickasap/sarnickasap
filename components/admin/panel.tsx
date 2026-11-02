@@ -37,7 +37,7 @@ export type PanelVerisi = {
   yorumlar: AdminYorum[];
   bilgi: AdminBilgi;
   saatler: AdminSaat[];
-  seo: { seoTitle: string; seoDescription: string };
+  seo: { seoTitle: string; seoDescription: string; ogImageUrl: string | null };
   kullanicilar: AdminKullanici[];
   benimId: string;
   /** STOK_API_URL tanımlı → ürün/fiyat sekmeleri gizli (K-37) */
@@ -134,6 +134,7 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
             <SeoSekmesi
               seoTitle={veri.seo.seoTitle}
               seoDescription={veri.seo.seoDescription}
+              ogImageUrl={veri.seo.ogImageUrl}
               onDegisti={kaydedildi}
             />
           )}

@@ -2,6 +2,7 @@ import "server-only";
 import type { Metadata } from "next";
 import { calismaSaatleriGetir, siteBilgisiGetir } from "@/lib/data";
 import type { Katalog } from "@/lib/stok-sema";
+import { paylasimOlcusuOku } from "@/lib/paylasim-gorseli-kurali";
 import { teklifKatalogu } from "@/lib/seo-urun";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -47,17 +48,27 @@ export const SITE_URL =
 /* ── Paylaşım görseli (og:image) ──
    `site_info.og_image_url` doluysa o, değilse logo. Yalnızca mutlak
    https adresi kabul edilir; bozuk değer sessizce logoya düşer (sayfa
-   metadata yüzünden asla hata vermesin). Panelde bu alan için ayrı bir
-   giriş yok — değer doğrudan veritabanında. */
+   metadata yüzünden asla hata vermesin). Panelin SEO sekmesinden
+   yüklenir (lib/actions/paylasim-gorseli.ts); ölçü Blob yolundan okunur
+   (lib/paylasim-gorseli-kurali.ts), eski/elle girilmiş adreste ölçü yok. */
 export type OgGorseli = { url: string; width?: number; height?: number; alt: string };
 
+const OG_ALT = "Sarnıç Kasap — Gaziemir, İzmir";
 const LOGO_OG: OgGorseli = { url: "/logo.png", width: 1420, height: 1350, alt: "Sarnıç Kasap" };
 
 export function ogGorselleri(ogImageUrl: string | null | undefined): OgGorseli[] {
   if (!ogImageUrl?.trim()) return [LOGO_OG];
   try {
     const u = new URL(ogImageUrl.trim());
-    return u.protocol === "https:" ? [{ url: u.toString(), alt: "Sarnıç Kasap" }] : [LOGO_OG];
+    if (u.protocol !== "https:") return [LOGO_OG];
+    const olcu = paylasimOlcusuOku(u.toString());
+    return [
+      {
+        url: u.toString(),
+        ...(olcu ? { width: olcu.genislik, height: olcu.yukseklik } : {}),
+        alt: OG_ALT,
+      },
+    ];
   } catch {
     return [LOGO_OG];
   }

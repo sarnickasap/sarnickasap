@@ -4,6 +4,44 @@ const EXE="/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm6
 const B="http://localhost:3100";
 let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
 
+/* 4×4 geçerli PNG — admin-galeri ile aynı (tarayıcı küçültmesi gerçekten açar). */
+const PNG={name:"og-test.png",mimeType:"image/png",buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAEElEQVR4nGPYoaQFRwzEcQCvoxBBPorGZAAAAABJRU5ErkJggg==","base64")};
+
+async function ogMeta(){
+  const html=await (await fetch(B+"/",{cache:"no-store"})).text();
+  const al=(ad)=>(html.match(new RegExp(`<meta property="${ad}" content="([^"]*)"`))||[])[1]??null;
+  return { url: al("og:image"), genislik: al("og:image:width") };
+}
+
+/* Paylaşım görseli: yükle → önizleme + site og:image (ölçülü) → kaldır →
+   logoya dönüş. Mevcut bir görsel VARSA dokunulmaz (kaldırmak kullanıcının
+   dosyasını Blob'dan silerdi) — test atlanır ve söylenir. */
+async function paylasimGorseliDene(p, seoAc){
+  const kart=p.locator("main").filter({hasText:"Paylaşım görseli"});
+  ok(await p.getByText("WhatsApp/Facebook'ta paylaşılınca görünen görsel (önerilen 1200×630)").count()===1, "Paylaşım görseli ipucu görünüyor");
+  if (await p.getByRole("button",{name:"Görseli kaldır"}).count()>0){
+    console.log("⚠️  Paylaşım görseli zaten dolu — yükleme/kaldırma denemesi atlandı");
+    return;
+  }
+  await kart.locator('input[type=file]').setInputFiles(PNG);
+  await p.waitForFunction(()=>[...document.querySelectorAll("main button")].some(b=>b.textContent?.trim()==="Görseli kaldır"),null,{timeout:20000}).catch(()=>{});
+  const hata=await p.locator('#paylasim-gorseli-hata').count();
+  ok(hata===0, "Yükleme hatasız");
+  const src=await p.getByAltText("Paylaşım görseli önizlemesi").getAttribute("src").catch(()=>null);
+  ok(/\.public\.blob\.vercel-storage\.com\/paylasim\/og-4x4-/.test(src??""), `Önizleme Blob adresinden: ${(src??"yok").slice(-40)}`);
+  const m=await ogMeta();
+  ok(m.url===src && m.genislik==="4", `Sitede og:image + og:image:width (${m.genislik})`);
+
+  p.once("dialog",(d)=>void d.accept());
+  await p.getByRole("button",{name:"Görseli kaldır"}).click();
+  await p.waitForFunction(()=>![...document.querySelectorAll("main button")].some(b=>b.textContent?.trim()==="Görseli kaldır"),null,{timeout:20000}).catch(()=>{});
+  await seoAc();
+  ok(await p.getByRole("button",{name:"Görseli kaldır"}).count()===0, "KALDIRMA DOĞRULANDI (yenilemeden sonra boş)");
+  const blob=src?await fetch(src,{method:"HEAD"}).then(r=>r.status).catch(()=>0):0;
+  ok(blob===404 || blob===403, `Blob dosyası silindi (HTTP ${blob})`);
+  ok(/\/logo\.png$/.test((await ogMeta()).url??""), "Site og:image logoya döndü");
+}
+
 (async()=>{
   const br=await chromium.launch({executablePath:EXE});
   const k=kimlikZorunlu(br);
@@ -66,6 +104,8 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
     if (geri===eski) break;
   }
   ok(geri===eski, `GERİ ALMA DOĞRULANDI: başlık "${(geri??"").slice(0,42)}…"`);
+
+  await paylasimGorseliDene(p, seoAc);
 
   await br.close();
   console.log(f?`\n❌ ${f} BAŞARISIZ`:"\n✅ Tümü geçti"); process.exit(f?1:0);
