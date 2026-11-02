@@ -6,7 +6,6 @@ import { db } from "@/lib/db";
 import {
   categories,
   deals,
-  gallery,
   hours,
   products,
   reviews,
@@ -205,39 +204,7 @@ export async function firsatSil(id: number) {
   await tazele();
 }
 
-/* ── Galeri ──────────────────────────────────────────────────────────────── */
-
-const galeriAlan = z.object({
-  id: z.number().int().positive(),
-  url: z.string().max(2000).optional(),
-  caption: z.string().max(128).optional(),
-});
-
-export async function galeriGuncelle(girdi: z.input<typeof galeriAlan>) {
-  await yetkiVeTazele();
-  const { id, ...alanlar } = galeriAlan.parse(girdi);
-  if (Object.keys(alanlar).length === 0) return;
-  await db.update(gallery).set(alanlar).where(eq(gallery.id, id));
-  await tazele();
-}
-
-export async function galeriEkle() {
-  await yetkiVeTazele();
-  // Tasarım: galeri SONA ekleniyor (push) — diğer sekmelerden farklı
-  const enBuyuk = Math.max(0, ...(await db.select().from(gallery)).map((g) => g.sort));
-  const [yeni] = await db
-    .insert(gallery)
-    .values({ url: "", caption: "", sort: enBuyuk + 1 })
-    .returning();
-  await tazele();
-  return yeni;
-}
-
-export async function galeriSil(id: number) {
-  await yetkiVeTazele();
-  await db.delete(gallery).where(eq(gallery.id, kimlik.parse(id)));
-  await tazele();
-}
+/* ── Galeri → lib/actions/galeri.ts (aşama 4: yükleme + Blob URL kuralı) ── */
 
 /* ── Yorumlar ────────────────────────────────────────────────────────────── */
 

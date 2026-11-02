@@ -1,6 +1,11 @@
-/* Galeri sekmesi: ekleme, alt yazı, görsel bağlantısı, silme.
+/* Galeri sekmesi: ekleme, alt yazı, görsel bağlantısı, yükleme, silme.
    Sitede URL'i olmayan öğe YER TUTUCU olarak çıkar (tasarım deseni) —
-   URL girilince gerçek <img> olmalı.
+   görsel yüklenince gerçek <img> olmalı.
+
+   Aşama 4: URL alanı yalnızca Blob adresi kabul eder (CSP dışı adresler
+   sitede kırık görünüyordu). Dış adres yazılınca hata çıkmalı ve
+   KAYDEDİLMEMELİ; görsel artık yükleme ile ekleniyor (paylaşımlı Blob
+   deposuna yazar — silme eylemi dosyayı da siler).
 
    ⚠️ ÜRETİM veritabanına yazar: "TEST—" ön eki, kendi kaydına kapsamlı
    silme, sonda silme DOĞRULAMASI. Konuma dayalı silme YASAK (AGENTS.md). */
@@ -9,8 +14,9 @@ const { kimlikZorunlu, paneleGir } = require("./_ortak");
 const EXE="/Users/obi/Library/Caches/ms-playwright/chromium-1234/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing";
 const B="http://localhost:3100";
 const ALT="TEST—Vitrin denemesi";
-/* 1×1 saydam PNG — dış ağa çıkmadan gerçek bir görsel kaynağı. */
-const GORSEL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==";
+/* 1×1 PNG — yükleme için gerçek bir görsel dosyası. */
+const PNG={name:"test.png",mimeType:"image/png",buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==","base64")};
+const DIS_URL="https://example.com/vitrin.jpg";
 let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
 
 const sekmeAc=async(p,ad)=>{ await p.evaluate((h)=>{const n=(s)=>(s??"").normalize("NFC").trim();
@@ -64,11 +70,22 @@ const panelTazele=async(p,ad)=>{ await p.reload({waitUntil:"networkidle"}); awai
   ok(await site.locator("#galeri img").count()===imgBasta,
      `URL'siz öğe <img> üretmiyor, yer tutucu kalıyor (${await site.locator("#galeri img").count()})`);
 
-  // ── URL girilince gerçek görsel olmalı ──
-  await bizim().locator('input[aria-label="Görsel bağlantısı"]').fill(GORSEL);
+  // ── Blob dışı URL reddedilmeli ve kaydedilmemeli ──
+  await bizim().locator('input[aria-label="Görsel bağlantısı"]').fill(DIS_URL);
+  ok(await bizim().locator('[role="alert"]').count()===1, "Dış URL için hata gösterildi");
   await p.waitForTimeout(2000);
   await panelTazele(p,"Galeri");
-  ok(await bizim().locator("img").count()===1, "Panelde önizleme görseli çıktı");
+  ok(await bizim().locator('input[aria-label="Görsel bağlantısı"]').inputValue()==="",
+     "Dış URL veritabanına yazılmadı");
+
+  // ── Yükleyince gerçek görsel olmalı ──
+  await bizim().locator('input[type=file]').setInputFiles(PNG);
+  await p.waitForFunction((alt)=>{const k=[...document.querySelectorAll("main .rounded-12")]
+    .find(x=>x.querySelector(`input[value="${alt}"]`)); return !!k?.querySelector("img");},ALT,{timeout:30000}).catch(()=>{});
+  await panelTazele(p,"Galeri");
+  ok(await bizim().locator("img").count()===1, "Panelde önizleme görseli çıktı (yükleme)");
+  const blobUrl=await bizim().locator('input[aria-label="Görsel bağlantısı"]').inputValue();
+  ok(/^https:\/\/[^/]+\.public\.blob\.vercel-storage\.com\/galeri\//.test(blobUrl), `Blob adresi yazıldı: ${blobUrl.split("/").pop()}`);
 
   await site.reload({waitUntil:"networkidle"});
   await site.evaluate(async()=>{for(let y=0;y<document.body.scrollHeight;y+=500){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,40));}});
@@ -77,6 +94,7 @@ const panelTazele=async(p,ad)=>{ await p.reload({waitUntil:"networkidle"}); awai
      `Sitede gerçek <img> oluştu (${imgBasta} → ${await site.locator("#galeri img").count()})`);
   const alt=await site.locator("#galeri img").last().getAttribute("alt");
   ok(alt===ALT, `Alt yazı <img alt> olarak kullanıldı: ${JSON.stringify(alt)}`);
+  const blobUrlSilmeden=blobUrl;
 
   // ── TEMİZLİK ──
   p.on("dialog",d=>d.accept());
@@ -88,6 +106,13 @@ const panelTazele=async(p,ad)=>{ await p.reload({waitUntil:"networkidle"}); awai
   ok(await kartlar().count()===once, `Öğe sayısı başlangıca döndü (${once})`);
   await site.reload({waitUntil:"networkidle"}); await site.waitForTimeout(700);
   ok(await site.locator("#galeri figure").count()===figurBasta, `Sitede de başlangıca döndü (${figurBasta})`);
+  /* CDN silmeyi birkaç saniyede yayar — sabit bekleme yerine yoklama */
+  let blobDurum=200;
+  for(let i=0;i<12&&blobDurum===200;i++){
+    blobDurum=(await fetch(`${blobUrlSilmeden}?t=${Date.now()}`,{method:"HEAD"}).catch(()=>null))?.status ?? 0;
+    if(blobDurum===200) await new Promise(r=>setTimeout(r,5000));
+  }
+  ok(blobDurum!==200, `TEMİZLİK DOĞRULANDI: yüklenen blob silindi (HEAD ${blobDurum})`);
 
   await br.close();
   console.log(f?`\n❌ ${f} BAŞARISIZ`:"\n✅ Tümü geçti"); process.exit(f?1:0);
