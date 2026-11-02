@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AltSayfa } from "@/components/site/alt-sayfa";
 import { siteBilgisiGetir } from "@/lib/data";
 import { ISLETME_ADI, telLink } from "@/lib/format";
+import { altSayfaMetadata } from "@/lib/seo";
 
 /* ──────────────────────────────────────────────────────────────────────────
    KVKK aydınlatma metni (K-37) — online sipariş formundaki onay kutusu
@@ -9,10 +10,17 @@ import { ISLETME_ADI, telLink } from "@/lib/format";
    elle güncellenecek ikinci bir yer yok.
    ────────────────────────────────────────────────────────────────────────── */
 
-export const metadata: Metadata = {
-  title: "KVKK aydınlatma metni",
-  description: "Sarnıç Kasap online sipariş kişisel verilerin korunması aydınlatma metni.",
-};
+/* Kök layout'un canonical'ı ve og:url'si ana sayfa; alt sayfa kendi
+   adresini söylemeli (aşama 4 SEO temizliği). */
+export async function generateMetadata(): Promise<Metadata> {
+  const info = await siteBilgisiGetir();
+  return altSayfaMetadata({
+    baslik: "KVKK aydınlatma metni",
+    aciklama: "Sarnıç Kasap online sipariş kişisel verilerin korunması aydınlatma metni.",
+    yol: "/kvkk",
+    ogImageUrl: info.ogImageUrl,
+  });
+}
 
 const BASLIK = "m-0 font-display text-20 font-semibold text-cream";
 const PARAGRAF = "m-0 text-16 leading-16 text-read";

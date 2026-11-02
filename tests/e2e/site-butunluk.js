@@ -72,7 +72,11 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
                   "json-ld url":seo.ld, sitemap:sm.match(/<loc>([^<]+)/)?.[1],
                   "robots sitemap":rb.match(/Sitemap:\s*(\S+)/)?.[1]};
   const makine=(u)=>{try{return new URL(u).host}catch{return "(okunamadı)"}};
-  const makineler=[...new Set(Object.values(adresler).map(makine))];
+  /* og:image panelden ayrı bir görsele (site_info.og_image_url, Blob) bağlanabilir — aşama 4.
+     O durumda tek-makine kontrolüne girmez; yine de apex'i göstermemeli. */
+  const blobMu=(u)=>/\.public\.blob\.vercel-storage\.com$/.test(makine(u));
+  const makineler=[...new Set(Object.entries(adresler)
+    .filter(([ad,u])=>!(ad==="og:image"&&blobMu(u))).map(([,u])=>makine(u)))];
   ok(makineler.length===1, `Tüm SEO adresleri tek ana makinede: ${makineler.join(", ")}`);
   for (const [ad,u] of Object.entries(adresler))
     ok(!!u && !/^https?:\/\/sarnickasap\.com/.test(u),

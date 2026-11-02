@@ -3,7 +3,7 @@ import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { siteBilgisiGetir } from "@/lib/data";
-import { SITE_URL } from "@/lib/seo";
+import { SITE_URL, ogGorselleri } from "@/lib/seo";
 
 /* Tasarım şu Google Fonts isteğini yapıyor:
    family=DM+Sans:opsz,wght@9..40,500;9..40,600;9..40,700
@@ -57,6 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const info = await siteBilgisiGetir();
   const baslik = info.seoTitle || "Sarnıç Kasap";
   const aciklama = info.seoDescription || info.heroSub;
+  const gorseller = ogGorselleri(info.ogImageUrl);
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -70,9 +71,10 @@ export async function generateMetadata(): Promise<Metadata> {
       title: baslik,
       description: aciklama,
       url: SITE_URL,
-      images: [{ url: "/logo.png", width: 1420, height: 1350, alt: "Sarnıç Kasap" }],
+      // site_info.og_image_url doluysa o, değilse logo (aşama 4)
+      images: gorseller,
     },
-    twitter: { card: "summary", title: baslik, description: aciklama },
+    twitter: { card: "summary", title: baslik, description: aciklama, images: gorseller },
     alternates: { canonical: SITE_URL },
     robots: { index: true, follow: true },
   };

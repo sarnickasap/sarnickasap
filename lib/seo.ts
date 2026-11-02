@@ -1,4 +1,5 @@
 import "server-only";
+import type { Metadata } from "next";
 import { calismaSaatleriGetir, siteBilgisiGetir } from "@/lib/data";
 import { guvenliGorselUrl, type Katalog, type KatalogUrun } from "@/lib/stok-sema";
 
@@ -41,6 +42,63 @@ export function guvenliJsonLd(veri: unknown): string {
    Tek kaynak burası; başka yerde elle yazılmıyor. */
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.sarnickasap.com";
+
+/* ── Paylaşım görseli (og:image) ──
+   `site_info.og_image_url` doluysa o, değilse logo. Yalnızca mutlak
+   https adresi kabul edilir; bozuk değer sessizce logoya düşer (sayfa
+   metadata yüzünden asla hata vermesin). Panelde bu alan için ayrı bir
+   giriş yok — değer doğrudan veritabanında. */
+export type OgGorseli = { url: string; width?: number; height?: number; alt: string };
+
+const LOGO_OG: OgGorseli = { url: "/logo.png", width: 1420, height: 1350, alt: "Sarnıç Kasap" };
+
+export function ogGorselleri(ogImageUrl: string | null | undefined): OgGorseli[] {
+  if (!ogImageUrl?.trim()) return [LOGO_OG];
+  try {
+    const u = new URL(ogImageUrl.trim());
+    return u.protocol === "https:" ? [{ url: u.toString(), alt: "Sarnıç Kasap" }] : [LOGO_OG];
+  } catch {
+    return [LOGO_OG];
+  }
+}
+
+/** Sayfanın kanonik adresi — her zaman SITE_URL (www) üzerinden. */
+export function kanonikAdres(yol = "/"): string {
+  return yol === "/" ? SITE_URL : `${SITE_URL}${yol.startsWith("/") ? yol : `/${yol}`}`;
+}
+
+/**
+ * Alt sayfa metadata'sı: başlık, açıklama, kanonik adres ve Open Graph.
+ * Next'te alt sayfa `openGraph` vermezse kök layout'unkini (og:url = ana
+ * sayfa) AYNEN devralır; verirse nesne tümüyle değişir — bu yüzden
+ * görseller de burada yeniden veriliyor.
+ */
+export function altSayfaMetadata(o: {
+  baslik: string;
+  aciklama: string;
+  yol: string;
+  ogImageUrl: string | null | undefined;
+  /** true → kök şablon ("%s — Sarnıç Kasap") uygulanmaz */
+  mutlakBaslik?: boolean;
+}): Metadata {
+  const url = kanonikAdres(o.yol);
+  const gorseller = ogGorselleri(o.ogImageUrl);
+  return {
+    title: o.mutlakBaslik ? { absolute: o.baslik } : o.baslik,
+    description: o.aciklama,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      locale: "tr_TR",
+      siteName: "Sarnıç Kasap",
+      title: o.baslik,
+      description: o.aciklama,
+      url,
+      images: gorseller,
+    },
+    twitter: { card: "summary", title: o.baslik, description: o.aciklama, images: gorseller },
+  };
+}
 
 /** schema.org gün adları — hours tablosundaki sıra Pazartesi=0 */
 const SCHEMA_GUN = [
