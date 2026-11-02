@@ -15,36 +15,24 @@ import {
   galeriGetir,
   markalarGetir,
   gorunurYorumlarGetir,
-  kategorilerGetir,
   siteBilgisiGetir,
-  urunlerGetir,
 } from "@/lib/data";
 import { WA_MESAJ, telLink, waLink } from "@/lib/format";
 import { guvenliJsonLd, yapilandirilmisVeri } from "@/lib/seo";
-import { katalogGetir } from "@/lib/stok";
-import {
-  dbUrunleri,
-  guncellemeMetni,
-  katalogFirsatlari,
-  katalogKategorileri,
-  katalogUrunleri,
-  siparisAlinir,
-} from "@/lib/urun-kaynagi";
+import { guncellemeMetni, katalogFirsatlari } from "@/lib/urun-kaynagi";
+import { urunKaynagiGetir } from "@/lib/urun-verisi";
 
 export default async function AnaSayfa() {
-  const [info, firsatlar, saatler, dbUrun, dbKategori, hamKatalog] =
-    await Promise.all([
-      siteBilgisiGetir(),
-      aktifFirsatlarGetir(),
-      calismaSaatleriGetir(),
-      urunlerGetir(),
-      kategorilerGetir(),
-      katalogGetir(),
-    ]);
-  /* Stok programında henüz "sitede göster" işaretli ürün yoksa katalog boş gelir;
-     site boş liste göstermesin diye o durumda da site DB'sine dönülür. */
-  const katalog =
-    hamKatalog && hamKatalog.products.length > 0 ? hamKatalog : null;
+  /* Ürün kaynağı (K-37): stok programı kataloğu varsa o, yoksa site DB'si.
+     Sipariş yalnızca katalog varken ve stok programı açık dediğinde.
+     Seçim kuralı tek yerde: lib/urun-verisi.ts (kategori sayfaları da kullanıyor). */
+  const [info, firsatlar, saatler, kaynak] = await Promise.all([
+    siteBilgisiGetir(),
+    aktifFirsatlarGetir(),
+    calismaSaatleriGetir(),
+    urunKaynagiGetir(),
+  ]);
+  const { katalog, urunler, kategoriler, siparisAcik } = kaynak;
   const [galeri, yorumlar, markalar] = await Promise.all([
     galeriGetir(),
     gorunurYorumlarGetir(),
@@ -54,13 +42,6 @@ export default async function AnaSayfa() {
   const wa = waLink(info.whatsapp, WA_MESAJ.genelSiparis);
   const jsonLd = await yapilandirilmisVeri(katalog);
 
-  /* Ürün kaynağı (K-37): stok programı kataloğu varsa o, yoksa site DB'si.
-     Sipariş yalnızca katalog varken ve stok programı açık dediğinde. */
-  const siparisAcik = siparisAlinir(katalog);
-  const urunler = katalog ? katalogUrunleri(katalog) : dbUrunleri(dbUrun);
-  const kategoriler = katalog
-    ? katalogKategorileri(katalog)
-    : dbKategori.map((k) => k.name);
   const stokFirsatlari = katalogFirsatlari(urunler);
   const firsatVar = firsatlar.length > 0 || stokFirsatlari.length > 0;
 

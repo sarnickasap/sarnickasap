@@ -1,7 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { UrunKarti, type UrunVerisi } from "./urun-karti";
+import { kategoriOzetleri } from "@/lib/urun-kaynagi";
+import type { UrunVerisi } from "./urun-karti";
+import { UrunIzgarasi } from "./urun-izgarasi";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Kategori sekmeleri + ürün ızgarası.
@@ -13,11 +16,13 @@ import { UrunKarti, type UrunVerisi } from "./urun-karti";
              hover → bg #171717, beyaz
    Şerit: flex · gap8 · overflow-x-auto · pb4 · scrollbar yok
 
-   Izgara — vault "Urunler Bolumu":
-     auto-fill minmax(min(100%,260px),1fr) · gap 1px
-     bg #1f1f1f · 1px #1f1f1f · r12 · overflow hidden
-     ⚠️ Izgara çizgisi hilesi: hücre aralığı 1px ve kapsayıcı zemini #1f1f1f;
-     kartların kendi zemini #0a0a0a. Kartların KENDİ KENARLIĞI YOK.
+   Izgara — urun-izgarasi.tsx (kategori sayfalarıyla ortak).
+
+   Aşama 4: bir kategori seçiliyken ızgaranın altında sağa yaslı
+   "Tüm <kategori> ürünleri →" bağlantısı (/urunler/<slug>). "Tümü"
+   seçiliyken HİÇ render edilmez — varsayılan görünüm tasarımla aynı.
+     14px/500 · #f8efea · alt çizgi · hover beyaz (iletişimdeki
+     "Yol tarifi al" ile aynı dil)
 
    Erişilebilirlik (K-08): tasarımda düz <button>'lardı.
    `role="tablist"` yerine `aria-pressed` seçildi — bunlar panel açan sekmeler
@@ -40,6 +45,12 @@ export function UrunListesi({
 }) {
   const [secili, setSecili] = useState(TUMU);
   const sekmeler = useMemo(() => [TUMU, ...kategoriler], [kategoriler]);
+
+  const slugMap = useMemo(
+    () => new Map(kategoriOzetleri(kategoriler).map((k) => [k.ad, k.slug])),
+    [kategoriler],
+  );
+  const seciliSlug = secili === TUMU ? undefined : slugMap.get(secili);
 
   const gorunen = useMemo(
     () => (secili === TUMU ? urunler : urunler.filter((u) => u.cat === secili)),
@@ -74,17 +85,16 @@ export function UrunListesi({
         })}
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-1 overflow-hidden rounded-12 border border-line bg-line">
-        {gorunen.map((u) => (
-          <UrunKarti key={u.anahtar} urun={u} whatsapp={whatsapp} siparisAcik={siparisAcik} />
-        ))}
+      <div className="flex flex-col gap-12">
+        <UrunIzgarasi urunler={gorunen} whatsapp={whatsapp} siparisAcik={siparisAcik} />
 
-        {/* Boş durum — tasarımda YOK (K-08). Admin'deki "Eşleşen ürün yok."
-            metninin koyu tema karşılığı; yeni token icat edilmedi. */}
-        {gorunen.length === 0 && (
-          <p className="col-span-full m-0 bg-ink p-32 text-center text-14 text-muted">
-            Bu kategoride ürün yok.
-          </p>
+        {seciliSlug && (
+          <Link
+            href={`/urunler/${seciliSlug}`}
+            className="self-end text-14 font-medium text-cream underline underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white"
+          >
+            Tüm {secili.toLocaleLowerCase("tr-TR")} ürünleri →
+          </Link>
         )}
       </div>
 

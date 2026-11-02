@@ -1,5 +1,6 @@
 import type { KatalogFirsati } from "@/components/site/katalog-firsat-karti";
 import type { UrunVerisi } from "@/components/site/urun-karti";
+import { turkceSlug } from "@/lib/slug";
 import { guvenliGorselUrl, type Katalog } from "@/lib/stok-sema";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -85,6 +86,21 @@ export function katalogKategorileri(k: Katalog): string[] {
   const sirali = k.categories.filter((c) => urunlu.has(c));
   const eksik = [...urunlu].filter((c) => !sirali.includes(c));
   return [...sirali, ...eksik];
+}
+
+export type KategoriOzeti = { ad: string; slug: string };
+
+/** Kategori sayfası adresleri (/urunler/<slug>). Boş slug üretmeyen ve
+ *  aynı slug'a düşen ikinciyi atlar (ilk gelen kazanır). Saf — istemcide
+ *  de (ana sayfa sekmesindeki bağlantı) aynı sonucu verir. */
+export function kategoriOzetleri(kategoriler: string[]): KategoriOzeti[] {
+  const gorulen = new Set<string>();
+  return kategoriler.flatMap((ad) => {
+    const slug = turkceSlug(ad);
+    if (!slug || gorulen.has(slug)) return [];
+    gorulen.add(slug);
+    return [{ ad, slug }];
+  });
 }
 
 /** Sipariş alınabilir mi: stok programı açık VE en az bir teslim şekli var. */
