@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AdminHeader } from "./admin-header";
-import { AdminSidebar, type SekmeAnahtari } from "./admin-sidebar";
+import { AdminSidebar, STOK_SEKMELERI, type SekmeAnahtari } from "./admin-sidebar";
 import { UrunlerSekmesi, type AdminUrun } from "./urunler-sekmesi";
 import { TopluFiyatSekmesi } from "./toplu-fiyat-sekmesi";
 import { KampanyalarSekmesi, type AdminFirsat } from "./kampanyalar-sekmesi";
@@ -40,10 +40,17 @@ export type PanelVerisi = {
   seo: { seoTitle: string; seoDescription: string };
   kullanicilar: AdminKullanici[];
   benimId: string;
+  /** STOK_API_URL tanımlı → ürün/fiyat sekmeleri gizli (K-37) */
+  stokYonetiyor: boolean;
 };
 
 export function Panel({ veri }: { veri: PanelVerisi }) {
-  const [sekme, setSekme] = useState<SekmeAnahtari>("urunler");
+  const [sekme, setSekme] = useState<SekmeAnahtari>(
+    veri.stokYonetiyor ? "kampanyalar" : "urunler",
+  );
+  /* Gizli sekme hiçbir yoldan render edilmesin (K-37) */
+  const gorunenSekme =
+    veri.stokYonetiyor && STOK_SEKMELERI.includes(sekme) ? "kampanyalar" : sekme;
   const [sonKayit, setSonKayit] = useState<Date | null>(null);
 
   /* Kayıt durumu (K-34). Eskiden başarısız kayıt sessizdi: iyimser arayüz
@@ -74,8 +81,9 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
 
       <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-start gap-24 px-20 pt-24 pb-64">
         <AdminSidebar
-          secili={sekme}
+          secili={gorunenSekme}
           onSec={setSekme}
+          stokYonetiyor={veri.stokYonetiyor}
           sayaclar={{
             /* Tasarım: Kampanyalar = AKTİF fırsat sayısı,
                Yorumlar = GÖRÜNÜR yorum sayısı (listede hepsi var). */
@@ -89,47 +97,47 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
         />
 
         <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-16">
-          {sekme === "urunler" && (
+          {gorunenSekme === "urunler" && (
             <UrunlerSekmesi
               urunler={veri.urunler}
               kategoriler={veri.kategoriler}
               onDegisti={kaydedildi}
             />
           )}
-          {sekme === "toplu" && (
+          {gorunenSekme === "toplu" && (
             <TopluFiyatSekmesi
               urunler={veri.urunler}
               kategoriler={veri.kategoriler}
               onUygulandi={kaydedildi}
             />
           )}
-          {sekme === "kampanyalar" && (
+          {gorunenSekme === "kampanyalar" && (
             <KampanyalarSekmesi firsatlar={veri.firsatlar} onDegisti={kaydedildi} />
           )}
-          {sekme === "galeri" && (
+          {gorunenSekme === "galeri" && (
             <GaleriSekmesi ogeler={veri.galeri} onDegisti={kaydedildi} />
           )}
-          {sekme === "markalar" && (
+          {gorunenSekme === "markalar" && (
             <MarkalarSekmesi markalar={veri.markalar} onDegisti={kaydedildi} />
           )}
-          {sekme === "yorumlar" && (
+          {gorunenSekme === "yorumlar" && (
             <YorumlarSekmesi yorumlar={veri.yorumlar} onDegisti={kaydedildi} />
           )}
-          {sekme === "iletisim" && (
+          {gorunenSekme === "iletisim" && (
             <IletisimSekmesi
               bilgi={veri.bilgi}
               saatler={veri.saatler}
               onDegisti={kaydedildi}
             />
           )}
-          {sekme === "seo" && (
+          {gorunenSekme === "seo" && (
             <SeoSekmesi
               seoTitle={veri.seo.seoTitle}
               seoDescription={veri.seo.seoDescription}
               onDegisti={kaydedildi}
             />
           )}
-          {sekme === "kullanicilar" && (
+          {gorunenSekme === "kullanicilar" && (
             <KullanicilarSekmesi
               kullanicilar={veri.kullanicilar}
               benimId={veri.benimId}

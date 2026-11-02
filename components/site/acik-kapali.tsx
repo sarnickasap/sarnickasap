@@ -41,14 +41,21 @@ export async function AcikKapali({ saatler }: { saatler: Saat[] }) {
 }
 
 /** Suspense yedeği — yer kaplasın ki durum akınca satır kaymasın (CLS).
- *  Görünmez metin, beklenen en uzun değerle aynı uzunlukta. */
+ *
+ *  Genişlik, beklenen en uzun metnin KENDİSİYLE ölçülüyor ama metin DOM'da
+ *  değil, `::before` içeriğinde: eskiden görünmez bir <span> metniydi ve
+ *  tarayıcılar/arama motorları statik kabukta "Şu an kapalı · Bugün
+ *  08:00–20:00" diye GERÇEK metin okuyordu. Sözde öğe içeriği metin
+ *  düğümü değildir; aynı font ve boyutla çizildiği için genişlik birebir
+ *  aynı kalır, CLS sıfır. */
 export function AcikKapaliIskelet() {
   return (
     <>
       <Nokta acik={false} />
-      <span className="invisible" aria-hidden>
-        Şu an kapalı · Bugün 08:00–20:00
-      </span>
+      <span
+        aria-hidden
+        className="invisible inline-block before:content-['Şu_an_kapalı_·_Bugün_08:00–20:00']"
+      />
     </>
   );
 }

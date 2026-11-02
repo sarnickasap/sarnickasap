@@ -20,6 +20,11 @@
 
    SAPMA (onaylı #3/#4, K-19): tasarımda 6 sekme var; SEO ve Kullanıcılar
    eklenince 8 oluyor. Sekme bileşeninin stili aynen korundu.
+
+   K-37: STOK_API_URL tanımlıyken ürün ve fiyatlar stok programından
+   yönetiliyor — "Ürünler" ve "Toplu fiyat" sekmeleri GİZLENİR (kod
+   silinmedi) ve yerlerine kısa bir bilgi notu çıkar. Panelden yazılan
+   fiyat sitede görünmeyeceği için sekmeyi açık bırakmak yanıltıcıydı.
    ────────────────────────────────────────────────────────────────────────── */
 
 export type SekmeAnahtari =
@@ -45,19 +50,33 @@ export const SEKMELER: { anahtar: SekmeAnahtari; etiket: string; yeni?: boolean 
   { anahtar: "kullanicilar", etiket: "Kullanıcılar", yeni: true },
 ];
 
+/** Stok programı yönetirken gizlenen sekmeler (K-37). */
+export const STOK_SEKMELERI: readonly SekmeAnahtari[] = ["urunler", "toplu"];
+
 export function AdminSidebar({
   secili,
   onSec,
   sayaclar,
+  stokYonetiyor = false,
 }: {
   secili: SekmeAnahtari;
   onSec: (a: SekmeAnahtari) => void;
   sayaclar: Partial<Record<SekmeAnahtari, number>>;
+  stokYonetiyor?: boolean;
 }) {
+  const sekmeler = stokYonetiyor
+    ? SEKMELER.filter((s) => !STOK_SEKMELERI.includes(s.anahtar))
+    : SEKMELER;
+
   return (
     <aside className="flex max-w-full flex-[1_1_210px] flex-col gap-12">
+      {stokYonetiyor && (
+        <p className="m-0 rounded-8 border border-admin-border bg-admin-card px-12 py-10 text-12 leading-15 text-admin-2nd">
+          Ürünler ve fiyatlar stok programından yönetiliyor
+        </p>
+      )}
       <nav className="flex flex-wrap gap-4" aria-label="Panel bölümleri">
-        {SEKMELER.map((s) => {
+        {sekmeler.map((s) => {
           const aktif = s.anahtar === secili;
           const sayac = sayaclar[s.anahtar];
           return (

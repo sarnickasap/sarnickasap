@@ -13,6 +13,7 @@ import {
 } from "@/lib/db/schema";
 import { Panel } from "@/components/admin/panel";
 import { kullanicilariGetir } from "@/lib/actions/kullanicilar";
+import { stokProgramiTanimli } from "@/lib/stok";
 
 export const instant = false;
 
@@ -63,6 +64,7 @@ export default async function PanelSayfasi() {
         },
         kullanicilar,
         benimId: kendim.id ?? "",
+        stokYonetiyor: stokProgramiTanimli(),
       }}
     />
   );
