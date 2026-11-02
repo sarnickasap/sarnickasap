@@ -28,6 +28,9 @@ import { SepeteEkle } from "./sepete-ekle";
      · görsel YALNIZCA izinli Blob adresinden (lib/stok-sema.ts) —
        galerideki görselle aynı biçim (4/3 · r8 · #171717 zemin)
      · sipariş açıksa ve ürün stoktaysa miktar seçici + "Sepete ekle"
+     · kampanyalı üründe (aşama 4) "Fırsat" rozeti — "Tükendi" rozetinin
+       ölçüsünde, zemin #b8222a (fırsat bölümünün rengi) — ve fiyatın
+       yanında üstü çizili eski fiyat (fırsat kartındaki gibi #8a8a8a)
    ────────────────────────────────────────────────────────────────────────── */
 
 export type UrunVerisi = {
@@ -42,6 +45,10 @@ export type UrunVerisi = {
   stock: boolean;
   unit: Birim;
   imageUrl: string | null;
+  /** Kampanya öncesi fiyat — yalnızca geçerli kampanyada (> price) dolu */
+  listPrice: number | null;
+  /** Kampanya son günü YYYY-MM-DD (dahil, Europe/Istanbul) */
+  campaignUntil: string | null;
 };
 
 export function UrunKarti({
@@ -71,11 +78,18 @@ export function UrunKarti({
       )}
       <div className="flex items-center justify-between gap-8">
         <span className="text-12 font-medium text-muted-dark">{urun.cat}</span>
-        {!urun.stock && (
-          <span className="rounded-pill bg-badge px-8 py-3 text-11 font-semibold text-soft">
-            Tükendi
-          </span>
-        )}
+        <div className="flex items-center gap-6">
+          {urun.listPrice !== null && (
+            <span className="rounded-pill bg-brand px-8 py-3 text-11 font-semibold text-white">
+              Fırsat
+            </span>
+          )}
+          {!urun.stock && (
+            <span className="rounded-pill bg-badge px-8 py-3 text-11 font-semibold text-soft">
+              Tükendi
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-4">
@@ -86,11 +100,17 @@ export function UrunKarti({
       </div>
 
       <div className="flex items-center justify-between gap-12">
-        <div className="flex items-baseline gap-4">
+        <div className="flex flex-wrap items-baseline gap-4">
           <span className="font-display text-24 font-bold text-white">
             {fiyat(urun.price)}
           </span>
           <span className="text-13 text-muted-dark">{birimSoneki(urun.unit)}</span>
+          {urun.listPrice !== null && (
+            <span className="ml-4 text-13 text-muted-dark line-through">
+              <span className="sr-only">Önceki fiyat: </span>
+              {fiyat(urun.listPrice)}
+            </span>
+          )}
         </div>
 
         {urun.stock && (

@@ -1,6 +1,6 @@
 import "server-only";
 import { calismaSaatleriGetir, siteBilgisiGetir } from "@/lib/data";
-import type { Katalog } from "@/lib/stok-sema";
+import { guvenliGorselUrl, type Katalog, type KatalogUrun } from "@/lib/stok-sema";
 
 /* ──────────────────────────────────────────────────────────────────────────
    SEO yardımcıları — TASARIMDA YOK (karar K-11).
@@ -105,26 +105,36 @@ function teklifKatalogu(k: Katalog) {
   return {
     "@type": "OfferCatalog",
     name: "Ürünler ve fiyatlar",
-    itemListElement: k.products.map((u) => ({
-      "@type": "Offer",
-      priceCurrency: "TRY",
+    itemListElement: k.products.map((u) => urunTeklifi(u, k.vatIncluded)),
+  };
+}
+
+/** Tek ürünün Offer + Product verisi. Kampanyalı üründe `priceValidUntil`
+ *  kampanyanın son günü (stok programı listPrice > price garantiler). */
+export function urunTeklifi(u: KatalogUrun, kdvDahil: boolean) {
+  const kampanyaSonu =
+    u.listPrice !== null && u.listPrice > u.price ? u.campaignUntil : null;
+  return {
+    "@type": "Offer",
+    priceCurrency: "TRY",
+    price: u.price,
+    ...(kampanyaSonu ? { priceValidUntil: kampanyaSonu } : {}),
+    availability: u.inStock
+      ? "https://schema.org/InStock"
+      : "https://schema.org/OutOfStock",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
       price: u.price,
-      availability: u.inStock
-        ? "https://schema.org/InStock"
-        : "https://schema.org/OutOfStock",
-      priceSpecification: {
-        "@type": "UnitPriceSpecification",
-        price: u.price,
-        priceCurrency: "TRY",
-        valueAddedTaxIncluded: k.vatIncluded,
-        unitCode: BIRIM_KODU[u.unit],
-      },
-      itemOffered: {
-        "@type": "Product",
-        name: u.name,
-        category: u.category,
-        ...(u.description ? { description: u.description } : {}),
-      },
-    })),
+      priceCurrency: "TRY",
+      valueAddedTaxIncluded: kdvDahil,
+      unitCode: BIRIM_KODU[u.unit],
+    },
+    itemOffered: {
+      "@type": "Product",
+      name: u.name,
+      category: u.category,
+      ...(u.description ? { description: u.description } : {}),
+      ...(guvenliGorselUrl(u.imageUrl) ? { image: guvenliGorselUrl(u.imageUrl) } : {}),
+    },
   };
 }

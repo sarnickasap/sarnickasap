@@ -1,4 +1,5 @@
 import { FirsatKarti, type FirsatVerisi } from "./firsat-karti";
+import { KatalogFirsatKarti, type KatalogFirsati } from "./katalog-firsat-karti";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Fırsatlar Bölümü — vault "Firsatlar Bolumu" notundan birebir.
@@ -13,16 +14,32 @@ import { FirsatKarti, type FirsatVerisi } from "./firsat-karti";
      ızgara   auto-fill minmax(min(100%,280px),1fr) · gap16
 
    Aktif fırsat yoksa bölüm HİÇ render edilmez (tasarımdaki sc-if hasDeals).
+
+   Aşama 4: önce stok programı kampanyaları (listPrice dolu, stokta),
+   ardından panelin "Kampanyalar" sekmesindeki fırsatlar — ikisi de aynı
+   ızgarada, aynı kart çerçevesiyle.
    ────────────────────────────────────────────────────────────────────────── */
+
+const ACIKLAMA = {
+  siparisli:
+    "Fırsat ürünleri stokla sınırlıdır. Sepete ekleyebilir ya da WhatsApp’tan ayırtabilirsiniz.",
+  siparissiz:
+    "Fırsat ürünleri stokla sınırlıdır. Ayırtmak için WhatsApp’tan yazmanız yeterli.",
+} as const;
 
 export function Firsatlar({
   firsatlar,
+  katalogFirsatlari = [],
   whatsapp,
+  siparisAcik = false,
 }: {
   firsatlar: FirsatVerisi[];
+  katalogFirsatlari?: KatalogFirsati[];
   whatsapp: string;
+  siparisAcik?: boolean;
 }) {
-  if (firsatlar.length === 0) return null;
+  if (firsatlar.length === 0 && katalogFirsatlari.length === 0) return null;
+  const sepetli = siparisAcik && katalogFirsatlari.length > 0;
 
   return (
     <section id="firsatlar" className="bg-brand">
@@ -37,12 +54,19 @@ export function Firsatlar({
             </h2>
           </div>
           <p className="m-0 max-w-[380px] text-15 leading-155 text-white">
-            Fırsat ürünleri stokla sınırlıdır. Ayırtmak için WhatsApp’tan
-            yazmanız yeterli.
+            {sepetli ? ACIKLAMA.siparisli : ACIKLAMA.siparissiz}
           </p>
         </div>
 
         <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-16">
+          {katalogFirsatlari.map((f) => (
+            <KatalogFirsatKarti
+              key={f.anahtar}
+              firsat={f}
+              whatsapp={whatsapp}
+              siparisAcik={siparisAcik}
+            />
+          ))}
           {firsatlar.map((f) => (
             <FirsatKarti key={f.id} firsat={f} whatsapp={whatsapp} />
           ))}

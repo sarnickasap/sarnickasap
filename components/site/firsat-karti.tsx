@@ -15,6 +15,11 @@ import { fiyat, indirimOrani, waLink, WA_MESAJ } from "@/lib/format";
        eski   15px · #737373 · line-through
      buton  h40 · r8 · 1px #333333 · 14px/500 · #fafafa · ortalı
             hover → bg #171717, beyaz
+
+   Aşama 4: çerçeve (`FirsatCercevesi`) iki kaynakça paylaşılıyor —
+   panelin "Kampanyalar"ı (bu dosyadaki `FirsatKarti`) ve stok programı
+   kampanyaları (`katalog-firsat-karti.tsx`). Görünüm birebir aynı;
+   katalog kartı yeni fiyatın yanına birim soneki ekler.
    ────────────────────────────────────────────────────────────────────────── */
 
 export type FirsatVerisi = {
@@ -26,20 +31,35 @@ export type FirsatVerisi = {
   until: string;
 };
 
-export function FirsatKarti({
-  firsat,
-  whatsapp,
-}: {
-  firsat: FirsatVerisi;
-  whatsapp: string;
-}) {
-  const oran = indirimOrani(firsat.oldPrice, firsat.newPrice);
+export type FirsatCercevesiProps = {
+  /** Pil metni ("Bu hafta", "Son gün: 9 Kasım") */
+  etiket: string;
+  baslik: string;
+  aciklama: string;
+  yeniFiyat: number;
+  /** 0 → boş span (tasarım: oldPrice yoksa boş string) */
+  eskiFiyat: number;
+  /** Yeni fiyatın yanındaki "/ kg" gibi sonek; yoksa render edilmez */
+  sonek?: string;
+  children: React.ReactNode;
+};
+
+export function FirsatCercevesi({
+  etiket,
+  baslik,
+  aciklama,
+  yeniFiyat,
+  eskiFiyat,
+  sonek,
+  children,
+}: FirsatCercevesiProps) {
+  const oran = indirimOrani(eskiFiyat, yeniFiyat);
 
   return (
     <div className="flex flex-col gap-18 rounded-12 bg-ink p-24">
       <div className="flex items-center justify-between gap-12">
         <span className="rounded-pill bg-pill px-10 py-4 text-12 font-semibold text-cream">
-          {firsat.until}
+          {etiket}
         </span>
         {/* Tasarımda indirim yoksa boş span yine render ediliyor — birebir */}
         <span className="text-13 font-semibold text-discount">{oran}</span>
@@ -47,29 +67,66 @@ export function FirsatKarti({
 
       <div className="flex flex-1 flex-col gap-6">
         <h3 className="m-0 font-display text-24 font-semibold tracking-deal text-cream break-words">
-          {firsat.title}
+          {baslik}
         </h3>
-        <p className="m-0 text-14 leading-15 text-muted">{firsat.description}</p>
+        <p className="m-0 text-14 leading-15 text-muted">{aciklama}</p>
       </div>
 
-      <div className="flex items-baseline gap-10">
+      <div className="flex flex-wrap items-baseline gap-10">
         <span className="font-display text-30 font-bold text-white">
-          {fiyat(firsat.newPrice)}
+          {fiyat(yeniFiyat)}
+          {sonek && <span className="ml-4 font-sans text-15 font-normal text-muted">{sonek}</span>}
         </span>
         {/* Tasarım: oldPrice yoksa boş string — span yine var */}
         <span className="text-15 text-muted-dark line-through">
-          {firsat.oldPrice ? fiyat(firsat.oldPrice) : ""}
+          {eskiFiyat ? (
+            <>
+              <span className="sr-only">Önceki fiyat: </span>
+              {fiyat(eskiFiyat)}
+            </>
+          ) : (
+            ""
+          )}
         </span>
       </div>
 
-      <a
-        href={waLink(whatsapp, WA_MESAJ.firsat(firsat.title))}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex h-40 items-center justify-center rounded-8 border border-edge text-14 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white"
-      >
-        Ayırt
-      </a>
+      {children}
     </div>
+  );
+}
+
+/** "Ayırt" — WhatsApp'a hazır mesajla gider. */
+export function AyirtBaglantisi({ whatsapp, baslik }: { whatsapp: string; baslik: string }) {
+  return (
+    <a
+      href={waLink(whatsapp, WA_MESAJ.firsat(baslik))}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex h-40 items-center justify-center rounded-8 border border-edge text-14 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white"
+    >
+      Ayırt
+      <span className="sr-only"> — {baslik}</span>
+    </a>
+  );
+}
+
+/** Panelin "Kampanyalar" sekmesinden gelen fırsat. */
+export function FirsatKarti({
+  firsat,
+  whatsapp,
+}: {
+  firsat: FirsatVerisi;
+  whatsapp: string;
+}) {
+  return (
+    <FirsatCercevesi
+      etiket={firsat.until}
+      baslik={firsat.title}
+      aciklama={firsat.description}
+      yeniFiyat={firsat.newPrice}
+      eskiFiyat={firsat.oldPrice}
+    >
+      <AyirtBaglantisi whatsapp={whatsapp} baslik={firsat.title} />
+    </FirsatCercevesi>
   );
 }

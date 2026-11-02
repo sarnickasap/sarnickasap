@@ -25,6 +25,7 @@ import { katalogGetir } from "@/lib/stok";
 import {
   dbUrunleri,
   guncellemeMetni,
+  katalogFirsatlari,
   katalogKategorileri,
   katalogUrunleri,
   siparisAlinir,
@@ -60,6 +61,8 @@ export default async function AnaSayfa() {
   const kategoriler = katalog
     ? katalogKategorileri(katalog)
     : dbKategori.map((k) => k.name);
+  const stokFirsatlari = katalogFirsatlari(urunler);
+  const firsatVar = firsatlar.length > 0 || stokFirsatlari.length > 0;
 
   return (
     <div className="min-h-screen bg-ink text-body">
@@ -71,7 +74,7 @@ export default async function AnaSayfa() {
       />
       <SiteHeader
         waLink={wa}
-        firsatVar={firsatlar.length > 0}
+        firsatVar={firsatVar}
         yorumVar={yorumlar.length > 0}
         sepetVar={siparisAcik}
       />
@@ -97,7 +100,12 @@ export default async function AnaSayfa() {
         />
         {/* B3+ bölümleri buraya gelecek */}
         <GoruntuyeGirince>
-          <Firsatlar firsatlar={firsatlar} whatsapp={info.whatsapp} />
+          <Firsatlar
+            firsatlar={firsatlar}
+            katalogFirsatlari={stokFirsatlari}
+            whatsapp={info.whatsapp}
+            siparisAcik={siparisAcik}
+          />
         </GoruntuyeGirince>
         <GoruntuyeGirince>
           <Urunler
