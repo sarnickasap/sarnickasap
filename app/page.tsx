@@ -21,14 +21,23 @@ import {
 } from "@/lib/data";
 import { WA_MESAJ, telLink, waLink } from "@/lib/format";
 import { guvenliJsonLd, yapilandirilmisVeri } from "@/lib/seo";
+import { katalogGetir } from "@/lib/stok";
+import {
+  dbUrunleri,
+  guncellemeMetni,
+  katalogKategorileri,
+  katalogUrunleri,
+  siparisAlinir,
+} from "@/lib/urun-kaynagi";
 
 export default async function AnaSayfa() {
-  const [info, firsatlar, saatler, urunler, kategoriler] = await Promise.all([
+  const [info, firsatlar, saatler, dbUrun, dbKategori, katalog] = await Promise.all([
     siteBilgisiGetir(),
     aktifFirsatlarGetir(),
     calismaSaatleriGetir(),
     urunlerGetir(),
     kategorilerGetir(),
+    katalogGetir(),
   ]);
   const [galeri, yorumlar, markalar] = await Promise.all([
     galeriGetir(),
@@ -37,7 +46,15 @@ export default async function AnaSayfa() {
   ]);
 
   const wa = waLink(info.whatsapp, WA_MESAJ.genelSiparis);
-  const jsonLd = await yapilandirilmisVeri();
+  const jsonLd = await yapilandirilmisVeri(katalog);
+
+  /* Ürün kaynağı (K-37): stok programı kataloğu varsa o, yoksa site DB'si.
+     Sipariş yalnızca katalog varken ve stok programı açık dediğinde. */
+  const siparisAcik = siparisAlinir(katalog);
+  const urunler = katalog ? katalogUrunleri(katalog) : dbUrunleri(dbUrun);
+  const kategoriler = katalog
+    ? katalogKategorileri(katalog)
+    : dbKategori.map((k) => k.name);
 
   return (
     <div className="min-h-screen bg-ink text-body">
@@ -51,6 +68,7 @@ export default async function AnaSayfa() {
         waLink={wa}
         firsatVar={firsatlar.length > 0}
         yorumVar={yorumlar.length > 0}
+        sepetVar={siparisAcik}
       />
 
       {/* ⚠️ TASARIM SAPMASI (K-33, kullanıcı onayı ile).
@@ -79,8 +97,15 @@ export default async function AnaSayfa() {
         <GoruntuyeGirince>
           <Urunler
             urunler={urunler}
-            kategoriler={kategoriler.map((k) => k.name)}
+            kategoriler={kategoriler}
             whatsapp={info.whatsapp}
+            katalog={
+              katalog && {
+                guncelleme: guncellemeMetni(katalog.updatedAt),
+                kdvDahil: katalog.vatIncluded,
+                siparisAcik,
+              }
+            }
           />
         </GoruntuyeGirince>
         <GoruntuyeGirince>

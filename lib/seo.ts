@@ -1,5 +1,6 @@
 import "server-only";
 import { calismaSaatleriGetir, siteBilgisiGetir } from "@/lib/data";
+import type { Katalog } from "@/lib/stok-sema";
 
 /* ──────────────────────────────────────────────────────────────────────────
    SEO yardımcıları — TASARIMDA YOK (karar K-11).
@@ -57,7 +58,7 @@ const SCHEMA_GUN = [
  * adres, telefon ve çalışma saatlerini göstermesini sağlar.
  * Tüm değerler panelden geliyor — elle güncellenecek ikinci bir yer yok.
  */
-export async function yapilandirilmisVeri() {
+export async function yapilandirilmisVeri(katalog: Katalog | null = null) {
   const [info, saatler] = await Promise.all([
     siteBilgisiGetir(),
     calismaSaatleriGetir(),
@@ -86,5 +87,44 @@ export async function yapilandirilmisVeri() {
         opens: s.open,
         closes: s.close,
       })),
+    ...(katalog && katalog.products.length > 0
+      ? { hasOfferCatalog: teklifKatalogu(katalog) }
+      : {}),
+  };
+}
+
+/** UN/CEFACT birim kodları: KGM = kilogram, H87 = adet */
+const BIRIM_KODU = { kg: "KGM", adet: "H87" } as const;
+
+/**
+ * Stok programı kataloğundan Product/Offer listesi (K-37).
+ * Fiyat birim başına (kg ya da adet) — `UnitPriceSpecification` bunu açıkça
+ * söylüyor; düz `price` kilogram fiyatını paket fiyatı gibi gösterirdi.
+ */
+function teklifKatalogu(k: Katalog) {
+  return {
+    "@type": "OfferCatalog",
+    name: "Ürünler ve fiyatlar",
+    itemListElement: k.products.map((u) => ({
+      "@type": "Offer",
+      priceCurrency: "TRY",
+      price: u.price,
+      availability: u.inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      priceSpecification: {
+        "@type": "UnitPriceSpecification",
+        price: u.price,
+        priceCurrency: "TRY",
+        valueAddedTaxIncluded: k.vatIncluded,
+        unitCode: BIRIM_KODU[u.unit],
+      },
+      itemOffered: {
+        "@type": "Product",
+        name: u.name,
+        category: u.category,
+        ...(u.description ? { description: u.description } : {}),
+      },
+    })),
   };
 }

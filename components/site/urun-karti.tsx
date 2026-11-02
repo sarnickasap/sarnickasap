@@ -1,5 +1,8 @@
 import { SagOkIkonu } from "@/components/icons";
 import { fiyat, waLink, WA_MESAJ } from "@/lib/format";
+import { birimSoneki } from "@/lib/miktar";
+import type { Birim } from "@/lib/stok-sema";
+import { SepeteEkle } from "./sepete-ekle";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Ürün Kartı (ızgara hücresi) — vault "Urun Karti" notundan birebir.
@@ -19,26 +22,50 @@ import { fiyat, waLink, WA_MESAJ } from "@/lib/format";
 
    Stok dışı davranış: kart soluklaşmaz, fiyat gizlenmez.
    Yalnızca rozet görünür ve ok butonu kaybolur.
+
+   Stok programı kataloğu (K-37) — tasarımda YOK, kartın kendi diliyle:
+     · birim soneki "/ kg" ya da "/ adet"
+     · görsel YALNIZCA izinli Blob adresinden (lib/stok-sema.ts) —
+       galerideki görselle aynı biçim (4/3 · r8 · #171717 zemin)
+     · sipariş açıksa ve ürün stoktaysa miktar seçici + "Sepete ekle"
    ────────────────────────────────────────────────────────────────────────── */
 
 export type UrunVerisi = {
-  id: number;
+  /** React anahtarı: stok kodu ya da DB kimliği */
+  anahtar: string;
+  /** Stok programı ürün kodu; DB yedeğinde null (sipariş yok) */
+  code: string | null;
   name: string;
   cat: string;
   price: number;
   note: string;
   stock: boolean;
+  unit: Birim;
+  imageUrl: string | null;
 };
 
 export function UrunKarti({
   urun,
   whatsapp,
+  siparisAcik,
 }: {
   urun: UrunVerisi;
   whatsapp: string;
+  siparisAcik: boolean;
 }) {
   return (
     <div className="flex min-h-190 flex-col gap-14 bg-ink p-22">
+      {urun.imageUrl && (
+        // Blob görseli — galeriyle aynı gerekçe: next/image uzak alan adı ister.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={urun.imageUrl}
+          alt={urun.name}
+          loading="lazy"
+          decoding="async"
+          className="block aspect-[4/3] w-full rounded-8 bg-hover object-cover"
+        />
+      )}
       <div className="flex items-center justify-between gap-8">
         <span className="text-12 font-medium text-muted-dark">{urun.cat}</span>
         {!urun.stock && (
@@ -60,7 +87,7 @@ export function UrunKarti({
           <span className="font-display text-24 font-bold text-white">
             {fiyat(urun.price)}
           </span>
-          <span className="text-13 text-muted-dark">/ kg</span>
+          <span className="text-13 text-muted-dark">{birimSoneki(urun.unit)}</span>
         </div>
 
         {urun.stock && (
@@ -76,6 +103,10 @@ export function UrunKarti({
           </a>
         )}
       </div>
+
+      {siparisAcik && urun.stock && urun.code && (
+        <SepeteEkle code={urun.code} unit={urun.unit} name={urun.name} />
+      )}
     </div>
   );
 }
