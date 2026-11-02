@@ -1,6 +1,8 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { SITE_TAG } from "@/lib/data";
+import { suresiDolanKampanyalariKaldir } from "@/lib/kampanya-suresi";
+import { istanbulGunu } from "@/lib/saatler";
 import {
   KatalogSema,
   SiparisYanitSema,
@@ -73,11 +75,27 @@ async function katalogCek(): Promise<Katalog> {
   };
 }
 
-/** Güncel katalog; alınamazsa `null` (sayfa yedek veriye düşer). */
+/* "Bugün" (Europe/Istanbul) — süresi dolan kampanya koruması için (K-39).
+
+   Prerender'da çıplak `new Date()` derlemeyi düşürür (Cache Components);
+   footer yılındaki gibi `use cache` içinde okunur. Ömrü katalogla AYNI:
+   kampanya bitişi en geç bir katalog tazeleme turu (~5 dk) gecikmeyle
+   yansır, sayfalar statik kalır (daha kısa ömür sayfayı dinamiğe çevirirdi).
+   `SITE_TAG` ile stok bildirimi / panel kaydı da tarihi tazeler. */
+async function bugunGetir(): Promise<string> {
+  "use cache";
+  cacheTag(SITE_TAG);
+  cacheLife(KATALOG_ONBELLEK);
+  return istanbulGunu();
+}
+
+/** Güncel katalog; alınamazsa `null` (sayfa yedek veriye düşer).
+ *  Süresi dolmuş kampanyalar normal fiyata döndürülmüş olarak gelir. */
 export async function katalogGetir(): Promise<Katalog | null> {
   if (!baglantiAl()) return null;
   try {
-    return await katalogCek();
+    const [katalog, bugun] = await Promise.all([katalogCek(), bugunGetir()]);
+    return suresiDolanKampanyalariKaldir(katalog, bugun);
   } catch (e) {
     console.error("Stok kataloğu alınamadı:", e instanceof Error ? e.message : e);
     return null;

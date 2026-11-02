@@ -55,6 +55,16 @@ export function istanbulYili(now: Date = new Date()): number {
   );
 }
 
+/** Europe/Istanbul'daki takvim günü, "YYYY-MM-DD" (kampanya son günü için). */
+export function istanbulGunu(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
 export type Saat = {
   dayIndex: number;
   day: string;
