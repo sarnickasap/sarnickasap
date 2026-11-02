@@ -50,6 +50,19 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const ft = await p.locator("footer").innerText();
   ok(ft.includes(`© ${new Date().getFullYear()}`), `Footer yılı dinamik: ${ft.split("\n")[0]}`);
 
+  /* Footer "Kategoriler" (K-39): sunucuda üretilmiş, taranabilir bağlantılar.
+     Sayı sabit DEĞİL — sitemap'teki kategori adresleriyle birebir aynı küme
+     olmalı ve her biri 200 dönmeli. JS'siz HTML'de de bulunmalı. */
+  const fk=await p.locator('footer nav[aria-labelledby="footer-kategoriler"] a').evaluateAll(a=>a.map(x=>new URL(x.href).pathname));
+  const smHam=await (await fetch("http://localhost:3100/sitemap.xml")).text();
+  const smKat=[...smHam.matchAll(/<loc>[^<]*?(\/urunler\/[^<]+)<\/loc>/g)].map(m=>m[1]);
+  ok(fk.length>0 && fk.length===smKat.length && fk.every(y=>smKat.includes(y)),
+    `Footer kategori bağlantıları = sitemap kategorileri (${fk.length}/${smKat.length})`);
+  const hamHtml=await (await fetch("http://localhost:3100/")).text();
+  ok(fk.every(y=>hamHtml.includes(`href="${y}"`)), "Footer kategori bağlantıları sunucu HTML'inde (tıklamasız)");
+  const durumlar=await Promise.all(fk.map(y=>fetch("http://localhost:3100"+y).then(r=>r.status)));
+  ok(durumlar.every(d=>d===200), `Footer kategori sayfaları 200 (${durumlar.join(",")})`);
+
   // target=_blank bağlantılarda rel
   const kotu = await p.locator('a[target="_blank"]:not([rel*="noopener"])').count();
   ok(kotu===0, `target="_blank" bağlantıların hepsinde rel="noopener" (eksik: ${kotu})`);

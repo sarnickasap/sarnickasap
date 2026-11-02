@@ -1,6 +1,9 @@
 import { cacheLife } from "next/cache";
+import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { istanbulYili } from "@/lib/saatler";
+import { kategoriOzetleri, type KategoriOzeti } from "@/lib/urun-kaynagi";
+import { urunKaynagiGetir } from "@/lib/urun-verisi";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Site Footer — vault "Site Footer" notundan birebir.
@@ -18,7 +21,18 @@ import { istanbulYili } from "@/lib/saatler";
    için 1 Ocak'ta eskimemesi gerekiyor. `use cache` + günlük tazeleme ile
    prerender'a sabitlenmesi engellendi (Next 16 `new Date()`'i prerender'da
    kabul etmiyor). Bugün 2026 olduğu için tasarımla aynı görünüyor.
+
+   "Kategoriler" satırı — TASARIMDA YOK (K-39). Kategori sayfalarına
+   sunucuda üretilen, taranabilir bağlantılar; ana sayfadaki sekme
+   bağlantısı yalnızca tıklamadan sonra çıkıyordu. Kaynak sitemap ve
+   generateStaticParams ile aynı (`urunKaynagiGetir` + `kategoriOzetleri`).
+   Footer'ın 13px / #8a8a8a dili; `basis-full` ile kendi satırında,
+   altındaki logo/© ve "Yönetim" satırı aynen kalır. Medya sorgusu yok:
+   bağlantılar flex-wrap ile alt satıra iner.
    ────────────────────────────────────────────────────────────────────────── */
+
+const FOOTER_BAGLANTI =
+  "text-muted-dark transition-colors duration-150 ease-out-soft hover:text-body";
 
 async function yilGetir() {
   "use cache";
@@ -30,12 +44,34 @@ async function yilGetir() {
   return istanbulYili();
 }
 
+function KategoriBaglantilari({ kategoriler }: { kategoriler: KategoriOzeti[] }) {
+  if (kategoriler.length === 0) return null;
+  return (
+    <nav aria-labelledby="footer-kategoriler" className="flex basis-full flex-wrap items-baseline gap-x-16 gap-y-8">
+      <h2 id="footer-kategoriler" className="m-0 text-13 font-medium text-muted">
+        Kategoriler
+      </h2>
+      <ul className="m-0 flex flex-wrap gap-x-16 gap-y-8 p-0 list-none">
+        {kategoriler.map((k) => (
+          <li key={k.slug}>
+            <Link href={`/urunler/${k.slug}`} className={FOOTER_BAGLANTI}>
+              {k.ad}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 export async function SiteFooter() {
-  const yil = await yilGetir();
+  const [yil, kaynak] = await Promise.all([yilGetir(), urunKaynagiGetir()]);
+  const kategoriler = kategoriOzetleri(kaynak.kategoriler);
 
   return (
     <footer className="border-t border-line">
       <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-16 px-24 py-32 text-13 text-muted-dark">
+        <KategoriBaglantilari kategoriler={kategoriler} />
         <div className="flex items-center gap-12">
           <Logo
             genislik={32}
@@ -45,10 +81,7 @@ export async function SiteFooter() {
           />
           <span>© {yil} Sarnıç Kasap · Gaziemir, İzmir</span>
         </div>
-        <a
-          href="/yonetim"
-          className="text-muted-dark transition-colors duration-150 ease-out-soft hover:text-body"
-        >
+        <a href="/yonetim" className={FOOTER_BAGLANTI}>
           Yönetim
         </a>
       </div>
