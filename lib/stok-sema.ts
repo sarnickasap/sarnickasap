@@ -12,6 +12,7 @@ import { z } from "zod";
    ────────────────────────────────────────────────────────────────────────── */
 
 const SAAT = /^([01]\d|2[0-3]):[0-5]\d$/;
+const GUN = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 export const BirimSema = z.enum(["kg", "adet"]);
 export type Birim = z.infer<typeof BirimSema>;
@@ -22,6 +23,11 @@ export const KatalogUrunSema = z.object({
   category: z.string().min(1).max(60),
   unit: BirimSema,
   price: z.number().nonnegative().finite(),
+  /* Kampanya alanları (aşama 4) — stok programı henüz göndermeyebilir.
+     `.catch(null)`: alan yoksa YA DA bozuksa yalnızca kampanya düşer;
+     tek bir hatalı alan bütün kataloğu reddettirmesin. */
+  listPrice: z.number().positive().finite().nullable().catch(null),
+  campaignUntil: z.string().regex(GUN).nullable().catch(null),
   inStock: z.boolean(),
   description: z.string().max(500).default(""),
   imageUrl: z.string().max(500).nullable().default(null),
@@ -74,7 +80,9 @@ export const SiparisYanitSema = z.discriminatedUnion("ok", [
 export type SiparisYaniti = z.infer<typeof SiparisYanitSema>;
 
 /* ── Görsel güvenliği ───────────────────────────────────────────────────
-   CSP `img-src` yalnızca Vercel Blob'un genel alan adına izin veriyor.
+   CSP `img-src` yalnızca Vercel Blob'un genel alan adına izin veriyor
+   (`https://*.public.blob.vercel-storage.com` — sitenin kendi deposu da,
+   stok programının deposu da, ör. `qur8uaumjegyazes.public.blob…`).
    Başka bir ana makineden gelen URL tarayıcıda zaten engellenirdi; hiç
    render edilmiyor ki kırık görsel ve CSP ihlali raporu oluşmasın. */
 const IZINLI_GORSEL_SONEKI = ".public.blob.vercel-storage.com";
@@ -83,8 +91,12 @@ export function guvenliGorselUrl(url: string | null): string | null {
   if (!url) return null;
   try {
     const u = new URL(url);
-    if (u.protocol !== "https:") return null;
-    return u.hostname.endsWith(IZINLI_GORSEL_SONEKI) ? u.toString() : null;
+    if (u.protocol !== "https:" || u.username || u.password) return null;
+    // Sonek eşleşmesi + en az bir alt alan adı etiketi (CSP'deki `*.` gibi)
+    const altAlan = u.hostname.slice(0, -IZINLI_GORSEL_SONEKI.length);
+    return u.hostname.endsWith(IZINLI_GORSEL_SONEKI) && altAlan.length > 0
+      ? u.toString()
+      : null;
   } catch {
     return null;
   }

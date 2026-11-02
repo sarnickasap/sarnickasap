@@ -63,7 +63,10 @@ export function UrunKarti({
           alt={urun.name}
           loading="lazy"
           decoding="async"
-          className="block aspect-[4/3] w-full rounded-8 bg-hover object-cover"
+          // Gerçek boyut bilinmiyor; 4:3 oranı tarayıcıya önceden yer ayırtır (CLS yok)
+          width={400}
+          height={300}
+          className="block aspect-[4/3] h-auto w-full rounded-8 bg-hover object-cover"
         />
       )}
       <div className="flex items-center justify-between gap-8">
