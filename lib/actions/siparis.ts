@@ -79,6 +79,21 @@ function alanHatalari(issues: { path: PropertyKey[]; message: string }[]) {
   return sonuc;
 }
 
+const SEPET_BOS = "Sepetiniz boş.";
+
+/* Formda kutusu olmayan alanlar (form anahtarı, sepet): işaretlenecek yer yok,
+   bu yüzden mesaj doğrudan gösterilir. Sepet satırı hataları teknik olabilir;
+   müşteriye sade bir cümle gider. */
+function genelHata(hatalar: Record<string, string>): string {
+  if (hatalar.clientRef) return hatalar.clientRef;
+  if (hatalar.kalemler) {
+    return hatalar.kalemler === SEPET_BOS
+      ? SEPET_BOS
+      : "Sepetinizde geçersiz bir satır var. Sepeti kontrol edip tekrar deneyin.";
+  }
+  return "Lütfen işaretli alanları düzeltin.";
+}
+
 export async function siparisVer(
   _onceki: SiparisDurumu,
   fd: FormData,
@@ -90,7 +105,8 @@ export async function siparisVer(
 
   const ayrisan = SiparisFormSema.safeParse(formuOku(fd));
   if (!ayrisan.success) {
-    return { hata: "Lütfen işaretli alanları düzeltin.", alanHatalari: alanHatalari(ayrisan.error.issues) };
+    const hatalar = alanHatalari(ayrisan.error.issues);
+    return { hata: genelHata(hatalar), alanHatalari: hatalar };
   }
   const f = ayrisan.data;
 

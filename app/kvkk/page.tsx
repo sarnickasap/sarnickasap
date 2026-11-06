@@ -46,8 +46,20 @@ export default async function KvkkSayfasi() {
             Online sipariş verdiğinizde adınız soyadınız, cep telefonu numaranız, teslimat
             adresiniz ve bölgeniz, sipariş içeriğiniz ve notlarınız işlenir. Bu veriler yalnızca
             siparişinizin hazırlanması, teslim edilmesi ve sipariş hakkında sizinle iletişim
-            kurulması amacıyla kullanılır. Pazarlama amacıyla kullanılmaz ve üçüncü kişilerle
-            paylaşılmaz; yalnızca yasal yükümlülük hâlinde yetkili kurumlara aktarılabilir.
+            kurulması amacıyla kullanılır. Pazarlama amacıyla kullanılmaz ve satılmaz.
+          </p>
+        </section>
+
+        <section className="flex flex-col gap-10">
+          <h2 className={BASLIK}>Verilerin aktarılması</h2>
+          <p className={PARAGRAF}>
+            Siparişiniz, hazırlanabilmesi için işletmemizin stok ve sipariş programına iletilir. Bu
+            web sitesi ve sipariş programı, sunucuları yurt dışında da bulunabilen bulut hizmet
+            sağlayıcılarında (barındırma ve veritabanı hizmetleri) çalışır; verileriniz yalnızca
+            hizmetin sunulması için bu sağlayıcıların sunucularında saklanır (KVKK md. 9).
+            WhatsApp’tan yazdığınızda mesajlarınız WhatsApp (Meta) üzerinden iletilir. Bunların
+            dışında verileriniz üçüncü kişilerle paylaşılmaz; yalnızca yasal yükümlülük hâlinde
+            yetkili kurumlara aktarılabilir.
           </p>
         </section>
 

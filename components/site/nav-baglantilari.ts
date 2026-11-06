@@ -3,7 +3,7 @@ export const NAV_BAGLANTILARI = [
   { href: "#firsatlar", label: "Fırsatlar", kosul: "firsat" },
   { href: "#urunler", label: "Ürünler", kosul: null },
   { href: "#hakkimizda", label: "Hakkımızda", kosul: null },
-  { href: "#galeri", label: "Galeri", kosul: null },
+  { href: "#galeri", label: "Galeri", kosul: "galeri" },
   { href: "#yorumlar", label: "Yorumlar", kosul: "yorum" },
   { href: "#iletisim", label: "İletişim", kosul: null },
 ] as const;
@@ -19,12 +19,15 @@ export const NAV_BAGLANTILARI = [
 export function gorunurNavBaglantilari(opts: {
   firsatVar: boolean;
   yorumVar: boolean;
+  galeriVar: boolean;
 }) {
   return NAV_BAGLANTILARI.filter((l) =>
     l.kosul === "firsat"
       ? opts.firsatVar
       : l.kosul === "yorum"
         ? opts.yorumVar
-        : true,
+        : l.kosul === "galeri"
+          ? opts.galeriVar
+          : true,
   );
 }

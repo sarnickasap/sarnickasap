@@ -74,7 +74,7 @@ export async function generateMetadata(): Promise<Metadata> {
       // site_info.og_image_url doluysa o, değilse logo (aşama 4)
       images: gorseller,
     },
-    twitter: { card: "summary", title: baslik, description: aciklama, images: gorseller },
+    twitter: { card: "summary_large_image", title: baslik, description: aciklama, images: gorseller },
     alternates: { canonical: SITE_URL },
     robots: { index: true, follow: true },
     // Meta Business alan adı doğrulaması (WhatsApp Business kurulumu)

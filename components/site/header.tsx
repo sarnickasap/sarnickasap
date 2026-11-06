@@ -36,14 +36,16 @@ export function SiteHeader({
   waLink,
   firsatVar,
   yorumVar,
+  galeriVar,
   sepetVar = false,
 }: {
   waLink: string;
   firsatVar: boolean;
   yorumVar: boolean;
+  galeriVar: boolean;
   sepetVar?: boolean;
 }) {
-  const baglantilar = gorunurNavBaglantilari({ firsatVar, yorumVar });
+  const baglantilar = gorunurNavBaglantilari({ firsatVar, yorumVar, galeriVar });
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-[rgba(10,10,10,0.88)] backdrop-blur-[10px]">
@@ -75,10 +77,10 @@ export function SiteHeader({
         {sepetVar ? (
           <div className="flex flex-none items-center gap-8">
             <SepetDugmesi />
-            <SiparisCta waLink={waLink} />
+            <SiparisCta href="#urunler" />
           </div>
         ) : (
-          <SiparisCta waLink={waLink} />
+          <SiparisCta href={waLink} disari />
         )}
 
         <MobilMenu baglantilar={baglantilar} />
@@ -87,15 +89,15 @@ export function SiteHeader({
   );
 }
 
-function SiparisCta({ waLink }: { waLink: string }) {
+/** Online sipariş açıkken ürünlere iner; kapalıyken WhatsApp'ı açar. */
+function SiparisCta({ href, disari = false }: { href: string; disari?: boolean }) {
   return (
     <a
-      href={waLink}
-      target="_blank"
-      rel="noopener noreferrer"
+      href={href}
+      {...(disari ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="flex h-40 flex-none items-center gap-8 rounded-8 bg-brand px-16 text-14 font-semibold whitespace-nowrap text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
     >
-      <MesajIkonu size={16} />
+      {disari && <MesajIkonu size={16} />}
       Sipariş ver
     </a>
   );

@@ -8,6 +8,7 @@ import { altSayfaMetadata, guvenliJsonLd, kanonikAdres, SITE_URL } from "@/lib/s
 import { kategoriJsonLd } from "@/lib/seo-urun";
 import { guncellemeMetni, kategoriOzetleri, type KategoriOzeti } from "@/lib/urun-kaynagi";
 import { urunKaynagiGetir, type UrunKaynagi } from "@/lib/urun-verisi";
+import { FiyatlarGuncelleniyor } from "@/components/site/fiyatlar-guncelleniyor";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Kategori sayfası — yerel SEO (aşama 4). TASARIMDA YOK; alt sayfa kabuğu
@@ -155,7 +156,11 @@ export default async function KategoriSayfasi({ params }: PageProps<"/urunler/[k
       ustBilgi={<SayfaYolu ad={secili.ad} />}
     >
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: guvenliJsonLd(jsonLd) }} />
-      <UrunIzgarasi urunler={urunler} whatsapp={info.whatsapp} siparisAcik={kaynak.siparisAcik} />
+      {kaynak.fiyatlarYok ? (
+        <FiyatlarGuncelleniyor whatsapp={info.whatsapp} />
+      ) : (
+        <UrunIzgarasi urunler={urunler} whatsapp={info.whatsapp} siparisAcik={kaynak.siparisAcik} />
+      )}
       <DigerKategoriler tumu={tumu} seciliSlug={secili.slug} />
       <Link href="/" className={`${BAGLANTI} w-fit`}>
         ← Ana sayfaya dön

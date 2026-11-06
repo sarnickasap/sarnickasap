@@ -8,7 +8,7 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   await p.goto("http://localhost:3100/",{waitUntil:"networkidle"});
 
   for (const [id,ad] of [["top","Hero"],["firsatlar","Fırsatlar"],["urunler","Ürünler"],
-                         ["hakkimizda","Hakkımızda"],["galeri","Galeri"],["iletisim","İletişim"]])
+                         ["hakkimizda","Hakkımızda"],["iletisim","İletişim"]])
     ok(await p.locator("#"+id).count()===1, `${ad} bölümü var`);
 
   ok(await p.locator("#yorumlar").count()===0, "Yorumlar gizli (gerçek yorum yok — K-15)");
@@ -42,9 +42,10 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const vurgu = await p.locator('#iletisim [aria-current="date"]').count();
   ok(vurgu===1, `Çalışma saatlerinde 1 gün vurgulu (${vurgu})`);
 
-  // Galeri yer tutucuları
-  ok(await p.locator("#galeri figure").count()===6, "6 galeri figürü");
-  ok(await p.locator("#galeri img").count()===0, "Görsel URL'i yok → hepsi yer tutucu");
+  // Galeri: görseli olmayan satırlar boş kutu olarak çıkmaz; hiç görsel yoksa bölüm ve linki gizli
+  ok(await p.locator("#galeri").count()===0, "Görselsiz galeri bölümü gizli");
+  ok(await p.locator('header nav a[href="#galeri"]').count()===0, "Galeri nav linki de gizli");
+  ok(await p.getByText("fotoğraf: dükkân").count()===0, "Hakkımızda'da yer tutucu yok");
 
   // Footer yılı
   const ft = await p.locator("footer").innerText();

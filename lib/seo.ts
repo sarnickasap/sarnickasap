@@ -54,13 +54,14 @@ export const SITE_URL =
 export type OgGorseli = { url: string; width?: number; height?: number; alt: string };
 
 const OG_ALT = "Sarnıç Kasap — Gaziemir, İzmir";
-const LOGO_OG: OgGorseli = { url: "/logo.png", width: 1420, height: 1350, alt: "Sarnıç Kasap" };
+/** Varsayılan paylaşım görseli: 1200×630, WhatsApp/Facebook önizlemesinde geniş görünür. */
+const VARSAYILAN_OG: OgGorseli = { url: "/paylasim.png", width: 1200, height: 630, alt: OG_ALT };
 
 export function ogGorselleri(ogImageUrl: string | null | undefined): OgGorseli[] {
-  if (!ogImageUrl?.trim()) return [LOGO_OG];
+  if (!ogImageUrl?.trim()) return [VARSAYILAN_OG];
   try {
     const u = new URL(ogImageUrl.trim());
-    if (u.protocol !== "https:") return [LOGO_OG];
+    if (u.protocol !== "https:") return [VARSAYILAN_OG];
     const olcu = paylasimOlcusuOku(u.toString());
     return [
       {
@@ -70,7 +71,7 @@ export function ogGorselleri(ogImageUrl: string | null | undefined): OgGorseli[]
       },
     ];
   } catch {
-    return [LOGO_OG];
+    return [VARSAYILAN_OG];
   }
 }
 
@@ -108,7 +109,7 @@ export function altSayfaMetadata(o: {
       url,
       images: gorseller,
     },
-    twitter: { card: "summary", title: o.baslik, description: o.aciklama, images: gorseller },
+    twitter: { card: "summary_large_image", title: o.baslik, description: o.aciklama, images: gorseller },
   };
 }
 

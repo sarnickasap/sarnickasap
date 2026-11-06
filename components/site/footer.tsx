@@ -15,7 +15,7 @@ import { urunKaynagiGetir } from "@/lib/urun-verisi";
      sol     flex items-center gap12
              img 32×31 object-contain · alt="" (dekoratif)
              "© 2026 Sarnıç Kasap · Gaziemir, İzmir"
-     sağ     "Yönetim" → #737373, hover #fafafa
+     (sağdaki "Yönetim" bağlantısı kaldırıldı)
 
    Yıl dinamik: tasarımda sabit "2026" yazıyordu; site yıllarca yaşayacağı
    için 1 Ocak'ta eskimemesi gerekiyor. `use cache` + günlük tazeleme ile
@@ -99,9 +99,8 @@ export async function SiteFooter() {
           />
           <span>© {yil} Sarnıç Kasap · Gaziemir, İzmir</span>
         </div>
-        <a href="/yonetim" className={FOOTER_BAGLANTI}>
-          Yönetim
-        </a>
+        {/* "Yönetim" bağlantısı kaldırıldı: panel /yonetim adresinden açılır,
+            müşteriye gösterilmez. */}
       </div>
     </footer>
   );

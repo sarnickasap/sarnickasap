@@ -1,5 +1,4 @@
 import { guvenliGorselUrl } from "@/lib/stok-sema";
-import { FotoYerTutucu } from "./foto-yer-tutucu";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Galeri — vault "Galeri Bolumu" notundan birebir.
@@ -10,7 +9,7 @@ import { FotoYerTutucu } from "./foto-yer-tutucu";
      ızgara   auto-fill minmax(min(100%,300px),1fr) · gap16
      figür    m0 · flex-col · gap10
        görsel  w-full · aspect 4/3 · object-cover · r12 · block · bg #171717
-       yoksa   yer tutucu, yazı "fotoğraf"
+       yoksa   satır gösterilmez; hiç görsel yoksa bölüm de çıkmaz
        altyazı 14px · #a3a3a3
 
    Lightbox / tıklama davranışı YOK — tasarımda da yok.
@@ -23,7 +22,9 @@ import { FotoYerTutucu } from "./foto-yer-tutucu";
 
 export type GaleriOgesi = { id: number; url: string; caption: string };
 
+/** Görseli olmayan satırlar çağıran tarafta elenir; hiç görsel yoksa bölüm çıkmaz. */
 export function Galeri({ ogeler }: { ogeler: GaleriOgesi[] }) {
+  if (ogeler.length === 0) return null;
   return (
     <section
       id="galeri"
@@ -38,37 +39,31 @@ export function Galeri({ ogeler }: { ogeler: GaleriOgesi[] }) {
         </h2>
       </div>
 
-      {ogeler.length === 0 ? (
-        /* Boş durum — tasarımda YOK (K-08) */
-        <p className="m-0 text-14 text-muted">Henüz görsel eklenmedi.</p>
-      ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-16">
-          {ogeler.map((g) => {
-            const src = guvenliGorselUrl(g.url || null);
-            return (
-              <figure key={g.id} className="m-0 flex flex-col gap-10">
-                {src ? (
-                  /* Blob görseli — next/image uzak alan adı yapılandırması
-                     gerektirir; düz <img> (tasarımdaki gibi). */
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={src}
-                    alt={g.caption}
-                    loading="lazy"
-                    decoding="async"
-                    width={400}
-                    height={300}
-                    className="block aspect-[4/3] h-auto w-full rounded-12 bg-hover object-cover"
-                  />
-                ) : (
-                  <FotoYerTutucu yazi="fotoğraf" />
-                )}
-                <figcaption className="text-14 text-muted">{g.caption}</figcaption>
-              </figure>
-            );
-          })}
-        </div>
-      )}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-16">
+        {ogeler.map((g) => {
+          const src = guvenliGorselUrl(g.url || null);
+          if (!src) return null;
+          return (
+            <figure key={g.id} className="m-0 flex flex-col gap-10">
+              {/* Blob görseli — next/image uzak alan adı yapılandırması
+                    gerektirir; düz <img>. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={g.caption}
+                loading="lazy"
+                decoding="async"
+                width={400}
+                height={300}
+                className="block aspect-[4/3] h-auto w-full rounded-12 bg-hover object-cover"
+              />
+              <figcaption className="text-14 text-muted">
+                {g.caption}
+              </figcaption>
+            </figure>
+          );
+        })}
+      </div>
     </section>
   );
 }

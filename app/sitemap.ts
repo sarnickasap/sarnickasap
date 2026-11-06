@@ -1,10 +1,15 @@
 import type { MetadataRoute } from "next";
+import { connection } from "next/server";
 import { SITE_URL } from "@/lib/seo";
 import { siteBilgisiGetir } from "@/lib/data";
 import { kategoriOzetleri } from "@/lib/urun-kaynagi";
 import { urunKaynagiGetir } from "@/lib/urun-verisi";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  /* İstek anında üretilir: derlemede önbelleğe alınan sitemap stok güncellemesiyle
+     tazelenmiyordu (canlıda 2 Kasım'daki tek kategori kalmıştı). Veriler yine
+     `use cache` katmanından gelir; maliyet düşük. */
+  await connection();
   const [info, kaynak] = await Promise.all([siteBilgisiGetir(), urunKaynagiGetir()]);
   /* Kategori sayfaları (aşama 4) — ana sayfayla aynı kaynaktan. Katalog
      varken son değişiklik zamanı katalogdan, yoksa site bilgisinden. */

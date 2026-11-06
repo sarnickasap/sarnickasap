@@ -64,14 +64,12 @@ const panelTazele=async(p,ad)=>{ await p.reload({waitUntil:"networkidle"}); awai
   // URL yokken panelde "görsel yok" yer tutucusu
   ok((await bizim().innerText()).includes("görsel yok"), "URL yokken panelde yer tutucu");
 
-  // ── Sitede yer tutucu olarak çıkmalı ──
+  // ── Görselsiz öğe sitede çıkmamalı (boş kutu yok) ──
   await site.reload({waitUntil:"networkidle"});
   await site.evaluate(async()=>{for(let y=0;y<document.body.scrollHeight;y+=500){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,40));}});
   await site.waitForTimeout(700);
-  ok(await site.locator("#galeri figure").count()===figurBasta+1,
-     `Sitede öğe sayısı arttı (${figurBasta} → ${await site.locator("#galeri figure").count()})`);
-  ok(await site.locator("#galeri img").count()===imgBasta,
-     `URL'siz öğe <img> üretmiyor, yer tutucu kalıyor (${await site.locator("#galeri img").count()})`);
+  ok(await site.locator("#galeri figure").count()===figurBasta,
+     `URL'siz öğe sitede gösterilmiyor (${figurBasta} → ${await site.locator("#galeri figure").count()})`);
 
   // ── Blob dışı URL reddedilmeli ve kaydedilmemeli ──
   await bizim().locator('input[aria-label="Görsel bağlantısı"]').fill(DIS_URL);

@@ -1,5 +1,6 @@
 import { UrunListesi } from "./urun-listesi";
 import type { UrunVerisi } from "./urun-karti";
+import { FiyatlarGuncelleniyor } from "./fiyatlar-guncelleniyor";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Ürünler Bölümü — vault "Urunler Bolumu" notundan birebir.
@@ -34,12 +35,14 @@ export function Urunler({
   kategoriler,
   whatsapp,
   katalog,
+  fiyatlarYok = false,
 }: {
   urunler: UrunVerisi[];
   kategoriler: string[];
   whatsapp: string;
   /** null → veritabanı yedeği: tasarımdaki metin, sipariş kapalı */
   katalog: KatalogBilgisi | null;
+  fiyatlarYok?: boolean;
 }) {
   return (
     <section
@@ -51,9 +54,9 @@ export function Urunler({
           Ürünler ve fiyatlar
         </span>
         <h2 className="m-0 font-display text-h2 leading-h2 font-bold tracking-h2 text-cream">
-          Kilo fiyatları
+          Güncel fiyatlar
         </h2>
-        {katalog ? (
+        {fiyatlarYok ? null : katalog ? (
           <>
             <p className="m-0 text-16 leading-16 text-muted">
               {katalog.siparisAcik
@@ -73,12 +76,16 @@ export function Urunler({
         )}
       </div>
 
-      <UrunListesi
-        urunler={urunler}
-        kategoriler={kategoriler}
-        whatsapp={whatsapp}
-        siparisAcik={katalog?.siparisAcik ?? false}
-      />
+      {fiyatlarYok ? (
+        <FiyatlarGuncelleniyor whatsapp={whatsapp} />
+      ) : (
+        <UrunListesi
+          urunler={urunler}
+          kategoriler={kategoriler}
+          whatsapp={whatsapp}
+          siparisAcik={katalog?.siparisAcik ?? false}
+        />
+      )}
     </section>
   );
 }

@@ -19,6 +19,7 @@ import {
 } from "@/lib/data";
 import { WA_MESAJ, telLink, waLink } from "@/lib/format";
 import { guvenliJsonLd, yapilandirilmisVeri } from "@/lib/seo";
+import { guvenliGorselUrl } from "@/lib/stok-sema";
 import { guncellemeMetni, katalogFirsatlari } from "@/lib/urun-kaynagi";
 import { urunKaynagiGetir } from "@/lib/urun-verisi";
 
@@ -44,6 +45,8 @@ export default async function AnaSayfa() {
 
   const stokFirsatlari = katalogFirsatlari(urunler);
   const firsatVar = firsatlar.length > 0 || stokFirsatlari.length > 0;
+  /* Görseli olmayan galeri satırı müşteriye boş kutu olarak görünmesin. */
+  const galeriGorselleri = galeri.filter((g) => guvenliGorselUrl(g.url || null));
 
   return (
     <div className="min-h-screen bg-ink text-body">
@@ -57,6 +60,7 @@ export default async function AnaSayfa() {
         waLink={wa}
         firsatVar={firsatVar}
         yorumVar={yorumlar.length > 0}
+        galeriVar={galeriGorselleri.length > 0}
         sepetVar={siparisAcik}
       />
 
@@ -78,6 +82,7 @@ export default async function AnaSayfa() {
           waLink={wa}
           telLink={telLink(info.whatsapp)}
           saatler={saatler}
+          siparisAcik={siparisAcik}
         />
         {/* B3+ bölümleri buraya gelecek */}
         <GoruntuyeGirince>
@@ -90,6 +95,7 @@ export default async function AnaSayfa() {
         </GoruntuyeGirince>
         <GoruntuyeGirince>
           <Urunler
+            fiyatlarYok={kaynak.fiyatlarYok}
             urunler={urunler}
             kategoriler={kategoriler}
             whatsapp={info.whatsapp}
@@ -109,7 +115,7 @@ export default async function AnaSayfa() {
           <Markalar markalar={markalar} />
         </GoruntuyeGirince>
         <GoruntuyeGirince>
-          <Galeri ogeler={galeri} />
+          <Galeri ogeler={galeriGorselleri} />
         </GoruntuyeGirince>
         <GoruntuyeGirince>
           <Yorumlar yorumlar={yorumlar} />

@@ -39,7 +39,7 @@ async function paylasimGorseliDene(p, seoAc){
   ok(await p.getByRole("button",{name:"Görseli kaldır"}).count()===0, "KALDIRMA DOĞRULANDI (yenilemeden sonra boş)");
   const blob=src?await fetch(src,{method:"HEAD"}).then(r=>r.status).catch(()=>0):0;
   ok(blob===404 || blob===403, `Blob dosyası silindi (HTTP ${blob})`);
-  ok(/\/logo\.png$/.test((await ogMeta()).url??""), "Site og:image logoya döndü");
+  ok(/\/paylasim\.png$/.test((await ogMeta()).url??""), "Site og:image varsayılan paylaşım görseline döndü");
 }
 
 (async()=>{

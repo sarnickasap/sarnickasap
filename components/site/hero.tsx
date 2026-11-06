@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Logo } from "@/components/logo";
-import { MesajIkonu, TelefonIkonu } from "@/components/icons";
+import { MesajIkonu, SepetIkonu, TelefonIkonu } from "@/components/icons";
 import type { Saat } from "@/lib/saatler";
 import { AcikKapali, AcikKapaliIskelet } from "./acik-kapali";
 
@@ -20,6 +20,11 @@ import { AcikKapali, AcikKapaliIskelet } from "./acik-kapali";
      sağ      flex · justify-center → img w-full max-w-500 h-auto
    ────────────────────────────────────────────────────────────────────────── */
 
+const BIRINCIL =
+  "flex h-48 items-center gap-10 rounded-8 bg-brand px-22 text-15 font-semibold text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover";
+const IKINCIL =
+  "flex h-48 items-center gap-10 rounded-8 border border-edge px-22 text-15 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white";
+
 export function Hero({
   heroTitle,
   heroSub,
@@ -27,6 +32,7 @@ export function Hero({
   waLink,
   telLink,
   saatler,
+  siparisAcik = false,
 }: {
   heroTitle: string;
   heroSub: string;
@@ -34,6 +40,7 @@ export function Hero({
   waLink: string;
   telLink: string;
   saatler: Saat[];
+  siparisAcik?: boolean;
 }) {
   return (
     <section
@@ -58,28 +65,32 @@ export function Hero({
         </p>
 
         <div className="flex flex-wrap gap-12">
+          {siparisAcik && (
+            <a href="#urunler" className={BIRINCIL}>
+              <SepetIkonu size={18} />
+              Online sipariş ver
+            </a>
+          )}
           <a
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex h-48 items-center gap-10 rounded-8 bg-brand px-22 text-15 font-semibold text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
+            className={siparisAcik ? IKINCIL : BIRINCIL}
           >
             <MesajIkonu size={18} />
             {/* Apostrof U+2019 — tasarımdaki karakterin aynısı */}
-            WhatsApp’tan sipariş ver
+            {siparisAcik ? "WhatsApp’tan yaz" : "WhatsApp’tan sipariş ver"}
           </a>
 
-          <a
-            href={telLink}
-            className="flex h-48 items-center gap-10 rounded-8 border border-edge px-22 text-15 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white"
-          >
+          <a href={telLink} className={IKINCIL}>
             <TelefonIkonu size={18} />
             {phone}
           </a>
         </div>
       </div>
 
-      <div className="flex justify-center">
+      {/* Telefonda büyük logo gizli: başlıkta zaten var, ürünler bir ekran yukarı gelir. */}
+      <div className="hidden justify-center md:flex">
         <Logo
           genislik={1420}
           yukseklik={1350}
