@@ -15,7 +15,7 @@ import { urunKaynagiGetir } from "@/lib/urun-verisi";
      sol     flex items-center gap12
              img 32×31 object-contain · alt="" (dekoratif)
              "© 2026 Sarnıç Kasap · Gaziemir, İzmir"
-     (sağdaki "Yönetim" bağlantısı kaldırıldı)
+     sağ     "KVKK aydınlatma metni" bağlantısı (eski "Yönetim" yerine)
 
    Yıl dinamik: tasarımda sabit "2026" yazıyordu; site yıllarca yaşayacağı
    için 1 Ocak'ta eskimemesi gerekiyor. `use cache` + günlük tazeleme ile
@@ -100,7 +100,11 @@ export async function SiteFooter() {
           <span>© {yil} Sarnıç Kasap · Gaziemir, İzmir</span>
         </div>
         {/* "Yönetim" bağlantısı kaldırıldı: panel /yonetim adresinden açılır,
-            müşteriye gösterilmez. */}
+            müşteriye gösterilmez. Yerine KVKK aydınlatma metni (her sayfadan
+            erişilebilir olmalı). */}
+        <Link href="/kvkk" prefetch={false} className={FOOTER_BAGLANTI}>
+          KVKK aydınlatma metni
+        </Link>
       </div>
     </footer>
   );
