@@ -43,6 +43,10 @@ export const VERI_KATEGORILERI = [
       "“Hesabım” girişi için telefonunuza gönderilen tek kullanımlık kodun şifrelenmiş özeti ve oturum bilgisi.",
   },
   {
+    ad: "Görsel kayıtlar",
+    veriler: "Dükkânımızdaki güvenlik kameralarının görüntü kayıtları.",
+  },
+  {
     ad: "Müşteri yorumları",
     veriler: "Açık rızanızla sitemizde yayımlanan adınız ve yorumunuz.",
   },
@@ -95,6 +99,12 @@ export const AMACLAR = [
       "Meşru menfaatimiz (md. 5/2-f) ve KVKK md. 12'deki veri güvenliği yükümlülüğü (md. 5/2-ç).",
   },
   {
+    amac:
+      "Dükkânımızın, çalışanlarımızın ve müşterilerimizin güvenliğinin sağlanması; hırsızlık ve benzeri olayların önlenmesi ve tespiti (güvenlik kameraları).",
+    sebep:
+      "Temel hak ve özgürlüklerinize zarar vermemek kaydıyla meşru menfaatimiz (md. 5/2-f).",
+  },
+  {
     amac: "Olası uyuşmazlıklarda delil olarak kullanılması.",
     sebep: "Bir hakkın tesisi, kullanılması veya korunması (md. 5/2-e).",
   },
@@ -110,6 +120,7 @@ export const TOPLAMA = [
   "WhatsApp Business hattımıza gönderdiğiniz mesajlar (elektronik, otomatik).",
   "Dükkânda, telefonda veya yazılı olarak bize ilettiğiniz bilgilerin kasa ve cari hesap programımıza girilmesi (kısmen otomatik).",
   "“Hesabım” sayfasına giriş için telefonunuza gönderilen tek kullanımlık kod (elektronik, otomatik).",
+  "Dükkânımızdaki güvenlik kameraları (otomatik). Kamera bulunan alanlar uyarı yazısıyla belirtilir.",
 ] as const;
 
 export const AKTARIMLAR = {
@@ -132,6 +143,7 @@ export const SAKLAMA = [
   "WhatsApp yazışmaları: iletişimin amacının gerektirdiği süre ve olası uyuşmazlıklar için zamanaşımı süresi boyunca, en fazla 10 yıl.",
   "Tek kullanımlık giriş kodları: en fazla 10 dakika; kullanıldığında silinir. “Hesabım” oturumu: 30 gün.",
   "Otomatik yedekler: 30 gün; daha eski yedekler silinir.",
+  "Güvenlik kamerası kayıtları: kayıt cihazında en fazla 30 gün; süre sonunda yeni kayıtlar eskilerin üzerine yazılır. Bir olayın incelenmesi gerekirse ilgili kayıt, olay sonuçlanana kadar saklanır.",
   "Tarayıcınızdaki sepet: siparişiniz tamamlanana veya siz silene kadar yalnızca kendi cihazınızda.",
 ] as const;
 
