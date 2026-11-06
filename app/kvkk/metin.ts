@@ -143,7 +143,7 @@ export const SAKLAMA = [
   "WhatsApp yazışmaları: iletişimin amacının gerektirdiği süre ve olası uyuşmazlıklar için zamanaşımı süresi boyunca, en fazla 10 yıl.",
   "Tek kullanımlık giriş kodları: en fazla 10 dakika; kullanıldığında silinir. “Hesabım” oturumu: 30 gün.",
   "Otomatik yedekler: 30 gün; daha eski yedekler silinir.",
-  "Güvenlik kamerası kayıtları: kayıt cihazında en fazla 30 gün; süre sonunda yeni kayıtlar eskilerin üzerine yazılır. Bir olayın incelenmesi gerekirse ilgili kayıt, olay sonuçlanana kadar saklanır.",
+  "Güvenlik kamerası kayıtları: kayıt cihazında en fazla 15 gün; süre sonunda yeni kayıtlar eskilerin üzerine yazılır. Bir olayın incelenmesi gerekirse ilgili kayıt, olay sonuçlanana kadar saklanır.",
   "Tarayıcınızdaki sepet: siparişiniz tamamlanana veya siz silene kadar yalnızca kendi cihazınızda.",
 ] as const;
 
