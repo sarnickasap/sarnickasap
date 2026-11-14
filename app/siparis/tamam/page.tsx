@@ -1,11 +1,12 @@
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 import { z } from "zod";
 import { MesajIkonu } from "@/components/icons";
 import { AltSayfa } from "@/components/site/alt-sayfa";
 import { SepetiTemizle } from "@/components/site/sepeti-temizle";
-import { BIRINCIL, IKINCIL, IPUCU, KART } from "@/components/site/siparis-stilleri";
+import { CTA, CTA_IKINCIL, IPUCU, KART } from "@/components/site/siparis-stilleri";
 import { siteBilgisiGetir } from "@/lib/data";
 import { fiyat, WA_MESAJ, waLink } from "@/lib/format";
 import { gunMetni } from "@/lib/teslimat";
@@ -49,17 +50,23 @@ async function Ozet({ searchParams }: { searchParams: SorguParametreleri }) {
   const wa = waLink(info.whatsapp, s.success ? WA_MESAJ.siparisNo(s.data.no) : WA_MESAJ.genelSiparis);
 
   return (
-    <div className={KART}>
+    <Card className={KART}>
       {s.success ? <Ayrinti {...s.data} /> : <p className="m-0 text-16 text-read">Siparişiniz dükkâna iletildi.</p>}
       <p className={IPUCU}>Ödeme teslimde nakit veya kartla yapılır. Tartılı ürünlerde tutar teslimde kesinleşir.</p>
       <div className="flex flex-wrap gap-12">
-        <a href={wa} target="_blank" rel="noopener noreferrer" className={BIRINCIL}>
-          <MesajIkonu size={18} />
-          WhatsApp’tan yazın
-        </a>
-        <Link href="/" className={IKINCIL}>Ana sayfaya dön</Link>
+        <Button
+          variant="primary"
+          size="lg"
+          label="WhatsApp’tan yazın"
+          href={wa}
+          target="_blank"
+          rel="noopener noreferrer"
+          icon={<MesajIkonu size={18} />}
+          className={CTA}
+        />
+        <Button size="lg" label="Ana sayfaya dön" href="/" className={CTA_IKINCIL} />
       </div>
-    </div>
+    </Card>
   );
 }
 

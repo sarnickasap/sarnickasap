@@ -1,7 +1,19 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { DurumToggle, GIRDI, Kart, SayfaBasligi, SilButonu, SiyahButon } from "./ui";
+import { Button } from "@astryxdesign/core/Button";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Icon } from "@astryxdesign/core/Icon";
+import { Text } from "@astryxdesign/core/Text";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import {
+  AnaButon,
+  DurumMesaji,
+  DurumToggle,
+  Kart,
+  SayfaBasligi,
+  SilButonu,
+} from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import {
   logoYukle,
@@ -12,7 +24,9 @@ import {
 
 /* ──────────────────────────────────────────────────────────────────────────
    Markalar sekmesi — TASARIMDA YOK (K-31).
-   Görsel dil admin panelinden; galeri kartının yapısı örnek alındı.
+   Galeri kartının yapısı örnek alındı (Astryx Card + TextInput).
+   `main .grid > div` e2e testlerinin kart seçicisi — kartlar ızgaranın
+   doğrudan çocuğu kalmalı.
 
    Logo YÜKLEMELİ (galeri URL alanıyla yetiniyordu). Sebep: kullanıcının
    elinde logo dosyası var, barındıracak yeri yok. Vercel Blob'a yükleniyor.
@@ -83,31 +97,24 @@ export function MarkalarSekmesi({
       <SayfaBasligi
         baslik="Çalıştığımız üreticiler"
         altMetin="Logolar sitede Hakkımızda bölümünün altında akan şeritte görünür."
-        aksiyon={
-          <SiyahButon tip="arti" onClick={ekle}>
-            Marka ekle
-          </SiyahButon>
-        }
+        aksiyon={<AnaButon etiket="Marka ekle" onClick={ekle} />}
       />
 
-      {hata && (
-        <p role="alert" className="m-0 rounded-8 bg-danger-bg px-10 py-8 text-13 text-danger">
-          {hata}
-        </p>
-      )}
+      {hata && <DurumMesaji tur="hata" metin={hata} />}
 
       {liste.length === 0 && (
-        <p className="m-0 text-14 text-admin-muted">
-          Henüz marka yok. “Marka ekle” ile başlayın — logosu olmayan markalar
-          sitede gösterilmez.
-        </p>
+        <EmptyState
+          title="Henüz marka yok."
+          description="“Marka ekle” ile başlayın — logosu olmayan markalar sitede gösterilmez."
+          headingLevel={2}
+        />
       )}
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))] gap-12">
         {liste.map((m) => (
           <Kart key={m.id} className="flex flex-col gap-8 p-10">
             {/* Önizleme koyu zeminde — sitede de koyu zeminde duracak */}
-            <div className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-8 bg-ink p-12">
+            <div className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-[var(--radius-element)] bg-ink p-12">
               {m.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -120,20 +127,23 @@ export function MarkalarSekmesi({
               )}
             </div>
 
-            <input
-              value={m.name}
-              onChange={(e) => yaz(m.id, { name: e.target.value })}
-              placeholder="Marka adı"
+            <TextInput
+              label="Marka adı"
+              isLabelHidden
               aria-label="Marka adı"
-              className={`${GIRDI} h-34 px-10 text-13 font-medium text-form`}
+              placeholder="Marka adı"
+              value={m.name}
+              onChange={(v) => yaz(m.id, { name: v })}
             />
 
-            <input
-              value={m.linkUrl}
-              onChange={(e) => yaz(m.id, { linkUrl: e.target.value })}
-              placeholder="https://… (isteğe bağlı)"
+            <TextInput
+              type="url"
+              label="Marka bağlantısı"
+              isLabelHidden
               aria-label="Marka bağlantısı"
-              className={`${GIRDI} h-34 px-10 text-12 text-admin-2nd`}
+              placeholder="https://… (isteğe bağlı)"
+              value={m.linkUrl}
+              onChange={(v) => yaz(m.id, { linkUrl: v })}
             />
 
             <div className="flex items-center gap-6">
@@ -150,18 +160,15 @@ export function MarkalarSekmesi({
                   e.target.value = "";
                 }}
               />
-              <button
-                type="button"
+              <Button
+                label={m.logoUrl ? "Logoyu değiştir" : "Logo yükle"}
+                icon={<Icon icon="upload" />}
                 onClick={() => girisler.current.get(m.id)?.click()}
-                disabled={yukleniyor === m.id}
-                className="h-34 flex-1 cursor-pointer rounded-8 border border-admin-border bg-admin-card px-10 text-13 font-medium text-black transition-colors duration-150 ease-out-soft hover:bg-admin-row disabled:cursor-not-allowed disabled:opacity-60"
+                isLoading={yukleniyor === m.id}
+                className="flex-1"
               >
-                {yukleniyor === m.id
-                  ? "Yükleniyor…"
-                  : m.logoUrl
-                    ? "Logoyu değiştir"
-                    : "Logo yükle"}
-              </button>
+                {yukleniyor === m.id ? "Yükleniyor…" : undefined}
+              </Button>
               <SilButonu kucuk onClick={() => sil(m)} etiket={`${m.name} markasını sil`} />
             </div>
 
@@ -175,10 +182,10 @@ export function MarkalarSekmesi({
         ))}
       </div>
 
-      <p className="m-0 text-13 leading-15 text-admin-muted">
+      <Text type="supporting" as="p">
         Site zemini koyu olduğu için <strong>şeffaf arka planlı, açık renk</strong>{" "}
         logolar en iyi görünür. PNG, SVG, JPG veya WEBP · en fazla 1 MB.
-      </p>
+      </Text>
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { AstryxTema } from "@/components/astryx/tema";
 import { siteBilgisiGetir } from "@/lib/data";
 import { SITE_URL, ogGorselleri } from "@/lib/seo";
 
@@ -90,7 +91,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       {/* Tasarım: body{font-family:Inter;-webkit-font-smoothing:antialiased}
           Zemin rengi bölüm bazında veriliyor — site koyu, admin açık. */}
       <body className="font-sans antialiased">
-        {children}
+        <AstryxTema>{children}</AstryxTema>
         {/* Vercel Analytics (K-24) — çerezsiz, kişisel veri toplamıyor.
             Vercel panelinde Web Analytics'in AÇIK olması gerekir. */}
         <Analytics />

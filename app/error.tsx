@@ -1,10 +1,18 @@
 "use client";
 
+import { Button } from "@astryxdesign/core/Button";
 import { useEffect } from "react";
+import { CTA, CTA_IKINCIL } from "@/components/site/siparis-stilleri";
 
 /* Hata ekranı — TASARIMDA YOK (karar K-08).
    Teknik ayrıntı GÖSTERİLMEZ: ziyaretçiye bir şey ifade etmez ve
    altyapı hakkında bilgi sızdırabilir. */
+
+/** Tam sayfa yüklemesi için düz <a> — Astryx Button'un varsayılan bağlantısı
+ *  (LinkProvider → next/link) yumuşak geçiş yapar; aşağıdaki nota bakın. */
+function DuzBaglanti(props: React.ComponentProps<"a">) {
+  return <a {...props} />;
+}
 
 export default function Hata({
   error,
@@ -28,23 +36,17 @@ export default function Hata({
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-12">
-        <button
-          type="button"
-          onClick={reset}
-          className="flex h-48 cursor-pointer items-center rounded-8 bg-brand px-22 text-15 font-semibold text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
-        >
-          Tekrar dene
-        </button>
-        {/* Bilerek <Link> DEĞİL: hata sınırı bozuk bir render durumunu
+        <Button variant="primary" size="lg" label="Tekrar dene" onClick={reset} className={CTA} />
+        {/* Bilerek next/link DEĞİL: hata sınırı bozuk bir render durumunu
             yakaladı; yumuşak geçiş aynı hatayı tekrar tetikleyebilir.
             Tam sayfa yükleme temiz bir başlangıç verir. */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-        <a
+        <Button
+          size="lg"
+          label="Ana sayfa"
           href="/"
-          className="flex h-48 items-center rounded-8 border border-edge px-22 text-15 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white"
-        >
-          Ana sayfa
-        </a>
+          as={DuzBaglanti}
+          className={CTA_IKINCIL}
+        />
       </div>
     </main>
   );

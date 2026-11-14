@@ -1,31 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import {
-  DurumToggle,
-  GIRDI,
-  Kart,
-  SayfaBasligi,
-  SilButonu,
-  SiyahButon,
-} from "./ui";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { ALAN, AnaButon, DurumToggle, Kart, SayfaBasligi, SilButonu } from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { firsatEkle, firsatGuncelle, firsatSil } from "@/lib/actions/admin";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Kampanyalar sekmesi — vault "Firsat Duzenleme Karti" notundan birebir.
-
-     kart    bg #fff · 1px #e5e5e5 · r12 · p16 · flex-col · gap10
-             (main içinde doğrudan sıralanır, ayrı kapsayıcı yok)
-     satır 1 flex-wrap · gap8 · items-center
-       başlık  2 1 200px · h36 · 15px/600
-       süre    1 1 150px · h36 · 14px · ph "Süre (örn. Bu hafta)"
-       toggle  92×36 · Yayında / Gizli
-       sil     36×36
-     satır 2 flex-wrap · gap8 · items-center
-       açıklama 3 1 240px · h36 · 14px · #525252
-       Eski     1 1 130px · label YATAY (gap6, 12px #737373) · sağa hizalı
-       Yeni     1 1 130px · aynı ama input 600 ağırlık, #b8222a
+   Kampanyalar sekmesi — fırsat başına bir kart.
+     satır 1  başlık · süre · Yayında/Gizli · sil
+     satır 2  açıklama · Eski fiyat · Yeni fiyat
+   Fiyatlar YEREL `type=number`: her tuşta kaydediliyor (Astryx NumberInput
+   değeri yalnız blur/Enter'da bildirir).
 
    Admin'de TÜM fırsatlar listelenir (gizli olanlar dahil);
    sitede yalnızca yayındakiler görünür.
@@ -42,7 +28,8 @@ export type AdminFirsat = {
 };
 
 const FIYAT_LABEL =
-  "flex flex-[1_1_130px] items-center gap-6 text-12 text-admin-muted";
+  "flex flex-[1_1_130px] items-center gap-6 text-13 text-[var(--color-text-secondary)]";
+const FIYAT_ALANI = `${ALAN} flex-1 text-right`;
 
 export function KampanyalarSekmesi({
   firsatlar,
@@ -80,29 +67,29 @@ export function KampanyalarSekmesi({
       <SayfaBasligi
         baslik="Kampanya ve fırsatlar"
         altMetin="Aktif fırsatlar sitedeki kırmızı bölümde gösterilir."
-        aksiyon={
-          <SiyahButon tip="arti" onClick={ekle}>
-            Yeni fırsat
-          </SiyahButon>
-        }
+        aksiyon={<AnaButon etiket="Yeni fırsat" onClick={ekle} />}
       />
 
       {liste.map((d) => (
         <Kart key={d.id} className="flex flex-col gap-10 p-16">
           <div className="flex flex-wrap items-center gap-8">
-            <input
-              value={d.title}
-              onChange={(e) => yaz(d.id, { title: e.target.value })}
-              placeholder="Başlık"
+            <TextInput
+              label="Fırsat başlığı"
+              isLabelHidden
               aria-label="Fırsat başlığı"
-              className={`${GIRDI} h-36 flex-[2_1_200px] px-10 text-15 font-semibold text-form`}
+              placeholder="Başlık"
+              value={d.title}
+              onChange={(v) => yaz(d.id, { title: v })}
+              containerClassName="flex-[2_1_200px]"
             />
-            <input
-              value={d.until}
-              onChange={(e) => yaz(d.id, { until: e.target.value })}
-              placeholder="Süre (örn. Bu hafta)"
+            <TextInput
+              label="Süre"
+              isLabelHidden
               aria-label="Süre"
-              className={`${GIRDI} h-36 flex-[1_1_150px] px-10 text-14 text-form`}
+              placeholder="Süre (örn. Bu hafta)"
+              value={d.until}
+              onChange={(v) => yaz(d.id, { until: v })}
+              containerClassName="flex-[1_1_150px]"
             />
             <DurumToggle
               acik={d.active}
@@ -114,12 +101,14 @@ export function KampanyalarSekmesi({
           </div>
 
           <div className="flex flex-wrap items-center gap-8">
-            <input
-              value={d.description}
-              onChange={(e) => yaz(d.id, { description: e.target.value })}
-              placeholder="Açıklama"
+            <TextInput
+              label="Fırsat açıklaması"
+              isLabelHidden
               aria-label="Fırsat açıklaması"
-              className={`${GIRDI} h-36 flex-[3_1_240px] px-10 text-14 text-admin-2nd`}
+              placeholder="Açıklama"
+              value={d.description}
+              onChange={(v) => yaz(d.id, { description: v })}
+              containerClassName="flex-[3_1_240px]"
             />
 
             <label className={FIYAT_LABEL}>
@@ -132,7 +121,7 @@ export function KampanyalarSekmesi({
                     oldPrice: e.target.value === "" ? 0 : Number(e.target.value),
                   })
                 }
-                className={`${GIRDI} h-36 flex-1 px-8 text-right text-14 text-black`}
+                className={FIYAT_ALANI}
               />
             </label>
 
@@ -146,7 +135,7 @@ export function KampanyalarSekmesi({
                     newPrice: e.target.value === "" ? 0 : Number(e.target.value),
                   })
                 }
-                className={`${GIRDI} h-36 flex-1 px-8 text-right text-14 font-semibold text-brand`}
+                className={`${FIYAT_ALANI} font-semibold`}
               />
             </label>
           </div>

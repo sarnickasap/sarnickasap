@@ -1,7 +1,10 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Kart } from "./ui";
+import { Button } from "@astryxdesign/core/Button";
+import { Icon } from "@astryxdesign/core/Icon";
+import { Text } from "@astryxdesign/core/Text";
+import { DurumMesaji, Kart } from "./ui";
 import { paylasimGorseliKaldir, paylasimGorseliYukle } from "@/lib/actions/paylasim-gorseli";
 import { GorselKucultmeHatasi, gorseliKucultOlculu } from "@/lib/gorsel-kucult";
 import {
@@ -13,8 +16,8 @@ import {
 import { guvenliGorselUrl } from "@/lib/stok-sema";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   SEO sekmesi → "Paylaşım görseli" kartı. TASARIMDA YOK; dil galeri
-   kartından (kesikli boş kutu, "Görsel yükle" düğmesi, `role="alert"`).
+   SEO sekmesi → "Paylaşım görseli" kartı. Galeri kartının dili:
+   kesikli boş kutu, "Görsel yükle" düğmesi, `role="alert"` hata.
 
    Önizleme kutusu 1200:630 oranında (Facebook/WhatsApp geniş kartı);
    görsel `object-contain` ile tamamı görünür, gerçek ölçü altta yazılı.
@@ -22,9 +25,7 @@ import { guvenliGorselUrl } from "@/lib/stok-sema";
    1200 px): sunucu eylemi gövde sınırı + WhatsApp'ın WEBP önizlemesi.
    ────────────────────────────────────────────────────────────────────────── */
 
-const DUGME =
-  "h-34 cursor-pointer rounded-8 border border-admin-border bg-admin-card px-12 text-13 font-medium text-black transition-colors duration-150 ease-out-soft hover:bg-admin-row disabled:cursor-not-allowed disabled:opacity-60";
-const KUTU = "aspect-[1200/630] w-full max-w-[480px] rounded-8";
+const KUTU = "aspect-[1200/630] w-full max-w-[480px] rounded-[var(--radius-element)]";
 const YUKLEME_HATASI = "Görsel yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.";
 const HATA_ID = "paylasim-gorseli-hata";
 
@@ -35,10 +36,10 @@ function Onizleme({ url }: { url: string | null }) {
   const guvenli = guvenliGorselUrl(url);
   if (guvenli)
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={guvenli} alt="Paylaşım görseli önizlemesi" className={`${KUTU} block bg-admin-off object-contain`} />;
+    return <img src={guvenli} alt="Paylaşım görseli önizlemesi" className={`${KUTU} block bg-[var(--color-background-muted)] object-contain`} />;
   return (
     <div
-      className={`${KUTU} flex items-center justify-center border border-dashed border-admin-dash bg-admin-bg p-12 text-center font-mono text-12 text-faint-light`}
+      className={`${KUTU} flex items-center justify-center border border-dashed border-[var(--color-border-emphasized)] bg-[var(--color-background-muted)] p-12 text-center font-mono text-12 text-[var(--color-text-secondary)]`}
     >
       {url ? "bu görsel sitede kullanılamıyor — yükleyerek değiştirin" : "görsel yok — site logosu kullanılıyor"}
     </div>
@@ -100,13 +101,15 @@ export function PaylasimGorseli({
 
   return (
     <Kart className="flex flex-col gap-10 p-20">
-      <span className="text-13 font-medium text-black">Paylaşım görseli</span>
-      <p className="m-0 text-12 leading-15 text-admin-muted">{PAYLASIM_IPUCU}</p>
+      <Text type="label">Paylaşım görseli</Text>
+      <Text type="supporting" as="p">
+        {PAYLASIM_IPUCU}
+      </Text>
       <Onizleme url={url} />
       {olcu && (
-        <span className="text-12 text-admin-muted">
+        <Text type="supporting" hasTabularNumbers>
           {olcu.genislik}×{olcu.yukseklik} px
-        </span>
+        </Text>
       )}
 
       <input
@@ -123,27 +126,21 @@ export function PaylasimGorseli({
         }}
       />
       <div className="flex flex-wrap gap-8">
-        <button
-          type="button"
+        <Button
+          label={url ? "Görseli değiştir (yükle)" : "Görsel yükle"}
+          icon={<Icon icon="upload" />}
           onClick={() => giris.current?.click()}
-          disabled={mesgul}
+          isLoading={mesgul}
           aria-describedby={hata ? HATA_ID : undefined}
-          className={DUGME}
         >
-          {mesgul ? "İşleniyor…" : url ? "Görseli değiştir (yükle)" : "Görsel yükle"}
-        </button>
+          {mesgul ? "İşleniyor…" : undefined}
+        </Button>
         {url && (
-          <button type="button" onClick={kaldir} disabled={mesgul} className={DUGME}>
-            Görseli kaldır
-          </button>
+          <Button label="Görseli kaldır" variant="ghost" onClick={kaldir} isDisabled={mesgul} />
         )}
       </div>
 
-      {hata && (
-        <p id={HATA_ID} role="alert" className="m-0 rounded-8 bg-danger-bg px-10 py-8 text-12 leading-15 text-danger">
-          {hata}
-        </p>
-      )}
+      {hata && <DurumMesaji tur="hata" metin={hata} id={HATA_ID} />}
     </Kart>
   );
 }

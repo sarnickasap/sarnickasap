@@ -1,56 +1,65 @@
 "use client";
 
+import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
+import { IconButton } from "@astryxdesign/core/IconButton";
+import { Text } from "@astryxdesign/core/Text";
+import { ToggleButton } from "@astryxdesign/core/ToggleButton";
 import { ArtiIkonu, CopIkonu } from "@/components/icons";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Admin form primitifleri — vault "Admin Form Elemanlari", "Durum Toggle
-   Butonu", "Sil Butonu", "Admin Sayfa Basligi" notlarından birebir.
+   Admin primitifleri — Astryx tasarım sistemi üzerine.
 
-   Ortak: 1px #e5e5e5 · r8 · bg #ffffff · font:inherit · min-w-0
-   Odak: global `:focus-visible` (bkz. globals.css) — tasarımın
-   `2px solid #a3a3a3` kuralı beyaz üstünde 2,52:1 ile WCAG 1.4.11'in
-   istediği 3:1'in altındaydı.
+   Astryx bileşenleri tema tokenlarını (themes/sarnic) kendisi kullanır.
+   Yerel (native) form alanları yalnızca e2e testlerinin DOM sözleşmesi
+   gerektirdiği yerlerde kalıyor — `select` (selectOption), `type=number` /
+   `type=time` (her tuşta kayıt; Astryx NumberInput blur'da yazıyor) ve
+   `<label>` içine sarılı alanlar (testler `main label … input` arıyor).
+   Bu alanlar Astryx'in alan görünümünü aynı tokenlarla taklit eder.
    ────────────────────────────────────────────────────────────────────────── */
 
-/** Form alanı tabanı: yalnızca çakışmayan ortak özellikler. */
-export const GIRDI =
-  "rounded-8 border border-admin-border bg-admin-card min-w-0";
+/* ⚠️ Tabanda font AĞIRLIĞI yok: çakışan iki Tailwind yardımcısından hangisinin
+   kazanacağını sınıf sırası değil CSS sırası belirler. Ağırlık kullanım
+   yerinde verilir (etiket içindekiler `font-normal`, ürün adı `font-medium`). */
+const ALAN_TABAN =
+  "min-w-0 rounded-[var(--radius-element)] border border-[var(--color-border-emphasized)] bg-[var(--color-background-surface)] text-14 text-[var(--color-text-primary)] transition-[border-color] duration-150 focus:border-[var(--color-accent)] disabled:opacity-50";
 
-/* ⚠️ Taban sabitte YÜKSEKLİK, PADDING, FONT BOYUTU ve RENK YOK — bilerek.
-   `${GIRDI} px-8` ya da `${GIRDI} text-13` yazmak İŞE YARAMAZ: Tailwind'de
-   çakışan yardımcılar arasında sınıf dizisindeki sıra değil, üretilen
-   CSS'teki sıra belirleyicidir. Taban `px-10`/`text-14` içerirken üste
-   eklenen `px-8`/`text-13` sessizce etkisiz kalıyordu:
-     · Kampanyalar fiyat alanları 2px kaydı (padding)
-     · Ürünler açıklama alanı 14px kaldı, 13px olacaktı (font)
-     · Ürünler açıklama alanı siyah kaldı, #525252 olacaktı (renk)
-   Her biri piksel karşılaştırmasında on binlerce fark üretti.
+/** Tek satırlık yerel alan kutusu, iç boşluksuz (birim ekli sarmalayıcı için). */
+export const ALAN_KUTUSU = `${ALAN_TABAN} h-[var(--size-element-md)]`;
 
-   Bu dört özellik HER ZAMAN kullanım yerinde açıkça verilir. */
+/** Tek satırlık yerel alan (input/select) — Astryx `md` yüksekliğinde. */
+export const ALAN = `${ALAN_KUTUSU} px-8`;
 
-export function SiyahButon({
-  children,
+/** Çok satırlı yerel alan (textarea). */
+export const COK_SATIRLI_ALAN = `${ALAN_TABAN} resize-y px-8 py-6 leading-15`;
+
+/** Yerel alanı saran görünür etiket — Astryx FieldLabel ölçüsünde. */
+export const ETIKET =
+  "flex flex-col gap-6 text-14 font-medium text-[var(--color-text-primary)]";
+
+/** Satırlar arası ayraç (liste kartlarında). */
+export const SATIR_AYRACI = "border-b border-[var(--color-border)]";
+
+/** Sayfanın birincil eylemi ("Yeni ürün", "Görsel ekle" …). */
+export function AnaButon({
+  etiket,
   onClick,
-  tip = "buton",
 }: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  tip?: "buton" | "arti";
+  etiket: string;
+  onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <Button
+      label={etiket}
+      variant="primary"
+      icon={<ArtiIkonu size={16} />}
       onClick={onClick}
-      className="flex h-38 cursor-pointer items-center gap-6 rounded-8 border-0 bg-black px-14 text-14 font-medium text-white transition-colors duration-150 ease-out-soft hover:bg-admin-ink-hover"
-    >
-      {tip === "arti" && <ArtiIkonu size={16} />}
-      {children}
-    </button>
+    />
   );
 }
 
-/** Tasarım: flex-wrap · justify-between · items-end · gap12
- *  Sol blok flex-col gap4 → h1 DM Sans 28/700 ls-.02em + p 14 #737373 */
 export function SayfaBasligi({
   baslik,
   altMetin,
@@ -63,28 +72,17 @@ export function SayfaBasligi({
   return (
     <div className="flex flex-wrap items-end justify-between gap-12">
       <div className="flex flex-col gap-4">
-        <h1 className="m-0 font-display text-28 font-bold tracking-admin-h1 text-black">
-          {baslik}
-        </h1>
-        <p className="m-0 text-14 text-admin-muted">{altMetin}</p>
+        <Heading level={1}>{baslik}</Heading>
+        <Text type="supporting" as="p">
+          {altMetin}
+        </Text>
       </div>
       {aksiyon}
     </div>
   );
 }
 
-/**
- * Durum toggle — 3 yerde aynı ölçüler, farklı metinler.
- * Açık : 1px #bbf7d0 · bg #f0fdf4 · #15803d
- * Kapalı: 1px #e5e5e5 · bg #f5f5f5 · #737373 → **#6b6b6b**
- * Tasarımda hover tanımlı DEĞİL.
- *
- * ⚠️ K-21 genişletmesi: Tasarımın `#737373` metni `#f5f5f5` zemin üstünde
- * 4,35:1 — 13px metin için gereken 4,5'in ALTINDA. İlk kontrast taramamda
- * bu rengi yalnız BEYAZ zemin üstünde ölçmüştüm (4,74:1, geçiyor) ve pasif
- * toggle'ın gri zeminini gözden kaçırmıştım. axe taraması yakaladı.
- * Zaten tanımlı `--color-faint-light` (#6b6b6b) kullanıldı → 4,89:1.
- */
+/** Yayında/Gizli, Stokta/Tükendi gibi iki durumlu düğme (`aria-pressed`). */
 export function DurumToggle({
   acik,
   acikMetin,
@@ -97,23 +95,15 @@ export function DurumToggle({
   onChange: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onChange}
-      aria-pressed={acik}
-      className={
-        "h-36 w-92 flex-none cursor-pointer rounded-8 border text-13 font-medium " +
-        (acik
-          ? "border-ok-border bg-ok-bg text-ok-text"
-          : "border-admin-border bg-admin-off text-faint-light")
-      }
-    >
-      {acik ? acikMetin : kapaliMetin}
-    </button>
+    <ToggleButton
+      label={acik ? acikMetin : kapaliMetin}
+      isPressed={acik}
+      onPressedChange={onChange}
+      className="min-w-92 flex-none"
+    />
   );
 }
 
-/** Sil butonu. Galeri varyantı 34×34 + 15px ikon. */
 export function SilButonu({
   onClick,
   kucuk = false,
@@ -124,22 +114,19 @@ export function SilButonu({
   etiket: string;
 }) {
   return (
-    <button
-      type="button"
+    <IconButton
+      label={etiket}
+      tooltip={etiket}
+      variant="ghost"
+      size={kucuk ? "sm" : "md"}
+      icon={<CopIkonu size={kucuk ? 15 : 16} />}
       onClick={onClick}
-      title="Sil"
-      aria-label={etiket}
-      className={
-        "flex flex-none cursor-pointer items-center justify-center rounded-8 border-0 bg-transparent text-admin-muted transition-colors duration-150 ease-out-soft hover:bg-danger-bg hover:text-danger " +
-        (kucuk ? "h-34 w-34" : "h-36 w-36")
-      }
-    >
-      <CopIkonu size={kucuk ? 15 : 16} />
-    </button>
+    />
   );
 }
 
-/** Beyaz kart: bg #ffffff · 1px #e5e5e5 · r12 */
+/** Astryx Card. `rounded-12` sınıfı e2e testlerinin kart seçicisi
+ *  (`main .rounded-12`) — yarıçap zaten tema tokenıyla aynı (12px). */
 export function Kart({
   children,
   className = "",
@@ -148,10 +135,29 @@ export function Kart({
   className?: string;
 }) {
   return (
-    <div
-      className={`rounded-12 border border-admin-border bg-admin-card ${className}`}
-    >
+    <Card padding={0} className={`rounded-12 ${className}`}>
       {children}
-    </div>
+    </Card>
+  );
+}
+
+/** Hata (`role="alert"`) veya başarı (`role="status"`) bildirimi. */
+export function DurumMesaji({
+  tur,
+  metin,
+  id,
+}: {
+  tur: "hata" | "basari";
+  metin: string;
+  id?: string;
+}) {
+  const hata = tur === "hata";
+  return (
+    <Banner
+      id={id}
+      status={hata ? "error" : "success"}
+      title={metin}
+      role={hata ? "alert" : "status"}
+    />
   );
 }

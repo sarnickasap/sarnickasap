@@ -1,29 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { GIRDI, Kart, SayfaBasligi } from "./ui";
+import { Button } from "@astryxdesign/core/Button";
+import { Text } from "@astryxdesign/core/Text";
+import { ALAN, ETIKET, Kart, SATIR_AYRACI, SayfaBasligi } from "./ui";
 import { fiyat } from "@/lib/format";
 import { topluFiyat } from "@/lib/actions/admin";
 import type { AdminUrun } from "./urunler-sekmesi";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Toplu fiyat güncelleme — vault "Toplu Fiyat Formu" notundan birebir.
-
-     form kartı  bg #fff · 1px #e5e5e5 · r12 · p20
-                 flex-wrap · gap16 · items-end
-       Kategori    1 1 180px · select h38
-       Değişim (%) 1 1 140px · number, placeholder "Örn. 10 veya -5"
-       Yuvarlama   1 1 160px · select 1 ₺ / 5 ₺ / 10 ₺
-       Uygula      0 0 auto · h38 px18 r8 · #b8222a · 14px/600 · hover #9e1c23
-     label kalıbı flex-col gap6 · 13px/500, alan içinde font-weight 400
-
-     önizleme    bg #fff · 1px #e5e5e5 · r12 · overflow-hidden
-       başlık    p 12px 16px · alt kenarlık 1px #e5e5e5
-                 12px/600 · #737373 · uppercase · ls .06em
-                 sol "Önizleme" · sağ "Eski → yeni"
-       satır     p 11px 16px · alt kenarlık 1px #f5f5f5 · 14px
-                 sol: ad + " · kategori" (#a3a3a3, 400)
-                 sağ: eski (#a3a3a3) + " → " + <strong>yeni</strong>
+   Toplu fiyat güncelleme.
+     form kartı  Kategori · Değişim (%) · Yuvarlama · "N ürüne uygula"
+                 Alanlar YEREL ve <label> içinde: e2e testi
+                 `main label … select/input` ile buluyor, selectOption kullanıyor.
+     önizleme    kart; ilk satır başlık, sonra ürün başına bir satır
+                 (testler kartın doğrudan div çocuklarını sayıyor).
 
    Hesap tasarımdaki bulkCalc ile birebir:
      Math.max(0, Math.round(price * (1 + pct/100) / round) * round)
@@ -31,7 +22,7 @@ import type { AdminUrun } from "./urunler-sekmesi";
    ────────────────────────────────────────────────────────────────────────── */
 
 const TUMU = "Tümü";
-const LABEL = "flex flex-col gap-6 text-13 font-medium text-black";
+const SECIM = `${ALAN} font-normal`;
 
 export function TopluFiyatSekmesi({
   urunler,
@@ -78,12 +69,12 @@ export function TopluFiyatSekmesi({
       />
 
       <Kart className="flex flex-wrap items-end gap-16 p-20">
-        <label className={`${LABEL} flex-[1_1_180px]`}>
+        <label className={`${ETIKET} flex-[1_1_180px]`}>
           Kategori
           <select
             value={kat}
             onChange={(e) => setKat(e.target.value)}
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
+            className={SECIM}
           >
             {[TUMU, ...kategoriler.map((k) => k.name)].map((c) => (
               <option key={c} value={c}>
@@ -93,23 +84,23 @@ export function TopluFiyatSekmesi({
           </select>
         </label>
 
-        <label className={`${LABEL} flex-[1_1_140px]`}>
+        <label className={`${ETIKET} flex-[1_1_140px]`}>
           Değişim (%)
           <input
             type="number"
             value={yuzde}
             onChange={(e) => setYuzde(e.target.value)}
             placeholder="Örn. 10 veya -5"
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
+            className={SECIM}
           />
         </label>
 
-        <label className={`${LABEL} flex-[1_1_160px]`}>
+        <label className={`${ETIKET} flex-[1_1_160px]`}>
           Yuvarlama
           <select
             value={yuvarlama}
             onChange={(e) => setYuvarlama(e.target.value)}
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
+            className={SECIM}
           >
             <option value="1">1 ₺</option>
             <option value="5">5 ₺</option>
@@ -117,36 +108,38 @@ export function TopluFiyatSekmesi({
           </select>
         </label>
 
-        <button
-          type="button"
+        <Button
+          label={`${hedef.length} ürüne uygula`}
+          variant="primary"
           onClick={uygula}
-          disabled={calisiyor || hedef.length === 0}
-          className="h-38 flex-[0_0_auto] cursor-pointer rounded-8 border-0 bg-brand px-18 text-14 font-semibold text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
+          isLoading={calisiyor}
+          isDisabled={hedef.length === 0}
+          className="flex-[0_0_auto]"
         >
           {calisiyor ? "Uygulanıyor…" : `${hedef.length} ürüne uygula`}
-        </button>
+        </Button>
       </Kart>
 
       <Kart className="overflow-hidden">
-        <div className="flex justify-between border-b border-admin-border px-16 py-12 text-12 font-semibold tracking-table uppercase text-admin-muted">
-          <span>Önizleme</span>
-          <span>Eski → yeni</span>
+        <div className={`flex justify-between px-16 py-12 ${SATIR_AYRACI}`}>
+          <Text type="label" color="secondary">Önizleme</Text>
+          <Text type="label" color="secondary">Eski → yeni</Text>
         </div>
         {hedef.map((p) => (
           <div
             key={p.id}
-            className="flex justify-between gap-12 border-b border-admin-hair px-16 py-11 text-14"
+            className={`flex justify-between gap-12 px-16 py-10 ${SATIR_AYRACI}`}
           >
-            <span className="font-medium">
+            <Text weight="medium">
               {p.name}{" "}
-              <span className="font-normal text-faint-light">
+              <Text color="secondary" weight="normal">
                 · {katAdi(p.categoryId)}
-              </span>
-            </span>
-            <span className="whitespace-nowrap">
-              <span className="text-faint-light">{fiyat(p.price)}</span> →{" "}
-              <strong>{fiyat(hesapla(p.price))}</strong>
-            </span>
+              </Text>
+            </Text>
+            <Text hasTabularNumbers className="whitespace-nowrap">
+              <Text color="secondary">{fiyat(p.price)}</Text> →{" "}
+              <Text weight="semibold">{fiyat(hesapla(p.price))}</Text>
+            </Text>
           </div>
         ))}
       </Kart>

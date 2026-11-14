@@ -1,5 +1,6 @@
 "use client";
 
+import { ToggleButton } from "@astryxdesign/core/ToggleButton";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { kategoriOzetleri } from "@/lib/urun-kaynagi";
@@ -24,13 +25,17 @@ import { UrunIzgarasi } from "./urun-izgarasi";
      14px/500 · #f8efea · alt çizgi · hover beyaz (iletişimdeki
      "Yol tarifi al" ile aynı dil)
 
-   Erişilebilirlik (K-08): tasarımda düz <button>'lardı.
-   `role="tablist"` yerine `aria-pressed` seçildi — bunlar panel açan sekmeler
-   değil, tek bir listeyi süzen filtre düğmeleri. Sonuç sayısı `aria-live`
-   ile duyuruluyor. Görünüm değişmiyor.
+   Erişilebilirlik (K-08): Astryx ToggleButton (`aria-pressed`).
+   `role="tablist"` değil — bunlar panel açan sekmeler değil, tek bir listeyi
+   süzen filtre düğmeleri. Sonuç sayısı `aria-live` ile duyuruluyor.
+   Pil görünümü (yukarıdaki ölçüler) className ile korunur.
    ────────────────────────────────────────────────────────────────────────── */
 
 const TUMU = "Tümü";
+
+const SEKME =
+  "h-38 flex-none rounded-pill border border-edge bg-transparent px-16 text-14 font-medium whitespace-nowrap text-soft hover:text-white " +
+  "aria-pressed:border-cream aria-pressed:bg-cream aria-pressed:font-semibold aria-pressed:text-ink";
 
 export function UrunListesi({
   urunler,
@@ -64,25 +69,15 @@ export function UrunListesi({
         aria-label="Kategori filtresi"
         className="no-scrollbar flex gap-8 overflow-x-auto pb-4"
       >
-        {sekmeler.map((k) => {
-          const aktif = k === secili;
-          return (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setSecili(k)}
-              aria-pressed={aktif}
-              className={
-                "h-38 flex-none cursor-pointer rounded-pill border px-16 text-14 whitespace-nowrap " +
-                (aktif
-                  ? "border-cream bg-cream font-semibold text-ink"
-                  : "border-edge bg-transparent font-medium text-soft transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white")
-              }
-            >
-              {k}
-            </button>
-          );
-        })}
+        {sekmeler.map((k) => (
+          <ToggleButton
+            key={k}
+            label={k}
+            isPressed={k === secili}
+            onPressedChange={() => setSecili(k)}
+            className={SEKME}
+          />
+        ))}
       </div>
 
       <div className="flex flex-col gap-12">

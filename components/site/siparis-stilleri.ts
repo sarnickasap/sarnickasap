@@ -1,29 +1,31 @@
 /* ──────────────────────────────────────────────────────────────────────────
-   Sepet / sipariş sayfalarının ortak sınıfları — TASARIMDA YOK (K-37).
-   Hepsi sitenin mevcut tokenlarından türetildi; yeni renk/ölçü yok:
-     kart     ürün ızgarasının çerçevesi (1px #1f1f1f · r12) + #0f0f0f zemin
-     birincil hero birincil butonu (h48 · px22 · r8 · #b8222a · 15px/600)
-     ikincil  hero ikincil butonu (h48 · 1px #333333 · 15px/500)
-     girdi    1px #333333 · r8 · #0a0a0a · 15px · #fafafa
-     etiket   13px/500 · #d4d4d4 (hero meta satırının tonu)
-     hata     13px · #f87171 (indirim oranının rengi; koyu zeminde 6,4:1)
+   Site genelinde Astryx bileşenlerine verilen marka ölçüleri.
+
+   Bileşenler (Button, Card, Badge…) Astryx'ten gelir; renkler sarnic
+   temasından (accent = #b8222a). Buradaki sınıflar yalnızca tasarımda
+   ÖLÇÜLMÜŞ değerleri korur — Tailwind `utilities` katmanı Astryx
+   katmanlarından sonra geldiği için bu sınıflar bileşen varsayılanını ezer.
+
+     CTA       hero/sayfa butonu   h48 · px22 · gap10 · 15px/600
+     CTA_ORTA  başlık butonu       h40 · px16 · gap8  · 14px/600
+     CERCEVELI ikincil buton dili  1px #333333 · saydam zemin
+     CTA_IKINCIL büyük ikincil     CTA + CERCEVELI · 15px/500
+     KART      Astryx Card'a: #0f0f0f · p22 · gap16 (çerçeve/r12 Card'dan)
+     IPUCU     13px · lh1.5 · #a3a3a3
    ────────────────────────────────────────────────────────────────────────── */
 
-export const KART = "flex flex-col gap-16 rounded-12 border border-line bg-ink-2 p-22";
+export const CTA = "h-48 gap-10 px-22 text-15 font-semibold";
 
-export const BIRINCIL =
-  "flex h-48 cursor-pointer items-center justify-center gap-10 rounded-8 border-0 bg-brand px-22 text-15 font-semibold text-white " +
-  "transition-colors duration-150 ease-out-soft hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60";
+export const CTA_ORTA = "h-40 gap-8 px-16 text-14 font-semibold";
 
-export const IKINCIL =
-  "flex h-48 items-center justify-center gap-10 rounded-8 border border-edge px-22 text-15 font-medium text-body " +
-  "transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white";
+export const CERCEVELI = "border border-edge bg-transparent text-body";
 
-export const GIRDI =
-  "w-full min-w-0 rounded-8 border border-edge bg-ink px-12 text-15 text-body aria-[invalid=true]:border-discount";
+/** Büyük ikincil buton (hero, sepet, sonuç sayfaları). */
+export const CTA_IKINCIL = `${CTA} font-medium ${CERCEVELI}`;
 
-export const ETIKET = "text-13 font-medium text-soft";
+export const KART = "flex flex-col gap-16 bg-ink-2 p-22";
 
-export const HATA = "m-0 text-13 text-discount";
+/** Kart içindeki <fieldset>: tarayıcı çerçevesi/boşluğu sıfır, kartın akışı sürer. */
+export const FIELDSET = "m-0 flex min-w-0 flex-col gap-16 border-0 p-0";
 
 export const IPUCU = "m-0 text-13 leading-15 text-muted";

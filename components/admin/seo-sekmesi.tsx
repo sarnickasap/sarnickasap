@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { GIRDI, Kart, SayfaBasligi } from "./ui";
+import { Text } from "@astryxdesign/core/Text";
+import { TextArea } from "@astryxdesign/core/TextArea";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { Kart, SayfaBasligi } from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { bilgiGuncelle } from "@/lib/actions/admin";
 import { PaylasimGorseli } from "./paylasim-gorseli";
@@ -10,7 +13,8 @@ import { PaylasimGorseli } from "./paylasim-gorseli";
    SEO sekmesi — TASARIMDA YOK (onaylı sapma #4, K-11/K-19).
    Kullanıcı isteği: "seo olsun başlık admin panelinden değiştirilebilsin".
 
-   Görsel dil admin panelinden; yeni token icat edilmedi.
+   Alanlar Astryx TextInput/TextArea; karakter sayacı alanın açıklaması
+   (aria-describedby ile okunur), sınır aşılınca uyarı durumu.
    Önizleme, Google sonuç kartının sade bir taklidi — gerçek arama sonucu
    değil, yalnızca uzunluk ve okunuş hissi versin diye.
 
@@ -18,22 +22,16 @@ import { PaylasimGorseli } from "./paylasim-gorseli";
    sonrası Google kırpar. Eşik aşılınca uyarı gösteriliyor, ENGELLENMİYOR.
    ────────────────────────────────────────────────────────────────────────── */
 
-const LABEL = "flex flex-col gap-6 text-13 font-medium text-black";
 const BASLIK_SINIR = 60;
 const ACIKLAMA_SINIR = 155;
 
-function Sayac({ uzunluk, sinir }: { uzunluk: number; sinir: number }) {
+/** Sayaç metni + sınır aşıldıysa uyarı durumu (engellemez). */
+function sayac(uzunluk: number, sinir: number) {
   const asti = uzunluk > sinir;
-  return (
-    <span
-      className={
-        "text-12 font-normal " + (asti ? "text-danger" : "text-admin-muted")
-      }
-    >
-      {uzunluk} / {sinir} karakter
-      {asti && " — Google kırpabilir"}
-    </span>
-  );
+  return {
+    description: `${uzunluk} / ${sinir} karakter${asti ? " — Google kırpabilir" : ""}`,
+    status: asti ? ({ type: "warning" } as const) : undefined,
+  };
 }
 
 export function SeoSekmesi({
@@ -73,56 +71,46 @@ export function SeoSekmesi({
       />
 
       <Kart className="flex flex-col gap-14 p-20">
-        <label className={LABEL}>
-          <span className="flex flex-wrap items-baseline justify-between gap-8">
-            Sayfa başlığı
-            <Sayac uzunluk={baslik.length} sinir={BASLIK_SINIR} />
-          </span>
-          <input
-            value={baslik}
-            onChange={(e) => yazBaslik(e.target.value)}
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
-          />
-        </label>
+        <TextInput
+          label="Sayfa başlığı"
+          value={baslik}
+          onChange={yazBaslik}
+          {...sayac(baslik.length, BASLIK_SINIR)}
+        />
 
-        <label className={LABEL}>
-          <span className="flex flex-wrap items-baseline justify-between gap-8">
-            Açıklama
-            <Sayac uzunluk={aciklama.length} sinir={ACIKLAMA_SINIR} />
-          </span>
-          <textarea
-            value={aciklama}
-            onChange={(e) => yazAciklama(e.target.value)}
-            rows={3}
-            className={`${GIRDI} resize-y px-10 py-8 text-14 leading-15 font-normal text-form`}
-          />
-        </label>
+        <TextArea
+          label="Açıklama"
+          rows={3}
+          value={aciklama}
+          onChange={yazAciklama}
+          {...sayac(aciklama.length, ACIKLAMA_SINIR)}
+        />
       </Kart>
 
       <Kart className="flex flex-col gap-10 p-20">
-        <span className="text-12 font-semibold tracking-table uppercase text-admin-muted">
+        <Text type="label" color="secondary">
           Google’da böyle görünür
-        </span>
+        </Text>
         {/* Sade bir taklit — gerçek arama sonucu değil. */}
         <div className="flex flex-col gap-2">
-          <span className="text-12 text-admin-muted">sarnickasap.com</span>
+          <Text type="supporting">sarnickasap.com</Text>
           <span className="text-18 leading-15 text-[#1a0dab]">
             {baslik.slice(0, BASLIK_SINIR) || "Başlık girilmedi"}
             {baslik.length > BASLIK_SINIR && "…"}
           </span>
-          <span className="text-13 leading-15 text-admin-2nd">
+          <Text type="supporting">
             {aciklama.slice(0, ACIKLAMA_SINIR) || "Açıklama girilmedi"}
             {aciklama.length > ACIKLAMA_SINIR && "…"}
-          </span>
+          </Text>
         </div>
       </Kart>
 
       <PaylasimGorseli ogImageUrl={ogImageUrl} onDegisti={onDegisti} />
 
-      <p className="m-0 text-13 leading-15 text-admin-muted">
+      <Text type="supporting" as="p">
         Not: Dükkân adı, adres, telefon ve çalışma saatleri “İletişim &amp;
         saatler” sekmesinden alınıp arama motorlarına otomatik bildirilir.
-      </p>
+      </Text>
     </>
   );
 }

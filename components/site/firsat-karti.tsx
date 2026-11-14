@@ -1,11 +1,16 @@
+import { Badge } from "@astryxdesign/core/Badge";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
 import { fiyat, indirimOrani, waLink, WA_MESAJ } from "@/lib/format";
+import { CERCEVELI } from "./siparis-stilleri";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Fırsat Kartı — vault "Firsat Karti" notundan birebir.
 
-     kart   bg #0a0a0a · r12 · p24 · flex-col · gap18   (KENARLIK YOK)
+     kart   Astryx Card (transparent → KENARLIK YOK) · bg #0a0a0a · r12 ·
+            p24 · flex-col · gap18
      üst    justify-between · items-center · gap12
-       pil    12px/600 · py4 px10 · r999 · bg #2a1012 · #f8efea
+       pil    Astryx Badge · 12px/600 · px10 · r999 · bg #2a1012 · #f8efea
        oran   13px/600 · #f87171
      metin  flex-col · gap6 · flex-1
        h3     DM Sans 24px/600 · ls -.015em · #f8efea
@@ -13,8 +18,8 @@ import { fiyat, indirimOrani, waLink, WA_MESAJ } from "@/lib/format";
      fiyat  items-baseline · gap10
        yeni   DM Sans 30px/700 · beyaz
        eski   15px · #737373 · line-through
-     buton  h40 · r8 · 1px #333333 · 14px/500 · #fafafa · ortalı
-            hover → bg #171717, beyaz
+     buton  Astryx Button (bağlantı) · tam genişlik · h40 · 1px #333333 ·
+            14px/500 · #fafafa
 
    Aşama 4: çerçeve (`FirsatCercevesi`) iki kaynakça paylaşılıyor —
    panelin "Kampanyalar"ı (bu dosyadaki `FirsatKarti`) ve stok programı
@@ -56,11 +61,9 @@ export function FirsatCercevesi({
   const oran = indirimOrani(eskiFiyat, yeniFiyat);
 
   return (
-    <div className="flex flex-col gap-18 rounded-12 bg-ink p-24">
+    <Card variant="transparent" padding={6} className="flex flex-col gap-18 bg-ink">
       <div className="flex items-center justify-between gap-12">
-        <span className="rounded-pill bg-pill px-10 py-4 text-12 font-semibold text-cream">
-          {etiket}
-        </span>
+        <Badge label={etiket} className="h-auto rounded-pill bg-pill px-10 py-4 text-12 font-semibold text-cream" />
         {/* Tasarımda indirim yoksa boş span yine render ediliyor — birebir */}
         <span className="text-13 font-semibold text-discount">{oran}</span>
       </div>
@@ -91,22 +94,24 @@ export function FirsatCercevesi({
       </div>
 
       {children}
-    </div>
+    </Card>
   );
 }
 
 /** "Ayırt" — WhatsApp'a hazır mesajla gider. */
 export function AyirtBaglantisi({ whatsapp, baslik }: { whatsapp: string; baslik: string }) {
   return (
-    <a
+    <Button
       href={waLink(whatsapp, WA_MESAJ.firsat(baslik))}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex h-40 items-center justify-center rounded-8 border border-edge text-14 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white"
+      size="lg"
+      width="100%"
+      label={`Ayırt — ${baslik}`}
+      className={`h-40 text-14 ${CERCEVELI}`}
     >
       Ayırt
-      <span className="sr-only"> — {baslik}</span>
-    </a>
+    </Button>
   );
 }
 

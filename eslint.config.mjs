@@ -20,6 +20,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Görsel karşılaştırma çıktıları (üretilen PNG'ler)
     "tests/visual/ciktilar/**",
+    // `npm run tema` çıktıları (astryx theme build üretir)
+    "themes/sarnic/sarnic.*",
   ]),
 ]);
 

@@ -1,8 +1,10 @@
+import { Button } from "@astryxdesign/core/Button";
 import { MesajIkonu } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { gorunurNavBaglantilari } from "./nav-baglantilari";
 import { MobilMenu } from "./mobil-menu";
 import { SepetDugmesi } from "./sepet-dugmesi";
+import { CTA_ORTA } from "./siparis-stilleri";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Site Header — vault "Site Header" notundan birebir.
@@ -15,8 +17,7 @@ import { SepetDugmesi } from "./sepet-dugmesi";
      nav     flex · gap 4 · flex-1 · min-w-0 · overflow-x-auto · scrollbar yok
      link    padding 8px 12px · r8 · 14px/500 · #a3a3a3
              hover → bg #171717, color #fafafa
-     CTA     h40 · px16 · gap8 · r8 · #b8222a · 14px/600 · beyaz
-             hover → #9e1c23
+     CTA     Astryx Button primary · h40 · px16 · gap8 · 14px/600
 
    SAPMA (onaylı #1, K-18): 768px altında nav gizlenir, hamburger açılır.
    Breakpoint uydurulmadı, ÖLÇÜLDÜ: tasarımın nav'ı 493px yer kaplıyor,
@@ -92,13 +93,14 @@ export function SiteHeader({
 /** Online sipariş açıkken ürünlere iner; kapalıyken WhatsApp'ı açar. */
 function SiparisCta({ href, disari = false }: { href: string; disari?: boolean }) {
   return (
-    <a
+    <Button
+      variant="primary"
+      size="lg"
+      label="Sipariş ver"
       href={href}
+      icon={disari ? <MesajIkonu size={16} /> : undefined}
       {...(disari ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="flex h-40 flex-none items-center gap-8 rounded-8 bg-brand px-16 text-14 font-semibold whitespace-nowrap text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
-    >
-      {disari && <MesajIkonu size={16} />}
-      Sipariş ver
-    </a>
+      className={`flex-none ${CTA_ORTA}`}
+    />
   );
 }

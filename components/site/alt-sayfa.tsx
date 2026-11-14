@@ -1,3 +1,4 @@
+import { Button } from "@astryxdesign/core/Button";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { SiteFooter } from "./footer";
@@ -7,16 +8,12 @@ import { SepetDugmesi } from "./sepet-dugmesi";
    Alt sayfa kabuğu (/sepet, /siparis, /kvkk, /urunler/<kategori>) — TASARIMDA YOK (K-37).
    Ana sayfa başlığının yapısı korunur (sticky · rgba(10,10,10,.88) · blur ·
    1px #1f1f1f alt kenarlık · max-w 1280 · 10px 24px), ama bölüm çapaları
-   yerine ana sayfaya dönüş bağlantısı var — `#urunler` gibi çapalar bu
+   yerine ana sayfaya dönüş bağlantısı (Astryx ghost Button) var — `#urunler` gibi çapalar bu
    sayfalarda boşa düşerdi.
 
    İçerik sütunu: max-w 880 · p 56px 24px 112px · başlık ana sayfadaki
    bölüm başlığıyla aynı (eyebrow + h2).
    ────────────────────────────────────────────────────────────────────────── */
-
-const GERI_LINKI =
-  "rounded-8 px-12 py-8 text-14 font-medium whitespace-nowrap text-muted " +
-  "transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-body";
 
 export function AltSayfa({
   ust,
@@ -42,9 +39,7 @@ export function AltSayfa({
             <Logo genislik={48} yukseklik={46} alt="Sarnıç Kasap" className="block h-46 w-48 object-contain" />
           </Link>
           <div className="flex-1" />
-          <Link href="/#urunler" className={GERI_LINKI}>
-            Ürünlere dön
-          </Link>
+          <Button variant="ghost" size="lg" label="Ürünlere dön" href="/#urunler" className="text-14 text-muted hover:text-body" />
           {sepetVar && <SepetDugmesi />}
         </div>
       </header>

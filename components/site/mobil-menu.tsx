@@ -1,7 +1,12 @@
 "use client";
 
+import { IconButton } from "@astryxdesign/core/IconButton";
+import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { KapatIkonu, MenuIkonu } from "@/components/icons";
+
+/* Çekmece kodu ilk açılışta yüklenir — ana sayfa paketine girmez. */
+const Drawer = dynamic(() => import("@astryxdesign/core/Drawer").then((m) => m.Drawer), { ssr: false });
 
 /* ──────────────────────────────────────────────────────────────────────────
    Mobil menü — TASARIMDA YOK (onaylı sapma #1, karar K-18).
@@ -9,68 +14,35 @@ import { KapatIkonu, MenuIkonu } from "@/components/icons";
    Neden: 390px'te tasarımın 6 nav linkinden yalnızca ~1,5'i görünüyor,
    kalanı görsel göstergesi olmayan yatay kaydırmada kalıyordu.
 
-   Görsel dil tamamen tasarımdan: #0a0a0a zemin, #1f1f1f kenarlık,
-   #a3a3a3 link, #171717 hover, r8, 768px'te kapanır.
+   Astryx Drawer (modal <dialog>): odak tuzağı, Escape/scrim ile kapanma,
+   kaydırma kilidi ve top-layer yerleşimi bileşenden gelir. 640px altında
+   tam ekran (eski tam ekran menünün yerini tutar), 768px'te kapanır.
+   Görsel dil tasarımdan: #0a0a0a zemin, #1f1f1f kenarlık, #a3a3a3 link,
+   #171717 hover, r8.
 
-   Erişilebilirlik: odak tuzağı, Escape ile kapanma, gövde kaydırma kilidi,
-   kapanınca odağın düğmeye dönmesi, aria-expanded/controls.
+   Çekmece yalnız açıkken DOM'da: kapalı <dialog> <header> içinde kalırsa
+   `header nav a` iki kez sayılır (testler ve ekran okuyucu gezintisi).
+   Kaldırılınca odak elle menü düğmesine döner.
    ────────────────────────────────────────────────────────────────────────── */
 
 type Baglanti = { href: string; label: string };
 
+const MENU_GENISLIGI = 360;
+
 export function MobilMenu({ baglantilar }: { baglantilar: readonly Baglanti[] }) {
   const [acik, setAcik] = useState(false);
-  const panelRef = useRef<HTMLDivElement>(null);
   const dugmeRef = useRef<HTMLButtonElement>(null);
 
   const kapat = useCallback(() => setAcik(false), []);
 
+  /* Kapanınca odak düğmeye döner. Temizlik, <dialog> DOM'dan kalktıktan
+     sonra çalışır — düğme artık `inert` değildir. Ref efekt içinde
+     kopyalanır: temizlik anında başka bir düğümü gösteriyor olabilir. */
   useEffect(() => {
     if (!acik) return;
-
-    /* Ref'i efekt içinde yerel değişkene kopyala: temizlik çalışırken
-       dugmeRef.current başka bir düğümü gösteriyor olabilir. */
     const dugme = dugmeRef.current;
-    const oncekiOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const odaklanabilir = () =>
-      Array.from(
-        panelRef.current?.querySelectorAll<HTMLElement>(
-          'a[href], button:not([disabled])',
-        ) ?? [],
-      );
-
-    odaklanabilir()[0]?.focus();
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        kapat();
-        return;
-      }
-      if (e.key !== "Tab") return;
-
-      // Odak tuzağı: Tab panelin dışına çıkmasın
-      const ogeler = odaklanabilir();
-      if (ogeler.length === 0) return;
-      const ilk = ogeler[0];
-      const son = ogeler[ogeler.length - 1];
-      if (e.shiftKey && document.activeElement === ilk) {
-        e.preventDefault();
-        son.focus();
-      } else if (!e.shiftKey && document.activeElement === son) {
-        e.preventDefault();
-        ilk.focus();
-      }
-    };
-
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = oncekiOverflow;
-      dugme?.focus();
-    };
-  }, [acik, kapat]);
+    return () => dugme?.focus();
+  }, [acik]);
 
   /* 768px'e çıkıldığında menü açık kalmasın — masaüstü nav zaten görünür. */
   useEffect(() => {
@@ -82,55 +54,56 @@ export function MobilMenu({ baglantilar }: { baglantilar: readonly Baglanti[] })
 
   return (
     <>
-      <button
+      <IconButton
         ref={dugmeRef}
-        type="button"
+        variant="ghost"
+        size="lg"
+        label="Menüyü aç"
+        icon={<MenuIkonu size={20} />}
         onClick={() => setAcik(true)}
-        aria-label="Menüyü aç"
         aria-expanded={acik}
         aria-controls="mobil-menu"
-        className="flex h-40 w-40 flex-none items-center justify-center rounded-8 text-body transition-colors duration-150 ease-out-soft hover:bg-hover md:hidden"
-      >
-        <MenuIkonu size={20} />
-      </button>
+        className="h-40 w-40 flex-none md:hidden"
+      />
 
       {acik && (
-        <div
+        <Drawer
           id="mobil-menu"
           role="dialog"
-          aria-modal="true"
-          aria-label="Menü"
-          className="fixed inset-0 z-50 bg-ink md:hidden motion-safe:animate-[menu-ac_200ms_ease-out]"
+          isOpen
+          onOpenChange={(yeni) => !yeni && kapat()}
+          label="Menü"
+          width={MENU_GENISLIGI}
+          padding={0}
+          experimental={{ isFullWidthOnMobile: true }}
+          className="bg-ink"
         >
-          <div ref={panelRef} className="flex h-full flex-col">
-            <div className="flex items-center justify-between border-b border-line px-24 py-10">
-              <span className="font-display text-16 font-bold text-cream">
-                Sarnıç Kasap
-              </span>
-              <button
-                type="button"
-                onClick={kapat}
-                aria-label="Menüyü kapat"
-                className="flex h-40 w-40 items-center justify-center rounded-8 text-body transition-colors duration-150 ease-out-soft hover:bg-hover"
-              >
-                <KapatIkonu size={20} />
-              </button>
-            </div>
-
-            <nav aria-label="Ana menü" className="flex flex-col gap-4 p-24">
-              {baglantilar.map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
-                  onClick={kapat}
-                  className="rounded-8 px-12 py-14 text-18 font-medium text-muted transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-body"
-                >
-                  {l.label}
-                </a>
-              ))}
-            </nav>
+          <div className="flex items-center justify-between border-b border-line px-24 py-10">
+            <span className="font-display text-16 font-bold text-cream">Sarnıç Kasap</span>
+            <IconButton
+              data-autofocus
+              variant="ghost"
+              size="lg"
+              label="Menüyü kapat"
+              icon={<KapatIkonu size={20} />}
+              onClick={kapat}
+              className="h-40 w-40"
+            />
           </div>
-        </div>
+
+          <nav aria-label="Ana menü" className="flex flex-col gap-4 p-24">
+            {baglantilar.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={kapat}
+                className="rounded-8 px-12 py-14 text-18 font-medium text-muted transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-body"
+              >
+                {l.label}
+              </a>
+            ))}
+          </nav>
+        </Drawer>
       )}
     </>
   );

@@ -1,7 +1,10 @@
+import { Badge } from "@astryxdesign/core/Badge";
+import { IconButton } from "@astryxdesign/core/IconButton";
 import { SagOkIkonu } from "@/components/icons";
 import { fiyat, waLink, WA_MESAJ } from "@/lib/format";
 import { birimSoneki } from "@/lib/miktar";
 import type { Birim } from "@/lib/stok-sema";
+import { yerelNitelikler } from "./astryx-yardimci";
 import { SepeteEkle } from "./sepete-ekle";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -11,14 +14,14 @@ import { SepeteEkle } from "./sepete-ekle";
             KENDİ KENARLIĞI/YARIÇAPI YOK — ayrım ızgara gap:1px ile
      üst    justify-between · items-center · gap8
        kategori 12px/500 · #737373 (K-21 → #8a8a8a)
-       rozet    11px/600 · py3 px8 · r999 · bg #262626 · #d4d4d4 · "Tükendi"
+       rozet    Astryx Badge · 11px/600 · px8 · bg #262626 · #d4d4d4 · "Tükendi"
      metin  flex-col · gap4 · flex-1
        h3   DM Sans 20px/600 · ls -.01em · #f8efea
        p    13px · lh 1.45 · #a3a3a3   (not boşsa boş <p> yine render edilir)
      alt    items-center · justify-between · gap12
        fiyat items-baseline · gap4 → DM Sans 24px/700 beyaz + "/ kg" 13px
-       ok    YALNIZCA stoktaysa · 36×36 · r8 · 1px #333333
-             hover → bg+border #b8222a, beyaz
+       ok    YALNIZCA stoktaysa · Astryx IconButton (bağlantı) · 36×36 ·
+             1px #333333 · hover → bg+border #b8222a, beyaz
 
    Stok dışı davranış: kart soluklaşmaz, fiyat gizlenmez.
    Yalnızca rozet görünür ve ok butonu kaybolur.
@@ -32,6 +35,8 @@ import { SepeteEkle } from "./sepete-ekle";
        ölçüsünde, zemin #b8222a (fırsat bölümünün rengi) — ve fiyatın
        yanında üstü çizili eski fiyat (fırsat kartındaki gibi #8a8a8a)
    ────────────────────────────────────────────────────────────────────────── */
+
+const ROZET = "rounded-pill px-8 text-11 font-semibold";
 
 export type UrunVerisi = {
   /** React anahtarı: stok kodu ya da DB kimliği */
@@ -80,14 +85,10 @@ export function UrunKarti({
         <span className="text-12 font-medium text-muted-dark">{urun.cat}</span>
         <div className="flex items-center gap-6">
           {urun.listPrice !== null && (
-            <span className="rounded-pill bg-brand px-8 py-3 text-11 font-semibold text-white">
-              Fırsat
-            </span>
+            <Badge label="Fırsat" className={`${ROZET} bg-brand text-white`} />
           )}
           {!urun.stock && (
-            <span className="rounded-pill bg-badge px-8 py-3 text-11 font-semibold text-soft">
-              Tükendi
-            </span>
+            <Badge label="Tükendi" className={`${ROZET} bg-badge text-soft`} />
           )}
         </div>
       </div>
@@ -114,16 +115,16 @@ export function UrunKarti({
         </div>
 
         {urun.stock && (
-          <a
+          <IconButton
             href={waLink(whatsapp, WA_MESAJ.urun(urun.name))}
             target="_blank"
             rel="noopener noreferrer"
-            title="WhatsApp’tan sor"
-            aria-label={`${urun.name} için WhatsApp’tan sor`}
-            className="flex h-36 w-36 items-center justify-center rounded-8 border border-edge text-body transition-colors duration-150 ease-out-soft hover:border-brand hover:bg-brand hover:text-white"
-          >
-            <SagOkIkonu size={16} />
-          </a>
+            size="lg"
+            label={`${urun.name} için WhatsApp’tan sor`}
+            {...yerelNitelikler({ title: "WhatsApp’tan sor" })}
+            icon={<SagOkIkonu size={16} />}
+            className="h-36 w-36 border border-edge bg-transparent text-body hover:border-brand hover:bg-brand hover:text-white"
+          />
         )}
       </div>
 

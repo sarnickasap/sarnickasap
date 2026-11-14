@@ -28,7 +28,7 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   const cekmece = await panel.locator("nav a").count();
   ok(cekmece === masaustu && cekmece > 0,
      `Çekmece ve masaüstü nav aynı bağlantıları gösteriyor (${cekmece})`);
-  ok(await p.evaluate(()=>getComputedStyle(document.body).overflow)==="hidden", "Gövde kaydırma kilitli");
+  ok(await p.evaluate(()=>getComputedStyle(document.documentElement).overflow)==="hidden", "Sayfa kaydırma kilitli (Astryx kilidi <html> üzerinde)");
 
   const odak=async()=>p.evaluate(()=>document.activeElement?.textContent?.trim()||document.activeElement?.getAttribute("aria-label"));
   ok((await odak())==="Menüyü kapat", `Açılışta odak panelde (${await odak()})`);
@@ -41,7 +41,7 @@ let f=0; const ok=(c,m)=>{if(!c)f++;console.log((c?"✅":"❌")+" "+m);};
   await p.keyboard.press("Escape");
   await panel.waitFor({state:"detached"});
   ok(true, "Escape ile kapanıyor");
-  ok(await p.evaluate(()=>getComputedStyle(document.body).overflow)!=="hidden", "Kaydırma kilidi kalktı");
+  ok(await p.evaluate(()=>getComputedStyle(document.documentElement).overflow)!=="hidden", "Kaydırma kilidi kalktı");
   ok((await odak())==="Menüyü aç", `Odak düğmeye döndü (${await odak()})`);
 
   // Bağlantıya tıklayınca kapanmalı

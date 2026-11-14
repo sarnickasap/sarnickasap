@@ -76,7 +76,7 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
   };
 
   return (
-    <div className="tema-admin flex min-h-screen flex-col bg-admin-bg text-black">
+    <div className="tema-admin flex min-h-screen flex-col bg-[var(--color-background-body)] text-[var(--color-text-primary)]">
       <AdminHeader durumMetni={kayitDurumMetni(sonKayit, kayitHatasi)} />
 
       <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-start gap-24 px-20 pt-24 pb-64">

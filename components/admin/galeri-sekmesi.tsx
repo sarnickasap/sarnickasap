@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SayfaBasligi, SiyahButon } from "./ui";
+import { Text } from "@astryxdesign/core/Text";
+import { AnaButon, SayfaBasligi } from "./ui";
 import { GaleriKarti, type AdminGaleri } from "./galeri-karti";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { galeriEkle, galeriGorselYukle, galeriGuncelle, galeriSil } from "@/lib/actions/galeri";
@@ -9,8 +10,7 @@ import { GALERI_MAKS_BAYT, GALERI_URL_HATASI, galeriUrlKabul } from "@/lib/galer
 import { GorselKucultmeHatasi, gorseliKucult } from "@/lib/gorsel-kucult";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Galeri sekmesi — vault "Galeri Duzenleme Karti" notundan birebir.
-
+   Galeri sekmesi.
      ızgara  auto-fill minmax(min(100%,240px),1fr) · gap12
      kart    → galeri-karti.tsx
 
@@ -105,11 +105,7 @@ export function GaleriSekmesi({
       <SayfaBasligi
         baslik="Galeri"
         altMetin="Görsel yükleyin ve alt yazı girin. Boş bırakılanlar yer tutucu olarak görünür."
-        aksiyon={
-          <SiyahButon tip="arti" onClick={ekle}>
-            Görsel ekle
-          </SiyahButon>
-        }
+        aksiyon={<AnaButon etiket="Görsel ekle" onClick={ekle} />}
       />
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,240px),1fr))] gap-12">
@@ -127,10 +123,10 @@ export function GaleriSekmesi({
         ))}
       </div>
 
-      <p className="m-0 text-13 leading-15 text-admin-muted">
+      <Text type="supporting" as="p">
         JPG, PNG veya WEBP. Fotoğraf yüklemeden önce otomatik küçültülür (uzun kenar
         1600 px). Bağlantı alanına yalnızca bu siteye yüklenmiş görsellerin adresi yazılabilir.
-      </p>
+      </Text>
     </>
   );
 }

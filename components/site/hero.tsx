@@ -1,8 +1,10 @@
+import { Button } from "@astryxdesign/core/Button";
 import { Suspense } from "react";
 import { Logo } from "@/components/logo";
 import { MesajIkonu, SepetIkonu, TelefonIkonu } from "@/components/icons";
 import type { Saat } from "@/lib/saatler";
 import { AcikKapali, AcikKapaliIskelet } from "./acik-kapali";
+import { CTA, CTA_IKINCIL } from "./siparis-stilleri";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Hero — vault "Hero" notundan birebir.
@@ -14,16 +16,11 @@ import { AcikKapali, AcikKapaliIskelet } from "./acik-kapali";
      H1       DM Sans 700 · clamp(44px,7vw,84px) · lh .98 · ls -.035em
               · #f8efea · text-wrap balance
      alt      max-w 520 · 18px · lh 1.6 · #a3a3a3 · text-wrap pretty
-     butonlar flex-wrap · gap 12
-       birincil h48 · px22 · gap10 · r8 · #b8222a · 15px/600 · beyaz
-       ikincil  h48 · px22 · gap10 · r8 · 1px #333333 · 15px/500 · #fafafa
+     butonlar flex-wrap · gap 12 · Astryx Button (bağlantı)
+       birincil primary · h48 · px22 · gap10 · 15px/600
+       ikincil  h48 · px22 · gap10 · 1px #333333 · 15px/500 · #fafafa
      sağ      flex · justify-center → img w-full max-w-500 h-auto
    ────────────────────────────────────────────────────────────────────────── */
-
-const BIRINCIL =
-  "flex h-48 items-center gap-10 rounded-8 bg-brand px-22 text-15 font-semibold text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover";
-const IKINCIL =
-  "flex h-48 items-center gap-10 rounded-8 border border-edge px-22 text-15 font-medium text-body transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white";
 
 export function Hero({
   heroTitle,
@@ -66,26 +63,33 @@ export function Hero({
 
         <div className="flex flex-wrap gap-12">
           {siparisAcik && (
-            <a href="#urunler" className={BIRINCIL}>
-              <SepetIkonu size={18} />
-              Online sipariş ver
-            </a>
+            <Button
+              variant="primary"
+              size="lg"
+              label="Online sipariş ver"
+              href="#urunler"
+              icon={<SepetIkonu size={18} />}
+              className={CTA}
+            />
           )}
-          <a
+          {/* Apostrof U+2019 — tasarımdaki karakterin aynısı */}
+          <Button
+            variant={siparisAcik ? "secondary" : "primary"}
+            size="lg"
+            label={siparisAcik ? "WhatsApp’tan yaz" : "WhatsApp’tan sipariş ver"}
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className={siparisAcik ? IKINCIL : BIRINCIL}
-          >
-            <MesajIkonu size={18} />
-            {/* Apostrof U+2019 — tasarımdaki karakterin aynısı */}
-            {siparisAcik ? "WhatsApp’tan yaz" : "WhatsApp’tan sipariş ver"}
-          </a>
-
-          <a href={telLink} className={IKINCIL}>
-            <TelefonIkonu size={18} />
-            {phone}
-          </a>
+            icon={<MesajIkonu size={18} />}
+            className={siparisAcik ? CTA_IKINCIL : CTA}
+          />
+          <Button
+            size="lg"
+            label={phone}
+            href={telLink}
+            icon={<TelefonIkonu size={18} />}
+            className={CTA_IKINCIL}
+          />
         </div>
       </div>
 

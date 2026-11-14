@@ -1,3 +1,4 @@
+import { BreadcrumbItem, Breadcrumbs } from "@astryxdesign/core/Breadcrumbs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -94,19 +95,10 @@ function Giris({ ad, kaynak }: { ad: string; kaynak: UrunKaynagi }) {
 
 function SayfaYolu({ ad }: { ad: string }) {
   return (
-    <nav aria-label="Sayfa yolu" className="text-13 text-muted-dark">
-      <ol className="m-0 flex flex-wrap items-center gap-6 p-0 list-none">
-        <li>
-          <Link href="/" className="text-muted transition-colors duration-150 ease-out-soft hover:text-body">
-            Ana sayfa
-          </Link>
-        </li>
-        <li aria-hidden="true">/</li>
-        <li aria-current="page" className="text-soft">
-          {ad} fiyatları
-        </li>
-      </ol>
-    </nav>
+    <Breadcrumbs label="Sayfa yolu" variant="supporting">
+      <BreadcrumbItem href="/">Ana sayfa</BreadcrumbItem>
+      <BreadcrumbItem isCurrent>{ad} fiyatları</BreadcrumbItem>
+    </Breadcrumbs>
   );
 }
 

@@ -1,32 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { TextInput } from "@astryxdesign/core/TextInput";
 import {
+  ALAN,
+  ALAN_KUTUSU,
+  AnaButon,
   DurumToggle,
-  GIRDI,
   Kart,
+  SATIR_AYRACI,
   SayfaBasligi,
   SilButonu,
-  SiyahButon,
 } from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { urunEkle, urunGuncelle, urunSil } from "@/lib/actions/admin";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Ürünler sekmesi — vault "Urun Satiri" notundan birebir.
+   Ürünler sekmesi.
+     filtre  arama (Astryx TextInput) + kategori (yerel select)
+     satır   ad · kategori · fiyat (₺/kg) · açıklama · stok · sil
+     boş     Astryx EmptyState "Eşleşen ürün yok."
 
-     filtre  flex-wrap gap8 → arama (2 1 200px, h38 px12)
-                              kategori select (1 1 160px, h38 px10)
-     liste   bg #fff · 1px #e5e5e5 · r12 · overflow-hidden
-     satır   flex-wrap gap8 items-center · p 12px 14px
-             alt kenarlık 1px #f0f0f0  (SON SATIRDA DA var)
-       1 ad       2 1 170px · h36 · 14px/500
-       2 kategori 1 1 140px · h36 px8
-       3 fiyat    0 1 130px (min 110) · h36 · sağa hizalı + "₺/kg" eki
-       4 açıklama 2 1 170px · h36 · 13px #525252
-       5 stok     92×36 toggle
-       6 sil      36×36
-     boş     p32 · ortalı · 14px · #737373 · "Eşleşen ürün yok."
+   Ad, kategori ve fiyat YEREL alan: e2e testi kategori select'ini ad
+   input'unun doğrudan ebeveyninde arıyor, kategori filtresini
+   `selectOption` ile seçiyor; fiyat her tuşta kaydediliyor (Astryx
+   NumberInput yalnız blur/Enter'da değer bildirir).
 
    Arama Türkçe duyarlı: toLocaleLowerCase('tr')
    ────────────────────────────────────────────────────────────────────────── */
@@ -92,26 +91,25 @@ export function UrunlerSekmesi({
       <SayfaBasligi
         baslik="Ürünler"
         altMetin="Ad, kategori, kilo fiyatı ve stok durumunu düzenleyin."
-        aksiyon={
-          <SiyahButon tip="arti" onClick={ekle}>
-            Yeni ürün
-          </SiyahButon>
-        }
+        aksiyon={<AnaButon etiket="Yeni ürün" onClick={ekle} />}
       />
 
       <div className="flex flex-wrap gap-8">
-        <input
-          value={arama}
-          onChange={(e) => setArama(e.target.value)}
+        <TextInput
+          type="search"
+          label="Ürün ara"
+          isLabelHidden
           placeholder="Ürün ara"
-          aria-label="Ürün ara"
-          className={`${GIRDI} h-38 flex-[2_1_200px] px-12 text-14 font-normal text-form`}
+          startIcon="search"
+          value={arama}
+          onChange={setArama}
+          containerClassName="flex-[2_1_200px]"
         />
         <select
           value={filtre}
           onChange={(e) => setFiltre(e.target.value)}
           aria-label="Kategoriye göre süz"
-          className={`${GIRDI} h-38 flex-[1_1_160px] px-10 text-14 font-normal text-form`}
+          className={`${ALAN} flex-[1_1_160px]`}
         >
           {[TUMU, ...kategoriler.map((k) => k.name)].map((c) => (
             <option key={c} value={c}>
@@ -125,14 +123,14 @@ export function UrunlerSekmesi({
         {gorunen.map((p) => (
           <div
             key={p.id}
-            className="flex flex-wrap items-center gap-8 border-b border-admin-row px-14 py-12"
+            className={`flex flex-wrap items-center gap-8 px-14 py-12 ${SATIR_AYRACI}`}
           >
             <input
               value={p.name}
               onChange={(e) => yaz(p.id, { name: e.target.value })}
               placeholder="Ürün adı"
               aria-label="Ürün adı"
-              className={`${GIRDI} h-36 flex-[2_1_170px] px-10 text-14 font-medium text-form`}
+              className={`${ALAN} flex-[2_1_170px] font-medium`}
             />
 
             <select
@@ -141,7 +139,7 @@ export function UrunlerSekmesi({
                 yaz(p.id, { categoryId: Number(e.target.value) }, true)
               }
               aria-label="Kategori"
-              className={`${GIRDI} h-36 flex-[1_1_140px] px-8 text-14 text-form`}
+              className={`${ALAN} flex-[1_1_140px]`}
             >
               {kategoriler.map((k) => (
                 <option key={k.id} value={k.id}>
@@ -150,10 +148,8 @@ export function UrunlerSekmesi({
               ))}
             </select>
 
-            {/* Sayı + birim eki. Tasarımda iç input'ta outline:none var →
-                sarmalayıcıda odak göstergesi yok. focus-within ile erişilebilir
-                hale getirildi (K-08); görünüm odaklanmadıkça değişmiyor. */}
-            <div className="flex h-36 min-w-110 flex-[0_1_130px] items-center overflow-hidden rounded-8 border border-admin-border bg-admin-card focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-black">
+            {/* Sayı + birim eki; odak göstergesi sarmalayıcıda (focus-within). */}
+            <div className={`${ALAN_KUTUSU} flex min-w-110 flex-[0_1_130px] items-center overflow-hidden focus-within:border-[var(--color-accent)] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--color-focus)]`}>
               <input
                 type="number"
                 min={0}
@@ -162,19 +158,21 @@ export function UrunlerSekmesi({
                   yaz(p.id, { price: e.target.value === "" ? 0 : Number(e.target.value) })
                 }
                 aria-label="Kilo fiyatı"
-                className="h-full w-full min-w-0 flex-1 border-0 px-8 text-right text-14 text-form outline-none"
+                className="h-full w-full min-w-0 flex-1 border-0 bg-transparent px-8 text-right outline-none"
               />
-              <span className="pr-10 pl-4 text-13 whitespace-nowrap text-admin-muted">
+              <span className="pr-8 pl-4 whitespace-nowrap text-[var(--color-text-secondary)]">
                 ₺/kg
               </span>
             </div>
 
-            <input
-              value={p.note}
-              onChange={(e) => yaz(p.id, { note: e.target.value })}
-              placeholder="Açıklama"
+            <TextInput
+              label="Açıklama"
+              isLabelHidden
               aria-label="Açıklama"
-              className={`${GIRDI} h-36 flex-[2_1_170px] px-10 text-13 text-admin-2nd`}
+              placeholder="Açıklama"
+              value={p.note}
+              onChange={(v) => yaz(p.id, { note: v })}
+              containerClassName="flex-[2_1_170px]"
             />
 
             <DurumToggle
@@ -188,11 +186,7 @@ export function UrunlerSekmesi({
           </div>
         ))}
 
-        {gorunen.length === 0 && (
-          <div className="p-32 text-center text-14 text-admin-muted">
-            Eşleşen ürün yok.
-          </div>
-        )}
+        {gorunen.length === 0 && <EmptyState title="Eşleşen ürün yok." isCompact />}
       </Kart>
     </>
   );

@@ -1,4 +1,14 @@
+/* Astryx tasarım sistemi (docs: npx astryx docs styling-libraries/tailwind).
+   ⚠️ @layer satırı Tailwind import'unun ÜSTÜNDE kalmalı; altına inerse Astryx
+   reset'i tüm Tailwind sınıflarını ezer.
+   ⚠️ @astryxdesign/core/tailwind-theme.css KASITLI olarak eklenmedi: --spacing'i
+   4px yapar, bu projede --spacing 1px (p-22 = 22px) olduğu için her ölçü bozulur. */
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
 @import "tailwindcss";
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+@import "../themes/sarnic/sarnic.css";
 
 /* ──────────────────────────────────────────────────────────────────────────
    SARNIÇ KASAP — DESIGN TOKENS

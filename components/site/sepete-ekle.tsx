@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@astryxdesign/core/Button";
 import { useEffect, useRef, useState } from "react";
 import { MIKTAR_KURALI } from "@/lib/miktar";
 import { sepeteEkle, type EklemeSonucu } from "@/lib/sepet";
@@ -9,10 +10,8 @@ import { MiktarSecici } from "./miktar-secici";
 /* ──────────────────────────────────────────────────────────────────────────
    Ürün kartında miktar seçici + "Sepete ekle" — TASARIMDA YOK (K-37).
 
-   Görsel dil kartın kendi öğelerinden:
-     seçici  h36 · r8 · 1px #333333 (WhatsApp ok düğmesiyle aynı çerçeve)
-     buton   h36 · r8 · #b8222a · 14px/600 · beyaz · hover #9e1c23
-             (site birincil butonunun 36px'lik karşılığı)
+     seçici  MiktarSecici (h36 · r8 · 1px #333333)
+     buton   Astryx Button primary · h36 · 14px/600 (marka kırmızısı)
    Durum `aria-live` ile duyurulur; buton metni kısa süre "Eklendi" olur.
    ────────────────────────────────────────────────────────────────────────── */
 
@@ -48,14 +47,15 @@ export function SepeteEkle({ code, unit, name }: { code: string; unit: Birim; na
     <div className="flex flex-wrap items-center gap-8">
       <MiktarSecici unit={unit} deger={miktar} onDegis={setMiktar} etiket={`${name} miktarı`} />
 
-      <button
-        type="button"
+      <Button
+        variant="primary"
+        size="lg"
+        label={`Sepete ekle — ${name}`}
         onClick={ekle}
-        className="flex h-36 min-w-[120px] flex-1 cursor-pointer items-center justify-center rounded-8 border-0 bg-brand px-12 text-14 font-semibold whitespace-nowrap text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
+        className="min-w-[120px] flex-1 text-14 font-semibold"
       >
         {durum === "eklendi" ? "Eklendi" : "Sepete ekle"}
-        <span className="sr-only"> — {name}</span>
-      </button>
+      </Button>
 
       <p aria-live="polite" className={hataVar ? "m-0 w-full text-12 text-discount" : "sr-only"}>
         {durum ? DURUM_METNI[durum] : ""}

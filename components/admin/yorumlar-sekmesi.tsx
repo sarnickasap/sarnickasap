@@ -1,28 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import {
-  DurumToggle,
-  GIRDI,
-  Kart,
-  SayfaBasligi,
-  SilButonu,
-  SiyahButon,
-} from "./ui";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { TextArea } from "@astryxdesign/core/TextArea";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { ALAN, AnaButon, DurumToggle, Kart, SayfaBasligi, SilButonu } from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { yorumEkle, yorumGuncelle, yorumSil } from "@/lib/actions/admin";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Yorumlar sekmesi — vault "Yorum Duzenleme Karti" notundan birebir.
-
-     kart    bg #fff · 1px #e5e5e5 · r12 · p16 · flex-col · gap10
-     satır 1 flex-wrap gap8 items-center
-       ad      2 1 160px · h36 · 14px/600
-       puan    0 0 120px · h36 px8 · yıldız karakterleriyle
-       toggle  92×36 · Yayında / Gizli
-       sil     36×36
-     satır 2 textarea rows=2 · p 8px 10px · 14px · lh1.5 · #404040
-             resize-vertical · ph "Yorum"
+   Yorumlar sekmesi — yorum başına bir kart.
+     satır 1  ad · puan (yerel select: e2e testi selectOption kullanıyor)
+              · Yayında/Gizli · sil
+     satır 2  yorum metni (TextArea, 2 satır)
 
    Admin'de TÜM yorumlar listelenir; sitede yalnızca yayındakiler görünür.
    ────────────────────────────────────────────────────────────────────────── */
@@ -71,36 +61,35 @@ export function YorumlarSekmesi({
       <SayfaBasligi
         baslik="Müşteri yorumları"
         altMetin="Yalnızca yayındaki yorumlar sitede görünür."
-        aksiyon={
-          <SiyahButon tip="arti" onClick={ekle}>
-            Yorum ekle
-          </SiyahButon>
-        }
+        aksiyon={<AnaButon etiket="Yorum ekle" onClick={ekle} />}
       />
 
       {liste.length === 0 && (
-        /* Boş durum — tasarımda YOK (K-08).
-           Şu an gerçek yorum olmadığı için bu ekran boş açılıyor (K-15). */
-        <p className="m-0 text-14 text-admin-muted">
-          Henüz yorum yok. Google yorumlarından eklemek için “Yorum ekle”ye basın.
-        </p>
+        /* Şu an gerçek yorum olmadığı için bu ekran boş açılıyor (K-15). */
+        <EmptyState
+          title="Henüz yorum yok."
+          description="Google yorumlarından eklemek için “Yorum ekle”ye basın."
+          headingLevel={2}
+        />
       )}
 
       {liste.map((r) => (
         <Kart key={r.id} className="flex flex-col gap-10 p-16">
           <div className="flex flex-wrap items-center gap-8">
-            <input
-              value={r.name}
-              onChange={(e) => yaz(r.id, { name: e.target.value })}
-              placeholder="Ad"
+            <TextInput
+              label="Müşteri adı"
+              isLabelHidden
               aria-label="Müşteri adı"
-              className={`${GIRDI} h-36 flex-[2_1_160px] px-10 text-14 font-semibold text-form`}
+              placeholder="Ad"
+              value={r.name}
+              onChange={(v) => yaz(r.id, { name: v })}
+              containerClassName="flex-[2_1_160px]"
             />
             <select
               value={r.rating}
               onChange={(e) => yaz(r.id, { rating: Number(e.target.value) }, true)}
               aria-label="Puan"
-              className={`${GIRDI} h-36 flex-[0_0_120px] px-8 text-14 text-form`}
+              className={`${ALAN} flex-[0_0_120px]`}
             >
               <option value="5">★★★★★</option>
               <option value="4">★★★★</option>
@@ -117,13 +106,14 @@ export function YorumlarSekmesi({
             <SilButonu onClick={() => sil(r)} etiket="Yorumu sil" />
           </div>
 
-          <textarea
-            value={r.text}
-            onChange={(e) => yaz(r.id, { text: e.target.value })}
-            rows={2}
-            placeholder="Yorum"
+          <TextArea
+            label="Yorum metni"
+            isLabelHidden
             aria-label="Yorum metni"
-            className="resize-y rounded-8 border border-admin-border bg-admin-card px-10 py-8 text-14 leading-15 text-admin-tab"
+            placeholder="Yorum"
+            rows={2}
+            value={r.text}
+            onChange={(v) => yaz(r.id, { text: v })}
           />
         </Kart>
       ))}

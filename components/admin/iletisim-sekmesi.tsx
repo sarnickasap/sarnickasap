@@ -1,29 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import { GIRDI, Kart, SayfaBasligi } from "./ui";
+import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import { Text } from "@astryxdesign/core/Text";
+import {
+  ALAN,
+  COK_SATIRLI_ALAN,
+  ETIKET,
+  Kart,
+  SATIR_AYRACI,
+  SayfaBasligi,
+} from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { bilgiGuncelle, saatGuncelle } from "@/lib/actions/admin";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   İletişim & saatler — vault "Iletisim Formu" + "Saat Satiri" notlarından.
-
-     bilgi kartı  bg #fff · 1px #e5e5e5 · r12 · p20
-                  grid auto-fit minmax(min(100%,240px),1fr) · gap14
-       Telefon / WhatsApp  → otomatik sütun
-       Adres / Giriş başlığı → grid-column 1/-1
-       Giriş alt metni → textarea rows=2, tam genişlik
-       Hakkımızda      → textarea rows=4, tam genişlik
-     label  flex-col gap6 · 13px/500 · alan içinde font-weight 400
-
-     saat kartı   bg #fff · 1px #e5e5e5 · r12 · overflow-hidden
-       başlık  p 14px 16px · alt kenarlık 1px #e5e5e5 · 14px/600
-       satır   p 10px 16px · alt kenarlık 1px #f5f5f5 · flex-wrap gap10
-         gün     1 1 110px · 14px/500
-         açılış  type=time · 0 0 110px · h36 px8 · 14px
-         ayraç   "–" #a3a3a3   (en dash)
-         kapanış aynı
-         kapalı  checkbox 16×16 accent #0a0a0a + label 13px #525252
+   İletişim & saatler.
+     bilgi kartı  telefon · WhatsApp · adres · giriş başlığı/alt metni ·
+                  hakkımızda. Alanlar YEREL ve <label> içinde: e2e testi
+                  `main label` → `input, textarea` ile buluyor.
+     saat kartı   gün · açılış – kapanış (yerel type=time, her değişimde
+                  kayıt) · "Kapalı" (Astryx CheckboxInput)
    ────────────────────────────────────────────────────────────────────────── */
 
 export type AdminBilgi = {
@@ -43,9 +40,9 @@ export type AdminSaat = {
   closed: boolean;
 };
 
-const LABEL = "flex flex-col gap-6 text-13 font-medium text-black";
-const TEXTAREA =
-  "resize-y rounded-8 border border-admin-border bg-admin-card px-10 py-8 text-14 font-normal leading-15 text-form min-w-0";
+const GIRDI = `${ALAN} font-normal`;
+const TEXTAREA = `${COK_SATIRLI_ALAN} font-normal`;
+const SAAT = `${ALAN} flex-[0_0_110px]`;
 
 export function IletisimSekmesi({
   bilgi,
@@ -83,43 +80,43 @@ export function IletisimSekmesi({
       />
 
       <Kart className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-14 p-20">
-        <label className={LABEL}>
+        <label className={ETIKET}>
           Telefon
           <input
             value={b.phone}
             onChange={(e) => yazBilgi({ phone: e.target.value })}
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
+            className={GIRDI}
           />
         </label>
 
-        <label className={LABEL}>
+        <label className={ETIKET}>
           WhatsApp numarası (90 ile)
           <input
             value={b.whatsapp}
             onChange={(e) => yazBilgi({ whatsapp: e.target.value })}
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
+            className={GIRDI}
           />
         </label>
 
-        <label className={`${LABEL} col-[1/-1]`}>
+        <label className={`${ETIKET} col-[1/-1]`}>
           Adres
           <input
             value={b.address}
             onChange={(e) => yazBilgi({ address: e.target.value })}
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
+            className={GIRDI}
           />
         </label>
 
-        <label className={`${LABEL} col-[1/-1]`}>
+        <label className={`${ETIKET} col-[1/-1]`}>
           Giriş başlığı
           <input
             value={b.heroTitle}
             onChange={(e) => yazBilgi({ heroTitle: e.target.value })}
-            className={`${GIRDI} h-38 px-10 text-14 font-normal text-form`}
+            className={GIRDI}
           />
         </label>
 
-        <label className={`${LABEL} col-[1/-1]`}>
+        <label className={`${ETIKET} col-[1/-1]`}>
           Giriş alt metni
           <textarea
             value={b.heroSub}
@@ -129,7 +126,7 @@ export function IletisimSekmesi({
           />
         </label>
 
-        <label className={`${LABEL} col-[1/-1]`}>
+        <label className={`${ETIKET} col-[1/-1]`}>
           Hakkımızda
           <textarea
             value={b.about}
@@ -141,15 +138,17 @@ export function IletisimSekmesi({
       </Kart>
 
       <Kart className="overflow-hidden">
-        <div className="border-b border-admin-border px-16 py-14 text-14 font-semibold">
-          Çalışma saatleri
+        <div className={`px-16 py-14 ${SATIR_AYRACI}`}>
+          <Text weight="semibold">Çalışma saatleri</Text>
         </div>
         {s.map((h) => (
           <div
             key={h.dayIndex}
-            className="flex flex-wrap items-center gap-10 border-b border-admin-hair px-16 py-10"
+            className={`flex flex-wrap items-center gap-10 px-16 py-10 ${SATIR_AYRACI}`}
           >
-            <span className="flex-[1_1_110px] text-14 font-medium">{h.day}</span>
+            <Text weight="medium" className="flex-[1_1_110px]">
+              {h.day}
+            </Text>
 
             <input
               type="time"
@@ -157,10 +156,10 @@ export function IletisimSekmesi({
               disabled={h.closed}
               onChange={(e) => yazSaat(h.dayIndex, { open: e.target.value })}
               aria-label={`${h.day} açılış saati`}
-              className="h-36 flex-[0_0_110px] rounded-8 border border-admin-border bg-admin-card px-8 text-14 text-form disabled:opacity-50"
+              className={SAAT}
             />
 
-            <span className="text-faint-light" aria-hidden>
+            <span className="text-[var(--color-text-secondary)]" aria-hidden>
               –
             </span>
 
@@ -170,20 +169,14 @@ export function IletisimSekmesi({
               disabled={h.closed}
               onChange={(e) => yazSaat(h.dayIndex, { close: e.target.value })}
               aria-label={`${h.day} kapanış saati`}
-              className="h-36 flex-[0_0_110px] rounded-8 border border-admin-border bg-admin-card px-8 text-14 text-form disabled:opacity-50"
+              className={SAAT}
             />
 
-            <label className="flex cursor-pointer items-center gap-6 text-13 text-admin-2nd">
-              <input
-                type="checkbox"
-                checked={h.closed}
-                onChange={(e) =>
-                  yazSaat(h.dayIndex, { closed: e.target.checked }, true)
-                }
-                className="h-16 w-16 accent-black"
-              />
-              Kapalı
-            </label>
+            <CheckboxInput
+              label="Kapalı"
+              value={h.closed}
+              onChange={(kapali) => yazSaat(h.dayIndex, { closed: kapali }, true)}
+            />
           </div>
         ))}
       </Kart>

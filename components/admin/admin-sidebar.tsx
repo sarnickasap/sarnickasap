@@ -1,17 +1,14 @@
 "use client";
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Admin Sidebar — vault "Admin Sidebar" notundan birebir.
+import { Banner } from "@astryxdesign/core/Banner";
+import { Divider } from "@astryxdesign/core/Divider";
+import { SideNav, SideNavItem } from "@astryxdesign/core/SideNav";
+import { Text } from "@astryxdesign/core/Text";
 
-     aside   flex:1 1 210px · max-w-full · flex-col · gap12
-     nav     flex · flex-wrap · gap4
-       buton flex:1 1 150px · justify-between · items-center · gap8
-             h40 · px12 · r8 · border0 · font:inherit 14px/500 · text-left
-       aktif bg #0a0a0a · beyaz · sayaç #a3a3a3
-       pasif bg transparent · #404040 · sayaç #737373
-             hover → bg #f0f0f0, #0a0a0a
-     ayraç   div h1 bg #e5e5e5
-     açıklama 12px · lh1.5 · #737373
+/* ──────────────────────────────────────────────────────────────────────────
+   Admin Sidebar — Astryx SideNav (aside içinde, tam genişlik).
+     sekme  SideNavItem · seçili olan aria-current="page" · sağda sayaç
+     altında Divider + açıklama metni
 
    SAPMA (K-25): Tasarımdaki "Varsayılan verilere dön" butonu KALDIRILDI.
    Tasarımda localStorage'ı sıfırlıyordu — zararsızdı. Gerçek veritabanında
@@ -19,7 +16,7 @@
    kaldırılmasını onayladı.
 
    SAPMA (onaylı #3/#4, K-19): tasarımda 6 sekme var; SEO ve Kullanıcılar
-   eklenince 8 oluyor. Sekme bileşeninin stili aynen korundu.
+   eklenince 8 oluyor.
 
    K-37: STOK_API_URL tanımlıyken ürün ve fiyatlar stok programından
    yönetiliyor — "Ürünler" ve "Toplu fiyat" sekmeleri GİZLENİR (kod
@@ -68,46 +65,39 @@ export function AdminSidebar({
     ? SEKMELER.filter((s) => !STOK_SEKMELERI.includes(s.anahtar))
     : SEKMELER;
 
+  /* `aside button` e2e testlerinin sekme seçicisi — SideNavItem href'siz
+     olduğunda <button> render eder, metni etiketle başlar. */
   return (
     <aside className="flex max-w-full flex-[1_1_210px] flex-col gap-12">
       {stokYonetiyor && (
-        <p className="m-0 rounded-8 border border-admin-border bg-admin-card px-12 py-10 text-12 leading-15 text-admin-2nd">
-          Ürünler ve fiyatlar stok programından yönetiliyor
-        </p>
+        <Banner status="info" title="Ürünler ve fiyatlar stok programından yönetiliyor" />
       )}
-      <nav className="flex flex-wrap gap-4" aria-label="Panel bölümleri">
+      <SideNav aria-label="Panel bölümleri" className="h-auto w-full">
         {sekmeler.map((s) => {
-          const aktif = s.anahtar === secili;
           const sayac = sayaclar[s.anahtar];
           return (
-            <button
+            <SideNavItem
               key={s.anahtar}
-              type="button"
+              label={s.etiket}
+              isSelected={s.anahtar === secili}
               onClick={() => onSec(s.anahtar)}
-              aria-current={aktif ? "page" : undefined}
-              className={
-                "flex h-40 flex-[1_1_150px] cursor-pointer items-center justify-between gap-8 rounded-8 border-0 px-12 text-left text-14 font-medium " +
-                (aktif
-                  ? "bg-black text-white"
-                  : "bg-transparent text-admin-tab transition-colors duration-150 ease-out-soft hover:bg-admin-row hover:text-black")
+              endContent={
+                sayac == null ? undefined : (
+                  <Text type="supporting" hasTabularNumbers>
+                    {sayac}
+                  </Text>
+                )
               }
-            >
-              <span>{s.etiket}</span>
-              <span
-                className={"text-12 " + (aktif ? "text-muted" : "text-admin-muted")}
-              >
-                {sayac ?? ""}
-              </span>
-            </button>
+            />
           );
         })}
-      </nav>
+      </SideNav>
 
-      <div className="h-1 bg-admin-border" />
+      <Divider />
 
-      <p className="m-0 text-12 leading-15 text-admin-muted">
+      <Text type="supporting" as="p">
         Değişiklikler otomatik kaydedilir ve sitede anında görünür.
-      </p>
+      </Text>
     </aside>
   );
 }

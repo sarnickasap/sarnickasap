@@ -1,9 +1,10 @@
-import Link from "next/link";
+import { Button } from "@astryxdesign/core/Button";
 import { MesajIkonu } from "@/components/icons";
 import { Logo } from "@/components/logo";
+import { CTA } from "@/components/site/siparis-stilleri";
 
 /* 404 — TASARIMDA YOK (karar K-08). Sitenin kendi diliyle kuruldu:
-   #0a0a0a zemin, DM Sans başlık, kırmızı birincil buton, outline ikincil. */
+   #0a0a0a zemin, DM Sans başlık, Astryx birincil buton (marka kırmızısı). */
 
 export const metadata = { title: "Sayfa bulunamadı" };
 
@@ -25,13 +26,14 @@ export default function Bulunamadi() {
         </p>
       </div>
       <div className="flex flex-wrap justify-center gap-12">
-        <Link
+        <Button
+          variant="primary"
+          size="lg"
+          label="Ana sayfaya dön"
           href="/"
-          className="flex h-48 items-center gap-10 rounded-8 bg-brand px-22 text-15 font-semibold text-white transition-colors duration-150 ease-out-soft hover:bg-brand-hover"
-        >
-          <MesajIkonu size={18} />
-          Ana sayfaya dön
-        </Link>
+          icon={<MesajIkonu size={18} />}
+          className={CTA}
+        />
       </div>
     </main>
   );

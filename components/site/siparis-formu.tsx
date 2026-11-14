@@ -1,5 +1,13 @@
 "use client";
 
+import { Banner } from "@astryxdesign/core/Banner";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import { Divider } from "@astryxdesign/core/Divider";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { TextArea } from "@astryxdesign/core/TextArea";
+import { TextInput } from "@astryxdesign/core/TextInput";
 import Link from "next/link";
 import { startTransition, useActionState, useMemo, useState } from "react";
 import { siparisVer } from "@/lib/actions/siparis";
@@ -10,12 +18,13 @@ import { araToplam, bolgeUcreti, enAzTutarKarsilaniyor, sepetSatirlari, type Sep
 import { BOS_DURUM, type Kalem } from "@/lib/siparis-sema";
 import type { Katalog } from "@/lib/stok-sema";
 import { uygunAraliklar, uygunGunler } from "@/lib/teslimat";
-import { FormAlani, alanAria } from "./form-alani";
-import { BIRINCIL, GIRDI, HATA, IPUCU, KART } from "./siparis-stilleri";
+import { alanDurumu, yerelNitelikler } from "./astryx-yardimci";
+import { CTA, FIELDSET, IPUCU, KART } from "./siparis-stilleri";
 import { TeslimatAlanlari, type TeslimTipi } from "./teslimat-alanlari";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Ödeme / sipariş formu — TASARIMDA YOK (K-37).
+   Ödeme / sipariş formu — TASARIMDA YOK (K-37). Alanlar Astryx form
+   bileşenleri; `htmlName`'ler sunucu eyleminin beklediği adlarla aynı.
 
    Gönderim `onSubmit` + `startTransition` ile: `<form action>` React 19'da
    başarısız gönderimden sonra da alanları SIFIRLIYOR; hata gösterilirken
@@ -25,6 +34,10 @@ import { TeslimatAlanlari, type TeslimTipi } from "./teslimat-alanlari";
    `clientRef` ve "şimdi" zamanı prerender'a sabitlenmez.
    ────────────────────────────────────────────────────────────────────────── */
 
+type Hatalar = Partial<Record<string, string>>;
+
+const BOLUM_BASLIGI = "m-0 font-display text-20 font-semibold text-cream";
+
 export function SiparisFormu({ katalog }: { katalog: Katalog }) {
   const sepet = useSepet();
   if (sepet === null) return <div className="min-h-190" aria-busy="true" />;
@@ -32,10 +45,13 @@ export function SiparisFormu({ katalog }: { katalog: Katalog }) {
   const satirlar = sepetSatirlari(sepet, katalog.products).filter((s) => s.urun);
   if (satirlar.length === 0) {
     return (
-      <div className={KART}>
-        <p className="m-0 text-16 text-read">Sepetinizde sipariş verilebilecek ürün yok.</p>
-        <div className="flex"><Link href="/#urunler" className={BIRINCIL}>Ürünlere göz atın</Link></div>
-      </div>
+      <Card className={KART}>
+        <EmptyState
+          headingLevel={2}
+          title="Sepetinizde sipariş verilebilecek ürün yok."
+          actions={<Button variant="primary" size="lg" label="Ürünlere göz atın" href="/#urunler" className={CTA} />}
+        />
+      </Card>
     );
   }
   return <FormGovdesi katalog={katalog} satirlar={satirlar} eksikVar={satirlar.length < sepet.length} />;
@@ -72,7 +88,9 @@ function FormGovdesi({ katalog, satirlar, eksikVar }: { katalog: Katalog; satirl
       <input type="hidden" name="clientRef" value={clientRef} />
       <input type="hidden" name="kalemler" value={JSON.stringify(kalemler)} />
       <BalKupu />
-      {eksikVar && <p className={HATA}>Sepetinizdeki bazı ürünler artık satışta değil; siparişe eklenmedi.</p>}
+      {eksikVar && (
+        <Banner status="warning" title="Sepetinizdeki bazı ürünler artık satışta değil; siparişe eklenmedi." />
+      )}
 
       <MusteriAlanlari hatalar={durum.alanHatalari} />
       <TeslimatAlanlari teslimat={d} tip={tip} onTip={setTip} gunler={gunler} tarih={tarih} onTarih={setTarih}
@@ -82,12 +100,17 @@ function FormGovdesi({ katalog, satirlar, eksikVar }: { katalog: Katalog; satirl
       <SiparisOzeti satirlar={satirlar} toplam={toplam} ucret={ucret} teslimatNotu={d.note} />
 
       <div role="alert" aria-live="assertive">
-        {durum.hata && <p className={`${HATA} text-15`}>{durum.hata}</p>}
+        {durum.hata && <Banner status="error" title={durum.hata} />}
       </div>
       <div className="flex">
-        <button type="submit" disabled={bekliyor || enAzTutarEksik || gunler.length === 0} className={BIRINCIL}>
-          {bekliyor ? "Gönderiliyor…" : "Siparişi gönder"}
-        </button>
+        <Button
+          type="submit"
+          variant="primary"
+          size="lg"
+          label={bekliyor ? "Gönderiliyor…" : "Siparişi gönder"}
+          isDisabled={bekliyor || enAzTutarEksik || gunler.length === 0}
+          className={CTA}
+        />
       </div>
     </form>
   );
@@ -103,45 +126,49 @@ function BalKupu() {
   );
 }
 
-function MusteriAlanlari({ hatalar }: { hatalar: Partial<Record<string, string>> }) {
+function MusteriAlanlari({ hatalar }: { hatalar: Hatalar }) {
+  const [ad, setAd] = useState("");
+  const [telefon, setTelefon] = useState("");
   return (
-    <fieldset className={`${KART} m-0 min-w-0`}>
-      <legend className="sr-only">İletişim bilgileri</legend>
-      <h2 className="m-0 font-display text-20 font-semibold text-cream">İletişim</h2>
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-16">
-        <FormAlani id="ad" etiket="Ad soyad" hata={hatalar.ad}>
-          <input id="ad" name="ad" type="text" required maxLength={80} autoComplete="name"
-            className={`${GIRDI} h-44`} {...alanAria("ad", hatalar.ad)} />
-        </FormAlani>
-        <FormAlani id="telefon" etiket="Cep telefonu" hata={hatalar.telefon}>
-          <input id="telefon" name="telefon" type="tel" required inputMode="tel" autoComplete="tel"
-            placeholder="05xx xxx xx xx" maxLength={20} className={`${GIRDI} h-44`} {...alanAria("telefon", hatalar.telefon)} />
-        </FormAlani>
-      </div>
-    </fieldset>
+    <Card className={KART}>
+      <fieldset className={FIELDSET}>
+        <legend className="sr-only">İletişim bilgileri</legend>
+        <h2 className={BOLUM_BASLIGI}>İletişim</h2>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-16">
+          <TextInput label="Ad soyad" htmlName="ad" value={ad} onChange={setAd} size="lg"
+            autoComplete="name" status={alanDurumu(hatalar.ad)} {...yerelNitelikler({ required: true, maxLength: 80 })} />
+          <TextInput label="Cep telefonu" htmlName="telefon" type="tel" value={telefon} onChange={setTelefon} size="lg"
+            inputMode="tel" autoComplete="tel" placeholder="05xx xxx xx xx"
+            status={alanDurumu(hatalar.telefon)} {...yerelNitelikler({ required: true, maxLength: 20 })} />
+        </div>
+      </fieldset>
+    </Card>
   );
 }
 
-function NotVeOnay({ hatalar }: { hatalar: Partial<Record<string, string>> }) {
+function NotVeOnay({ hatalar }: { hatalar: Hatalar }) {
+  const [not, setNot] = useState("");
+  const [onay, setOnay] = useState(false);
   return (
-    <fieldset className={`${KART} m-0 min-w-0`}>
-      <legend className="sr-only">Not ve onay</legend>
-      <FormAlani id="not" etiket="Sipariş notu (isteğe bağlı)" hata={hatalar.not}>
-        <textarea id="not" name="not" rows={3} maxLength={500}
-          className={`${GIRDI} py-10 leading-15`} {...alanAria("not", hatalar.not)} />
-      </FormAlani>
-      <div className="flex flex-col gap-6">
-        <label className="flex cursor-pointer items-start gap-8 text-14 leading-15 text-read">
-          <input type="checkbox" name="kvkk" required {...alanAria("kvkk", hatalar.kvkk)} />
-          <span>
-            Kişisel verilerimin siparişimin hazırlanması ve benimle iletişim için işlenmesine ilişkin{" "}
-            <Link href="/kvkk" target="_blank" className="text-cream underline underline-offset-2">aydınlatma metnini</Link>{" "}
-            okudum.
-          </span>
-        </label>
-        {hatalar.kvkk && <p id="kvkk-hata" className={HATA}>{hatalar.kvkk}</p>}
-      </div>
-    </fieldset>
+    <Card className={KART}>
+      <fieldset className={FIELDSET}>
+        <legend className="sr-only">Not ve onay</legend>
+        <TextArea label="Sipariş notu (isteğe bağlı)" htmlName="not" value={not} onChange={setNot}
+          rows={3} htmlMaxLength={500} size="lg" status={alanDurumu(hatalar.not)} />
+        <div className="flex flex-col gap-6">
+          <CheckboxInput
+            label="Kişisel verilerimin siparişimin hazırlanması ve benimle iletişim için işlenmesine ilişkin aydınlatma metnini okudum."
+            htmlName="kvkk"
+            value={onay}
+            onChange={setOnay}
+            status={alanDurumu(hatalar.kvkk)}
+          />
+          <Link href="/kvkk" target="_blank" rel="noopener noreferrer" className="ml-28 w-fit text-14 text-cream underline underline-offset-2">
+            Aydınlatma metnini okuyun
+          </Link>
+        </div>
+      </fieldset>
+    </Card>
   );
 }
 
@@ -149,8 +176,8 @@ function SiparisOzeti({ satirlar, toplam, ucret, teslimatNotu }: {
   satirlar: SepetSatiri[]; toplam: number; ucret: number; teslimatNotu: string;
 }) {
   return (
-    <section aria-label="Sipariş özeti" className={KART}>
-      <h2 className="m-0 font-display text-20 font-semibold text-cream">Özet</h2>
+    <Card role="region" aria-label="Sipariş özeti" className={KART}>
+      <h2 className={BOLUM_BASLIGI}>Özet</h2>
       <ul className="m-0 flex list-none flex-col gap-8 p-0">
         {satirlar.map((s) => s.urun && (
           <li key={s.kalem.code} className="flex justify-between gap-12 text-14 text-read">
@@ -159,7 +186,7 @@ function SiparisOzeti({ satirlar, toplam, ucret, teslimatNotu }: {
           </li>
         ))}
       </ul>
-      <div className="h-1 bg-line" />
+      <Divider />
       {ucret > 0 && (
         <div className="flex justify-between text-14 text-read"><span>Teslimat ücreti</span><span>{fiyat(ucret)}</span></div>
       )}
@@ -169,6 +196,6 @@ function SiparisOzeti({ satirlar, toplam, ucret, teslimatNotu }: {
       </div>
       {teslimatNotu && <p className={IPUCU}>{teslimatNotu}</p>}
       <p className={IPUCU}>Ödeme teslimde nakit veya kartla yapılır.</p>
-    </section>
+    </Card>
   );
 }

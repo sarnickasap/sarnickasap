@@ -1,20 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo } from "react";
+import { Button } from "@astryxdesign/core/Button";
+import { Card } from "@astryxdesign/core/Card";
+import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { IconButton } from "@astryxdesign/core/IconButton";
+import { TextInput } from "@astryxdesign/core/TextInput";
+import { useMemo, useState } from "react";
 import { CopIkonu } from "@/components/icons";
 import { fiyat } from "@/lib/format";
 import { birimSoneki } from "@/lib/miktar";
 import { kalemSil, miktarGuncelle, notGuncelle, useSepet } from "@/lib/sepet";
 import { araToplam, sepetSatirlari, type SepetSatiri } from "@/lib/sepet-hesap";
 import type { KatalogUrun } from "@/lib/stok-sema";
+import { yerelNitelikler } from "./astryx-yardimci";
 import { MiktarSecici } from "./miktar-secici";
-import { BIRINCIL, GIRDI, IKINCIL, IPUCU, KART } from "./siparis-stilleri";
+import { CERCEVELI, CTA, CTA_IKINCIL, IPUCU, KART } from "./siparis-stilleri";
 
 /* ──────────────────────────────────────────────────────────────────────────
    /sepet içeriği — TASARIMDA YOK (K-37).
    Fiyatlar her render'da GÜNCEL katalogdan türetilir (depoda fiyat yok).
    Katalogdan kalkmış ya da tükenmiş kalem işaretlenir, toplama girmez.
+   Astryx Card / Button / IconButton / TextInput / EmptyState.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function SepetIcerik({ urunler, teslimatNotu }: { urunler: KatalogUrun[]; teslimatNotu: string }) {
@@ -36,7 +42,7 @@ export function SepetIcerik({ urunler, teslimatNotu }: { urunler: KatalogUrun[];
         ))}
       </ul>
 
-      <section aria-label="Sepet özeti" className={KART}>
+      <Card role="region" aria-label="Sepet özeti" className={KART}>
         <div className="flex items-baseline justify-between gap-12">
           <span className="text-15 text-soft">Tahmini toplam</span>
           <span className="font-display text-28 font-bold text-white">{fiyat(toplam)}</span>
@@ -45,34 +51,35 @@ export function SepetIcerik({ urunler, teslimatNotu }: { urunler: KatalogUrun[];
         <p className={IPUCU}>Ödeme teslimde nakit veya kartla yapılır.</p>
         <div className="flex flex-wrap gap-12">
           {gecerliVar ? (
-            <Link href="/siparis" className={BIRINCIL}>Siparişi tamamla</Link>
+            <Button variant="primary" size="lg" label="Siparişi tamamla" href="/siparis" className={CTA} />
           ) : (
             <p className="m-0 text-14 text-muted">Sepette sipariş verilebilecek ürün kalmadı.</p>
           )}
-          <Link href="/#urunler" className={IKINCIL}>Alışverişe devam et</Link>
+          <Button size="lg" label="Alışverişe devam et" href="/#urunler" className={CTA_IKINCIL} />
         </div>
-      </section>
+      </Card>
     </div>
   );
 }
 
 function BosSepet() {
   return (
-    <div className={KART}>
-      <p className="m-0 text-16 text-read">Sepetiniz boş.</p>
-      <div className="flex">
-        <Link href="/#urunler" className={BIRINCIL}>Ürünlere göz atın</Link>
-      </div>
-    </div>
+    <Card className={KART}>
+      <EmptyState
+        headingLevel={2}
+        title="Sepetiniz boş."
+        actions={<Button variant="primary" size="lg" label="Ürünlere göz atın" href="/#urunler" className={CTA} />}
+      />
+    </Card>
   );
 }
 
 function SepetSatirKarti({ satir, ad }: { satir: SepetSatiri; ad: string }) {
   const { kalem, urun, tutar } = satir;
-  const notId = `not-${kalem.code}`;
 
   return (
-    <li className={KART}>
+    <li>
+      <Card className={KART}>
       <div className="flex flex-wrap items-start justify-between gap-12">
         <div className="flex min-w-0 flex-col gap-4">
           <h2 className="m-0 font-display text-20 font-semibold tracking-product text-cream break-words">{ad}</h2>
@@ -84,14 +91,13 @@ function SepetSatirKarti({ satir, ad }: { satir: SepetSatiri; ad: string }) {
             <span className="text-13 font-semibold text-discount">Artık satışta değil — sepetten çıkarın.</span>
           )}
         </div>
-        <button
-          type="button"
+        <IconButton
+          size="lg"
+          label={`${ad} ürününü sepetten çıkar`}
+          icon={<CopIkonu size={16} />}
           onClick={() => kalemSil(kalem.code)}
-          aria-label={`${ad} ürününü sepetten çıkar`}
-          className="flex h-36 w-36 flex-none cursor-pointer items-center justify-center rounded-8 border border-edge bg-transparent text-body transition-colors duration-150 ease-out-soft hover:border-brand hover:bg-brand hover:text-white"
-        >
-          <CopIkonu size={16} />
-        </button>
+          className={`h-36 w-36 flex-none ${CERCEVELI} hover:border-brand hover:bg-brand hover:text-white`}
+        />
       </div>
 
       {urun && (
@@ -105,20 +111,26 @@ function SepetSatirKarti({ satir, ad }: { satir: SepetSatiri; ad: string }) {
             />
             <span className="font-display text-20 font-bold text-white">{fiyat(tutar)}</span>
           </div>
-          <div className="flex flex-col gap-6">
-            <label htmlFor={notId} className="text-13 font-medium text-soft">Kesim/çekim tercihi</label>
-            <input
-              id={notId}
-              type="text"
-              maxLength={200}
-              defaultValue={kalem.note}
-              onBlur={(e) => notGuncelle(kalem.code, e.target.value)}
-              placeholder="Ör. kuşbaşı doğransın, az yağlı çekilsin"
-              className={`${GIRDI} h-40`}
-            />
-          </div>
+          <KesimNotu code={kalem.code} ilkNot={kalem.note} />
         </>
       )}
+      </Card>
     </li>
+  );
+}
+
+/** Kalem notu: yazarken yerel, alandan çıkınca sepete kaydedilir. */
+function KesimNotu({ code, ilkNot }: { code: string; ilkNot: string }) {
+  const [not, setNot] = useState(ilkNot);
+  return (
+    <TextInput
+      label="Kesim/çekim tercihi"
+      value={not}
+      onChange={setNot}
+      onBlur={() => notGuncelle(code, not)}
+      size="lg"
+      placeholder="Ör. kuşbaşı doğransın, az yağlı çekilsin"
+      {...yerelNitelikler({ maxLength: 200 })}
+    />
   );
 }
