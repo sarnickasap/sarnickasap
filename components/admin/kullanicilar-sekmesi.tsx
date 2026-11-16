@@ -5,9 +5,11 @@ import { useFormStatus } from "react-dom";
 import { Badge } from "@astryxdesign/core/Badge";
 import { Button } from "@astryxdesign/core/Button";
 import { Heading } from "@astryxdesign/core/Heading";
+import { pixel, proportional, Table, type TableColumn } from "@astryxdesign/core/Table";
 import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { FormAlani } from "./form-alani";
-import { DurumMesaji, Kart, SATIR_AYRACI, SayfaBasligi, SilButonu } from "./ui";
+import { DurumMesaji, Kart, SayfaBasligi, SilButonu } from "./ui";
 import {
   kullaniciEkle,
   kullaniciSil,
@@ -17,7 +19,7 @@ import {
 
 /* ──────────────────────────────────────────────────────────────────────────
    Kullanıcılar sekmesi — TASARIMDA YOK (onaylı sapma #3, K-06/K-19).
-     liste   e-posta · ad · eklenme tarihi · "Siz" rozeti ya da sil
+     liste   Astryx Table: e-posta (+ ad) · eklenme tarihi · "Siz" rozeti ya da sil
      formlar yönetici ekle · şifremi değiştir (sunucu eylemi, FormAlani)
      sonuç   hata `role="alert"`, başarı `role="status"` (Astryx Banner)
    ────────────────────────────────────────────────────────────────────────── */
@@ -28,6 +30,55 @@ export type AdminKullanici = {
   name: string;
   createdAt: Date | string;
 };
+
+type KullaniciSatiri = AdminKullanici & Record<string, unknown>;
+
+function sutunlar(
+  benimId: string,
+  sil: (k: AdminKullanici) => void,
+): TableColumn<KullaniciSatiri>[] {
+  return [
+    {
+      key: "email",
+      header: "Hesap",
+      width: proportional(2, { minWidth: 160 }),
+      renderCell: (k) => (
+        <VStack>
+          <Text weight="medium" maxLines={1}>
+            {k.email}
+          </Text>
+          {k.name && (
+            <Text type="supporting" maxLines={1}>
+              {k.name}
+            </Text>
+          )}
+        </VStack>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Eklenme",
+      width: proportional(1, { minWidth: 96 }),
+      renderCell: (k) => (
+        <Text type="supporting" hasTabularNumbers>
+          {new Date(k.createdAt).toLocaleDateString("tr-TR")}
+        </Text>
+      ),
+    },
+    {
+      key: "islem",
+      header: "",
+      width: pixel(64),
+      align: "end",
+      renderCell: (k) =>
+        String(k.id) === benimId ? (
+          <Badge variant="success" label="Siz" />
+        ) : (
+          <SilButonu onClick={() => sil(k)} etiket={`${k.email} hesabını sil`} />
+        ),
+    },
+  ];
+}
 
 function Mesaj({ sonuc }: { sonuc: KullaniciSonuc }) {
   if (sonuc.hata) return <DurumMesaji tur="hata" metin={sonuc.hata} />;
@@ -83,39 +134,11 @@ export function KullanicilarSekmesi({
       />
 
       <Kart className="overflow-hidden">
-        {liste.map((k) => {
-          const benim = String(k.id) === benimId;
-          return (
-            <div
-              key={k.id}
-              className={`flex flex-wrap items-center gap-8 px-14 py-12 ${SATIR_AYRACI}`}
-            >
-              <div className="flex min-w-0 flex-[2_1_220px] flex-col">
-                <Text weight="medium" maxLines={1}>
-                  {k.email}
-                </Text>
-                {k.name && (
-                  <Text type="supporting" maxLines={1}>
-                    {k.name}
-                  </Text>
-                )}
-              </div>
-
-              <Text type="supporting" className="flex-[1_1_140px]">
-                {new Date(k.createdAt).toLocaleDateString("tr-TR")} tarihinde eklendi
-              </Text>
-
-              {benim ? (
-                <Badge variant="success" label="Siz" />
-              ) : (
-                <SilButonu
-                  onClick={() => sil(k)}
-                  etiket={`${k.email} hesabını sil`}
-                />
-              )}
-            </div>
-          );
-        })}
+        <Table<KullaniciSatiri>
+          data={liste as KullaniciSatiri[]}
+          idKey="id"
+          columns={sutunlar(benimId, sil)}
+        />
       </Kart>
 
       <Mesaj sonuc={silSonuc} />

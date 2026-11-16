@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Card } from "@astryxdesign/core/Card";
 import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { Logo } from "@/components/logo";
 import { redirect } from "next/navigation";
 import { oturumAl } from "@/lib/session";
@@ -29,34 +31,34 @@ export default async function GirisSayfasi() {
 
   return (
     <main className="tema-admin flex min-h-screen items-center justify-center bg-[var(--color-background-body)] px-20 py-64">
-      <div className="flex w-full max-w-[380px] flex-col gap-24">
+      <VStack gap={6} width="100%" maxWidth={380}>
         {/* Marka bloğu — admin header'daki düzenin açık tema karşılığı */}
-        <div className="flex items-center gap-14">
+        <HStack gap={3} vAlign="center">
           <Logo
             genislik={40}
             yukseklik={38}
             alt="Sarnıç Kasap"
             className="h-38 w-40 object-contain"
           />
-          <div className="flex flex-col">
+          <VStack>
             <Text weight="bold" className="font-display">
               Sarnıç Kasap
             </Text>
             <Text type="supporting">Yönetim paneli</Text>
-          </div>
-        </div>
+          </VStack>
+        </HStack>
 
         <Card className="flex flex-col gap-16">
-          <div className="flex flex-col gap-4">
+          <VStack gap={1}>
             <Heading level={1}>Giriş</Heading>
             <Text type="supporting" as="p">
               Paneli kullanmak için hesabınızla giriş yapın.
             </Text>
-          </div>
+          </VStack>
 
           <GirisFormu />
         </Card>
-      </div>
+      </VStack>
     </main>
   );
 }

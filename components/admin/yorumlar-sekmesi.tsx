@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { HStack } from "@astryxdesign/core/HStack";
 import { TextArea } from "@astryxdesign/core/TextArea";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { ALAN, AnaButon, DurumToggle, Kart, SayfaBasligi, SilButonu } from "./ui";
@@ -75,7 +76,7 @@ export function YorumlarSekmesi({
 
       {liste.map((r) => (
         <Kart key={r.id} className="flex flex-col gap-10 p-16">
-          <div className="flex flex-wrap items-center gap-8">
+          <HStack wrap="wrap" vAlign="center" gap={2}>
             <TextInput
               label="Müşteri adı"
               isLabelHidden
@@ -104,7 +105,7 @@ export function YorumlarSekmesi({
               onChange={() => yaz(r.id, { visible: !r.visible }, true)}
             />
             <SilButonu onClick={() => sil(r)} etiket="Yorumu sil" />
-          </div>
+          </HStack>
 
           <TextArea
             label="Yorum metni"

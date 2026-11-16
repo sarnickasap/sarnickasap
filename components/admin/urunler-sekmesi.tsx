@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { HStack } from "@astryxdesign/core/HStack";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import {
   ALAN,
@@ -94,7 +95,7 @@ export function UrunlerSekmesi({
         aksiyon={<AnaButon etiket="Yeni ürün" onClick={ekle} />}
       />
 
-      <div className="flex flex-wrap gap-8">
+      <HStack wrap="wrap" gap={2}>
         <TextInput
           type="search"
           label="Ürün ara"
@@ -117,13 +118,16 @@ export function UrunlerSekmesi({
             </option>
           ))}
         </select>
-      </div>
+      </HStack>
 
       <Kart className="overflow-hidden">
         {gorunen.map((p) => (
-          <div
+          <HStack
             key={p.id}
-            className={`flex flex-wrap items-center gap-8 px-14 py-12 ${SATIR_AYRACI}`}
+            wrap="wrap"
+            vAlign="center"
+            gap={2}
+            className={`px-14 py-12 ${SATIR_AYRACI}`}
           >
             <input
               value={p.name}
@@ -183,7 +187,7 @@ export function UrunlerSekmesi({
             />
 
             <SilButonu onClick={() => sil(p)} etiket={`${p.name} ürününü sil`} />
-          </div>
+          </HStack>
         ))}
 
         {gorunen.length === 0 && <EmptyState title="Eşleşen ürün yok." isCompact />}

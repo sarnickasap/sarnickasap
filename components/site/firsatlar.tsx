@@ -1,3 +1,8 @@
+import { Grid } from "@astryxdesign/core/Grid";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { FirsatKarti, type FirsatVerisi } from "./firsat-karti";
 import { KatalogFirsatKarti, type KatalogFirsati } from "./katalog-firsat-karti";
 
@@ -18,7 +23,13 @@ import { KatalogFirsatKarti, type KatalogFirsati } from "./katalog-firsat-karti"
    Aşama 4: önce stok programı kampanyaları (listPrice dolu, stokta),
    ardından panelin "Kampanyalar" sekmesindeki fırsatlar — ikisi de aynı
    ızgarada, aynı kart çerçevesiyle.
+
+   Astryx: VStack/HStack, Heading (h2), Text, Grid (`max` → min(100%,280px)
+   tabanlı, telefonda taşmaz). `grid` sınıfı e2e seçicisi için
+   (`#firsatlar .grid > div`).
    ────────────────────────────────────────────────────────────────────────── */
+
+const EN_COK_SUTUN = 4;
 
 const ACIKLAMA = {
   siparisli:
@@ -43,22 +54,22 @@ export function Firsatlar({
 
   return (
     <section id="firsatlar" className="bg-brand">
-      <div className="mx-auto flex max-w-[1280px] flex-col gap-32 px-24 py-72">
-        <div className="flex flex-wrap items-end justify-between gap-16">
-          <div className="flex flex-col gap-10">
-            <span className="text-12 font-semibold tracking-eyebrow uppercase text-cream">
+      <VStack gap={8} className="mx-auto max-w-[1280px] px-24 py-72">
+        <HStack wrap="wrap" align="end" justify="between" gap={4}>
+          <VStack className="gap-10">
+            <Text weight="semibold" className="text-12 tracking-eyebrow uppercase text-cream">
               Günün ve haftanın fırsatları
-            </span>
-            <h2 className="m-0 font-display text-h2 leading-h2 font-bold tracking-h2 text-white">
+            </Text>
+            <Heading level={2} className="font-display text-h2 leading-h2 font-bold tracking-h2 text-white">
               Bu hafta tezgâhta
-            </h2>
-          </div>
-          <p className="m-0 max-w-[380px] text-15 leading-155 text-white">
+            </Heading>
+          </VStack>
+          <Text as="p" className="max-w-[380px] text-15 leading-155 text-white">
             {sepetli ? ACIKLAMA.siparisli : ACIKLAMA.siparissiz}
-          </p>
-        </div>
+          </Text>
+        </HStack>
 
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-16">
+        <Grid columns={{ minWidth: 280, max: EN_COK_SUTUN }} gap={4} className="grid">
           {katalogFirsatlari.map((f) => (
             <KatalogFirsatKarti
               key={f.anahtar}
@@ -70,8 +81,8 @@ export function Firsatlar({
           {firsatlar.map((f) => (
             <FirsatKarti key={f.id} firsat={f} whatsapp={whatsapp} />
           ))}
-        </div>
-      </div>
+        </Grid>
+      </VStack>
     </section>
   );
 }

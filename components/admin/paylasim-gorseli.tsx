@@ -1,8 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { AspectRatio } from "@astryxdesign/core/AspectRatio";
 import { Button } from "@astryxdesign/core/Button";
-import { Icon } from "@astryxdesign/core/Icon";
+import { FileInput } from "@astryxdesign/core/FileInput";
+import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
 import { DurumMesaji, Kart } from "./ui";
 import { paylasimGorseliKaldir, paylasimGorseliYukle } from "@/lib/actions/paylasim-gorseli";
@@ -17,15 +19,14 @@ import { guvenliGorselUrl } from "@/lib/stok-sema";
 
 /* ──────────────────────────────────────────────────────────────────────────
    SEO sekmesi → "Paylaşım görseli" kartı. Galeri kartının dili:
-   kesikli boş kutu, "Görsel yükle" düğmesi, `role="alert"` hata.
+   kesikli boş kutu, Astryx FileInput, `role="alert"` hata.
 
-   Önizleme kutusu 1200:630 oranında (Facebook/WhatsApp geniş kartı);
+   Önizleme Astryx AspectRatio 1200:630 (Facebook/WhatsApp geniş kartı);
    görsel `object-contain` ile tamamı görünür, gerçek ölçü altta yazılı.
    Fotoğraf yüklemeden önce tarayıcıda JPEG'e küçültülür (uzun kenar
    1200 px): sunucu eylemi gövde sınırı + WhatsApp'ın WEBP önizlemesi.
    ────────────────────────────────────────────────────────────────────────── */
 
-const KUTU = "aspect-[1200/630] w-full max-w-[480px] rounded-[var(--radius-element)]";
 const YUKLEME_HATASI = "Görsel yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.";
 const HATA_ID = "paylasim-gorseli-hata";
 
@@ -34,14 +35,24 @@ class IslemHatasi extends Error {}
 
 function Onizleme({ url }: { url: string | null }) {
   const guvenli = guvenliGorselUrl(url);
-  if (guvenli)
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={guvenli} alt="Paylaşım görseli önizlemesi" className={`${KUTU} block bg-[var(--color-background-muted)] object-contain`} />;
   return (
-    <div
-      className={`${KUTU} flex items-center justify-center border border-dashed border-[var(--color-border-emphasized)] bg-[var(--color-background-muted)] p-12 text-center font-mono text-12 text-[var(--color-text-secondary)]`}
-    >
-      {url ? "bu görsel sitede kullanılamıyor — yükleyerek değiştirin" : "görsel yok — site logosu kullanılıyor"}
+    <div className="w-full max-w-[480px]">
+      <AspectRatio
+        ratio={1200 / 630}
+        fit="contain"
+        className="rounded-[var(--radius-element)] bg-[var(--color-background-muted)]"
+      >
+        {guvenli ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={guvenli} alt="Paylaşım görseli önizlemesi" />
+        ) : (
+          <div className="flex items-center justify-center rounded-[var(--radius-element)] border border-dashed border-[var(--color-border-emphasized)] p-12 text-center font-mono text-12 text-[var(--color-text-secondary)]">
+            {url
+              ? "bu görsel sitede kullanılamıyor — yükleyerek değiştirin"
+              : "görsel yok — site logosu kullanılıyor"}
+          </div>
+        )}
+      </AspectRatio>
     </div>
   );
 }
@@ -68,7 +79,6 @@ export function PaylasimGorseli({
   const [url, setUrl] = useState(ogImageUrl);
   const [hata, setHata] = useState<string | null>(null);
   const [mesgul, setMesgul] = useState(false);
-  const giris = useRef<HTMLInputElement>(null);
   const olcu = url ? paylasimOlcusuOku(url) : null;
 
   async function calistir(is: () => Promise<string | null>) {
@@ -112,33 +122,25 @@ export function PaylasimGorseli({
         </Text>
       )}
 
-      <input
-        ref={giris}
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        className="hidden"
-        aria-hidden="true"
-        tabIndex={-1}
-        onChange={(e) => {
-          const d = e.target.files?.[0];
-          if (d) void dosyaSecildi(d);
-          e.target.value = "";
-        }}
-      />
-      <div className="flex flex-wrap gap-8">
-        <Button
-          label={url ? "Görseli değiştir (yükle)" : "Görsel yükle"}
-          icon={<Icon icon="upload" />}
-          onClick={() => giris.current?.click()}
+      <HStack gap={2} wrap="wrap" vAlign="center">
+        <FileInput
+          label="Görsel yükle"
+          isLabelHidden
+          placeholder={mesgul ? "İşleniyor…" : url ? "Görseli değiştir (yükle)" : "Görsel yükle"}
+          accept="image/png,image/jpeg,image/webp"
+          value={null}
+          onChange={(d) => {
+            const dosya = Array.isArray(d) ? d[0] : d;
+            if (dosya) void dosyaSecildi(dosya);
+          }}
           isLoading={mesgul}
           aria-describedby={hata ? HATA_ID : undefined}
-        >
-          {mesgul ? "İşleniyor…" : undefined}
-        </Button>
+          containerClassName="min-w-0 flex-[1_1_220px] max-w-[320px]"
+        />
         {url && (
           <Button label="Görseli kaldır" variant="ghost" onClick={kaldir} isDisabled={mesgul} />
         )}
-      </div>
+      </HStack>
 
       {hata && <DurumMesaji tur="hata" metin={hata} id={HATA_ID} />}
     </Kart>

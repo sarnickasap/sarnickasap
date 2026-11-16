@@ -1,6 +1,11 @@
 import { BreadcrumbItem, Breadcrumbs } from "@astryxdesign/core/Breadcrumbs";
+import { Button } from "@astryxdesign/core/Button";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AltSayfa } from "@/components/site/alt-sayfa";
 import { UrunIzgarasi } from "@/components/site/urun-izgarasi";
@@ -20,6 +25,9 @@ import { FiyatlarGuncelleniyor } from "@/components/site/fiyatlar-guncelleniyor"
    Bilinmeyen kategori → 404. generateStaticParams derlemedeki
    kategorileri önceden üretir; sonradan eklenen kategori ilk ziyarette
    üretilip önbelleğe alınır (Cache Components ISR).
+
+   Astryx: Breadcrumbs, Text, Heading, VStack/HStack, Button (kategori
+   pilleri — bağlantı), Link ("Ana sayfaya dön").
    ────────────────────────────────────────────────────────────────────────── */
 
 /* Sayfanın tamamı statik olmak ZORUNDA (her veri `use cache`'li). Yan
@@ -34,7 +42,10 @@ export const ensureStatic = "navigation";
 const KATEGORISIZ_YER_TUTUCU = "kategori";
 
 const BAGLANTI =
-  "text-14 font-medium text-cream underline underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white";
+  "text-14 text-cream underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white";
+
+const KATEGORI_PILI =
+  "h-38 rounded-pill border border-edge bg-transparent px-16 text-14 font-medium text-soft hover:bg-hover hover:text-white";
 
 export async function generateStaticParams(): Promise<{ kategori: string }[]> {
   const { kategoriler } = await urunKaynagiGetir();
@@ -77,17 +88,17 @@ function Giris({ ad, kaynak }: { ad: string; kaynak: UrunKaynagi }) {
   const kucuk = ad.toLocaleLowerCase("tr-TR");
   return (
     <>
-      <p className="m-0">
+      <Text as="p" color="inherit" type="inherit">
         Gaziemir’deki dükkânımızda günlük hazırlanan {kucuk} ürünleri ve güncel fiyatları.{" "}
         {kaynak.siparisAcik
           ? "Sepete ekleyip gel-al ya da eve teslim sipariş verebilir, dilerseniz WhatsApp’tan yazabilirsiniz."
           : "İstediğiniz kesim ve gramajı WhatsApp’tan yazın ya da dükkâna uğrayın."}
-      </p>
+      </Text>
       {kaynak.katalog && (
-        <p className="m-0 mt-8 text-12 text-muted-dark">
+        <Text as="p" display="block" className="mt-8 text-12 text-muted-dark">
           {kaynak.katalog.vatIncluded ? "Fiyatlar KDV dahildir · " : ""}Son güncelleme:{" "}
           {guncellemeMetni(kaynak.katalog.updatedAt)}
-        </p>
+        </Text>
       )}
     </>
   );
@@ -106,21 +117,16 @@ function DigerKategoriler({ tumu, seciliSlug }: { tumu: KategoriOzeti[]; seciliS
   const digerleri = tumu.filter((k) => k.slug !== seciliSlug);
   if (digerleri.length === 0) return null;
   return (
-    <nav aria-label="Diğer kategoriler" className="flex flex-col gap-12">
-      <h2 className="m-0 font-display text-20 font-semibold text-cream">Diğer kategoriler</h2>
-      <ul className="m-0 flex flex-wrap gap-8 p-0 list-none">
+    <VStack as="nav" aria-label="Diğer kategoriler" gap={3}>
+      <Heading level={2} className="font-display text-20 font-semibold text-cream">Diğer kategoriler</Heading>
+      <HStack as="ul" wrap="wrap" gap={2} className="m-0 list-none p-0">
         {digerleri.map((k) => (
           <li key={k.slug}>
-            <Link
-              href={`/urunler/${k.slug}`}
-              className="flex h-38 items-center rounded-pill border border-edge px-16 text-14 font-medium text-soft transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-white"
-            >
-              {k.ad}
-            </Link>
+            <Button size="lg" label={k.ad} href={`/urunler/${k.slug}`} className={KATEGORI_PILI} />
           </li>
         ))}
-      </ul>
-    </nav>
+      </HStack>
+    </VStack>
   );
 }
 
@@ -154,7 +160,7 @@ export default async function KategoriSayfasi({ params }: PageProps<"/urunler/[k
         <UrunIzgarasi urunler={urunler} whatsapp={info.whatsapp} siparisAcik={kaynak.siparisAcik} />
       )}
       <DigerKategoriler tumu={tumu} seciliSlug={secili.slug} />
-      <Link href="/" className={`${BAGLANTI} w-fit`}>
+      <Link href="/" hasUnderline weight="medium" color="inherit" className={`${BAGLANTI} w-fit`}>
         ← Ana sayfaya dön
       </Link>
     </AltSayfa>

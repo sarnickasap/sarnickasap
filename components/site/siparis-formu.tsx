@@ -6,9 +6,17 @@ import { Card } from "@astryxdesign/core/Card";
 import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
 import { Divider } from "@astryxdesign/core/Divider";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
+import { Grid } from "@astryxdesign/core/Grid";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { List, ListItem } from "@astryxdesign/core/List";
+import { Skeleton } from "@astryxdesign/core/Skeleton";
+import { Text } from "@astryxdesign/core/Text";
 import { TextArea } from "@astryxdesign/core/TextArea";
 import { TextInput } from "@astryxdesign/core/TextInput";
-import Link from "next/link";
+import { VisuallyHidden } from "@astryxdesign/core/VisuallyHidden";
+import { VStack } from "@astryxdesign/core/VStack";
 import { startTransition, useActionState, useMemo, useState } from "react";
 import { siparisVer } from "@/lib/actions/siparis";
 import { fiyat } from "@/lib/format";
@@ -32,15 +40,23 @@ import { TeslimatAlanlari, type TeslimTipi } from "./teslimat-alanlari";
 
    Form gövdesi yalnızca istemcide (sepet okunduktan sonra) render edilir:
    `clientRef` ve "şimdi" zamanı prerender'a sabitlenmez.
+
+   Astryx: Card, Heading (bölüm başlıkları), Grid (yan yana alanlar,
+   min(100%,220px)), List (özet satırları), Link (KVKK), Text, HStack/VStack,
+   Skeleton, Banner, Divider. <form>/<fieldset> yerel kalır (gönderim yolu
+   değişmesin; FormLayout yalnız düzen, fieldset+legend gruplama semantiği gerekli). Bal küpü
+   alanı kasıtlı olarak yerel <input> — bileşen olmamalı.
    ────────────────────────────────────────────────────────────────────────── */
+
+const ALAN_IZGARASI = { minWidth: 220, max: 2 } as const;
 
 type Hatalar = Partial<Record<string, string>>;
 
-const BOLUM_BASLIGI = "m-0 font-display text-20 font-semibold text-cream";
+const BOLUM_BASLIGI = "font-display text-20 font-semibold text-cream";
 
 export function SiparisFormu({ katalog }: { katalog: Katalog }) {
   const sepet = useSepet();
-  if (sepet === null) return <div className="min-h-190" aria-busy="true" />;
+  if (sepet === null) return <Skeleton height={190} width="100%" aria-busy="true" />;
 
   const satirlar = sepetSatirlari(sepet, katalog.products).filter((s) => s.urun);
   if (satirlar.length === 0) {
@@ -102,7 +118,7 @@ function FormGovdesi({ katalog, satirlar, eksikVar }: { katalog: Katalog; satirl
       <div role="alert" aria-live="assertive">
         {durum.hata && <Banner status="error" title={durum.hata} />}
       </div>
-      <div className="flex">
+      <HStack>
         <Button
           type="submit"
           variant="primary"
@@ -111,7 +127,7 @@ function FormGovdesi({ katalog, satirlar, eksikVar }: { katalog: Katalog; satirl
           isDisabled={bekliyor || enAzTutarEksik || gunler.length === 0}
           className={CTA}
         />
-      </div>
+      </HStack>
     </form>
   );
 }
@@ -132,15 +148,15 @@ function MusteriAlanlari({ hatalar }: { hatalar: Hatalar }) {
   return (
     <Card className={KART}>
       <fieldset className={FIELDSET}>
-        <legend className="sr-only">İletişim bilgileri</legend>
-        <h2 className={BOLUM_BASLIGI}>İletişim</h2>
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-16">
+        <VisuallyHidden as="legend">İletişim bilgileri</VisuallyHidden>
+        <Heading level={2} className={BOLUM_BASLIGI}>İletişim</Heading>
+        <Grid columns={ALAN_IZGARASI} gap={4}>
           <TextInput label="Ad soyad" htmlName="ad" value={ad} onChange={setAd} size="lg"
             autoComplete="name" status={alanDurumu(hatalar.ad)} {...yerelNitelikler({ required: true, maxLength: 80 })} />
           <TextInput label="Cep telefonu" htmlName="telefon" type="tel" value={telefon} onChange={setTelefon} size="lg"
             inputMode="tel" autoComplete="tel" placeholder="05xx xxx xx xx"
             status={alanDurumu(hatalar.telefon)} {...yerelNitelikler({ required: true, maxLength: 20 })} />
-        </div>
+        </Grid>
       </fieldset>
     </Card>
   );
@@ -152,10 +168,10 @@ function NotVeOnay({ hatalar }: { hatalar: Hatalar }) {
   return (
     <Card className={KART}>
       <fieldset className={FIELDSET}>
-        <legend className="sr-only">Not ve onay</legend>
+        <VisuallyHidden as="legend">Not ve onay</VisuallyHidden>
         <TextArea label="Sipariş notu (isteğe bağlı)" htmlName="not" value={not} onChange={setNot}
           rows={3} htmlMaxLength={500} size="lg" status={alanDurumu(hatalar.not)} />
-        <div className="flex flex-col gap-6">
+        <VStack className="gap-6">
           <CheckboxInput
             label="Kişisel verilerimin siparişimin hazırlanması ve benimle iletişim için işlenmesine ilişkin aydınlatma metnini okudum."
             htmlName="kvkk"
@@ -163,10 +179,11 @@ function NotVeOnay({ hatalar }: { hatalar: Hatalar }) {
             onChange={setOnay}
             status={alanDurumu(hatalar.kvkk)}
           />
-          <Link href="/kvkk" target="_blank" rel="noopener noreferrer" className="ml-28 w-fit text-14 text-cream underline underline-offset-2">
+          <Link href="/kvkk" target="_blank" rel="noopener noreferrer" hasUnderline color="inherit"
+            className="ml-28 w-fit text-14 text-cream underline-offset-2">
             Aydınlatma metnini okuyun
           </Link>
-        </div>
+        </VStack>
       </fieldset>
     </Card>
   );
@@ -177,25 +194,29 @@ function SiparisOzeti({ satirlar, toplam, ucret, teslimatNotu }: {
 }) {
   return (
     <Card role="region" aria-label="Sipariş özeti" className={KART}>
-      <h2 className={BOLUM_BASLIGI}>Özet</h2>
-      <ul className="m-0 flex list-none flex-col gap-8 p-0">
+      <Heading level={2} className={BOLUM_BASLIGI}>Özet</Heading>
+      <List density="compact" edge="flush">
         {satirlar.map((s) => s.urun && (
-          <li key={s.kalem.code} className="flex justify-between gap-12 text-14 text-read">
-            <span className="min-w-0 break-words">{s.urun.name} · {miktarMetni(s.urun.unit, s.kalem.qty)}</span>
-            <span className="flex-none">{fiyat(s.tutar)}</span>
-          </li>
+          <ListItem
+            key={s.kalem.code}
+            label={<Text className="min-w-0 break-words text-14 text-read">{s.urun.name} · {miktarMetni(s.urun.unit, s.kalem.qty)}</Text>}
+            endContent={<Text className="text-14 text-read">{fiyat(s.tutar)}</Text>}
+          />
         ))}
-      </ul>
+      </List>
       <Divider />
       {ucret > 0 && (
-        <div className="flex justify-between text-14 text-read"><span>Teslimat ücreti</span><span>{fiyat(ucret)}</span></div>
+        <HStack justify="between" className="text-14 text-read">
+          <Text type="inherit" color="inherit">Teslimat ücreti</Text>
+          <Text type="inherit" color="inherit">{fiyat(ucret)}</Text>
+        </HStack>
       )}
-      <div className="flex items-baseline justify-between gap-12">
-        <span className="text-15 text-soft">Tahmini toplam</span>
-        <span className="font-display text-28 font-bold text-white">{fiyat(toplam + ucret)}</span>
-      </div>
-      {teslimatNotu && <p className={IPUCU}>{teslimatNotu}</p>}
-      <p className={IPUCU}>Ödeme teslimde nakit veya kartla yapılır.</p>
+      <HStack className="items-baseline" justify="between" gap={3}>
+        <Text className="text-15 text-soft">Tahmini toplam</Text>
+        <Text weight="bold" className="font-display text-28 text-white">{fiyat(toplam + ucret)}</Text>
+      </HStack>
+      {teslimatNotu && <Text as="p" className={IPUCU}>{teslimatNotu}</Text>}
+      <Text as="p" className={IPUCU}>Ödeme teslimde nakit veya kartla yapılır.</Text>
     </Card>
   );
 }

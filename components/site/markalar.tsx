@@ -1,3 +1,6 @@
+import { Link } from "@astryxdesign/core/Link";
+import { UstBaslik } from "./bilgi-bolum-basligi";
+
 /* ──────────────────────────────────────────────────────────────────────────
    Çalıştığımız markalar — akan şerit. TASARIMDA YOK (K-31).
 
@@ -24,6 +27,12 @@
    ── Erişilebilirlik ──
    Şerit sonsuz akabilsin diye liste İKİ KEZ basılır; ikinci kopya
    `aria-hidden` ve odaklanılamaz — ekran okuyucu ve klavye için tek liste.
+
+   ── Astryx ──
+   Eyebrow UstBaslik (Text), bağlantılar Astryx Link (target=_blank →
+   noopener noreferrer kendiliğinden). Şerit yerli <ul>: Astryx'te sonsuz
+   akan şerit (marquee) yok; Carousel/SnapPaging sayfalı kaydırma yapar,
+   ayrıca e2e testi `.marka-ray`/`.marka-serit` ve <li> sayısını ölçüyor.
    ────────────────────────────────────────────────────────────────────────── */
 
 export type MarkaVerisi = {
@@ -52,16 +61,16 @@ function Logo({ marka, kopya = false }: { marka: MarkaVerisi; kopya?: boolean })
   }
 
   return (
-    <a
+    <Link
       href={marka.linkUrl}
       target="_blank"
-      rel="noopener noreferrer"
+      color="inherit"
       tabIndex={kopya ? -1 : undefined}
       aria-hidden={kopya || undefined}
       className="group/logo flex flex-none items-center rounded-8"
     >
       {govde}
-    </a>
+    </Link>
   );
 }
 
@@ -75,9 +84,7 @@ export function Markalar({ markalar }: { markalar: MarkaVerisi[] }) {
   return (
     <section id="markalar" className="border-b border-line">
       <div className="mx-auto flex max-w-[1280px] flex-col gap-32 px-24 py-72">
-        <span className="text-12 font-semibold tracking-eyebrow uppercase text-brand-accent">
-          Çalıştığımız üreticiler
-        </span>
+        <UstBaslik>Çalıştığımız üreticiler</UstBaslik>
 
         {/* Kenarlarda yumuşak kaybolma — şeridin kesik görünmesini önler */}
         <div className="marka-serit relative overflow-hidden">

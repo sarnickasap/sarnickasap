@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
-import { Button } from "@astryxdesign/core/Button";
-import { Icon } from "@astryxdesign/core/Icon";
+import { AspectRatio } from "@astryxdesign/core/AspectRatio";
+import { FileInput } from "@astryxdesign/core/FileInput";
+import { HStack } from "@astryxdesign/core/HStack";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { DurumMesaji, Kart, SilButonu } from "./ui";
 import { GALERI_BLOB_DISI_UYARISI } from "@/lib/galeri-kurali";
@@ -10,9 +10,10 @@ import { guvenliGorselUrl } from "@/lib/stok-sema";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Galeri düzenleme kartı (Astryx Card).
-     görsel   aspect 4/3 · object-cover; yoksa kesikli kutuda "görsel yok"
+     görsel   Astryx AspectRatio 4/3 · cover; yoksa kesikli kutuda "görsel yok"
      alanlar  alt yazı · bağlantı (+ sil) — Astryx TextInput
-     yükleme  "Görsel yükle" düğmesi (gizli dosya girişini tetikler)
+     yükleme  Astryx FileInput (kompakt); seçilen dosya hemen yüklenir,
+              alan değeri hep boş kalır (dosya adı değil önizleme gösterilir)
      Blob dışı eski bağlantı: önizleme yerine kesikli kutuda uyarı
        (CSP o görseli zaten engelliyor; kırık görsel yerine neden gösterilir)
      URL/yükleme hatası kartın altında, `role="alert"`
@@ -21,20 +22,33 @@ import { guvenliGorselUrl } from "@/lib/stok-sema";
 export type AdminGaleri = { id: number; url: string; caption: string };
 
 const BOS_KUTU =
-  "flex aspect-[4/3] items-center justify-center rounded-[var(--radius-element)] border border-dashed border-[var(--color-border-emphasized)] bg-[var(--color-background-muted)] p-12 text-center";
+  "flex items-center justify-center rounded-[var(--radius-element)] border border-dashed border-[var(--color-border-emphasized)] bg-[var(--color-background-muted)] p-12 text-center";
 
 function Onizleme({ url }: { url: string }) {
   const guvenli = guvenliGorselUrl(url || null);
-  if (guvenli)
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={guvenli} alt="" className="block aspect-[4/3] w-full rounded-[var(--radius-element)] bg-[var(--color-background-muted)] object-cover" />;
-  if (url)
-    return (
-      <div className={`${BOS_KUTU} text-12 leading-15 font-medium text-[var(--color-text-error)]`} role="note">
-        {GALERI_BLOB_DISI_UYARISI}
-      </div>
-    );
-  return <div className={`${BOS_KUTU} font-mono text-12 text-[var(--color-text-secondary)]`}>görsel yok</div>;
+  return (
+    <AspectRatio
+      ratio={4 / 3}
+      fit="cover"
+      className="rounded-[var(--radius-element)] bg-[var(--color-background-muted)]"
+    >
+      {guvenli ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={guvenli} alt="" />
+      ) : url ? (
+        <div
+          className={`${BOS_KUTU} text-12 leading-15 font-medium text-[var(--color-text-error)]`}
+          role="note"
+        >
+          {GALERI_BLOB_DISI_UYARISI}
+        </div>
+      ) : (
+        <div className={`${BOS_KUTU} font-mono text-12 text-[var(--color-text-secondary)]`}>
+          görsel yok
+        </div>
+      )}
+    </AspectRatio>
+  );
 }
 
 export function GaleriKarti({
@@ -54,7 +68,6 @@ export function GaleriKarti({
   onDosya: (dosya: File) => void;
   onSil: () => void;
 }) {
-  const dosyaGirisi = useRef<HTMLInputElement>(null);
   const hataId = `galeri-${oge.id}-hata`;
 
   return (
@@ -70,7 +83,7 @@ export function GaleriKarti({
         onChange={onAltYazi}
       />
 
-      <div className="flex items-center gap-6">
+      <HStack gap={1.5} vAlign="center">
         <TextInput
           type="url"
           label="Görsel bağlantısı"
@@ -81,33 +94,29 @@ export function GaleriKarti({
           onChange={(v) => onUrl(v.trim())}
           status={hata ? { type: "error" } : undefined}
           aria-describedby={hata ? hataId : undefined}
-          containerClassName="flex-1"
+          containerClassName="min-w-0 flex-1"
         />
         <SilButonu kucuk onClick={onSil} etiket="Görseli sil" />
-      </div>
+      </HStack>
 
-      <input
-        ref={dosyaGirisi}
-        type="file"
+      <FileInput
+        label="Görsel yükle"
+        isLabelHidden
+        placeholder={
+          yukleniyor
+            ? "Yükleniyor…"
+            : oge.url
+              ? "Görseli değiştir (yükle)"
+              : "Görsel yükle"
+        }
         accept="image/png,image/jpeg,image/webp"
-        className="hidden"
-        aria-hidden="true"
-        tabIndex={-1}
-        onChange={(e) => {
-          const d = e.target.files?.[0];
-          if (d) onDosya(d);
-          e.target.value = "";
+        value={null}
+        onChange={(d) => {
+          const dosya = Array.isArray(d) ? d[0] : d;
+          if (dosya) onDosya(dosya);
         }}
-      />
-      <Button
-        label={oge.url ? "Görseli değiştir (yükle)" : "Görsel yükle"}
-        icon={<Icon icon="upload" />}
-        onClick={() => dosyaGirisi.current?.click()}
         isLoading={yukleniyor}
-        width="100%"
-      >
-        {yukleniyor ? "Yükleniyor…" : undefined}
-      </Button>
+      />
 
       {hata && <DurumMesaji tur="hata" metin={hata} id={hataId} />}
     </Kart>

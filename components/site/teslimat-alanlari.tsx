@@ -2,9 +2,13 @@
 
 import { Banner } from "@astryxdesign/core/Banner";
 import { Card } from "@astryxdesign/core/Card";
+import { Grid } from "@astryxdesign/core/Grid";
+import { Heading } from "@astryxdesign/core/Heading";
 import { RadioList, RadioListItem } from "@astryxdesign/core/RadioList";
 import { Selector } from "@astryxdesign/core/Selector";
+import { Text } from "@astryxdesign/core/Text";
 import { TextArea } from "@astryxdesign/core/TextArea";
+import { VisuallyHidden } from "@astryxdesign/core/VisuallyHidden";
 import { useState } from "react";
 import { fiyat } from "@/lib/format";
 import type { Teslimat } from "@/lib/stok-sema";
@@ -16,7 +20,8 @@ import { FIELDSET, IPUCU, KART } from "./siparis-stilleri";
    Teslim şekli, gün, saat aralığı, bölge ve adres — TASARIMDA YOK (K-37).
    Seçenekler stok programının `delivery` ayarlarından üretilir
    (lib/teslimat.ts). Yalnızca açık olan teslim şekilleri listelenir.
-   Astryx RadioList / Selector / TextArea; `htmlName`'ler sunucu eylemiyle aynı.
+   Astryx RadioList / Selector / TextArea / Grid / Heading / Text /
+   VisuallyHidden (legend); `htmlName`'ler sunucu eylemiyle aynı.
    ────────────────────────────────────────────────────────────────────────── */
 
 export type TeslimTipi = "pickup" | "delivery";
@@ -27,6 +32,8 @@ const TIP_ETIKETI: Record<TeslimTipi, string> = {
 };
 
 const HATA = "m-0 text-13 text-discount";
+
+const ALAN_IZGARASI = { minWidth: 220, max: 2 } as const;
 
 type Props = {
   teslimat: Teslimat;
@@ -53,8 +60,8 @@ export function TeslimatAlanlari(p: Props) {
   return (
     <Card className={KART}>
       <fieldset className={FIELDSET}>
-        <legend className="sr-only">Teslim bilgileri</legend>
-        <h2 className="m-0 font-display text-20 font-semibold text-cream">Teslim</h2>
+        <VisuallyHidden as="legend">Teslim bilgileri</VisuallyHidden>
+        <Heading level={2} className="font-display text-20 font-semibold text-cream">Teslim</Heading>
 
         <RadioList
           label="Teslim şekli"
@@ -83,7 +90,7 @@ export function TeslimatAlanlari(p: Props) {
 
 function GunVeSaat(p: Props) {
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-16">
+    <Grid columns={ALAN_IZGARASI} gap={4}>
       <Selector
         label="Gün"
         htmlName="tarih"
@@ -106,7 +113,7 @@ function GunVeSaat(p: Props) {
         options={p.araliklar.map((a) => ({ value: a, label: aralikEtiketi(p.teslimat, a) }))}
         status={alanDurumu(p.hatalar.aralik)}
       />
-    </div>
+    </Grid>
   );
 }
 
@@ -131,9 +138,9 @@ function AdresAlanlari(p: Props) {
         status={alanDurumu(p.hatalar.bolge)}
       />
       {d.minOrderTotal > 0 && (
-        <p className={p.enAzTutarEksik ? HATA : IPUCU}>
+        <Text as="p" className={p.enAzTutarEksik ? HATA : IPUCU}>
           Eve teslim için en az sepet tutarı {fiyat(d.minOrderTotal)}.
-        </p>
+        </Text>
       )}
       <TextArea
         label="Açık adres"

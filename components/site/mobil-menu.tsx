@@ -1,6 +1,10 @@
 "use client";
 
+import { HStack } from "@astryxdesign/core/HStack";
 import { IconButton } from "@astryxdesign/core/IconButton";
+import { SideNavItem } from "@astryxdesign/core/SideNav";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { KapatIkonu, MenuIkonu } from "@/components/icons";
@@ -17,7 +21,8 @@ const Drawer = dynamic(() => import("@astryxdesign/core/Drawer").then((m) => m.D
    Astryx Drawer (modal <dialog>): odak tuzağı, Escape/scrim ile kapanma,
    kaydırma kilidi ve top-layer yerleşimi bileşenden gelir. 640px altında
    tam ekran (eski tam ekran menünün yerini tutar), 768px'te kapanır.
-   Görsel dil tasarımdan: #0a0a0a zemin, #1f1f1f kenarlık, #a3a3a3 link,
+   Bağlantılar Astryx SideNavItem (MobileNav'ın kendi satırı), başlık
+   satırı HStack + Text. Görsel dil tasarımdan: #0a0a0a zemin, #1f1f1f kenarlık, #a3a3a3 link,
    #171717 hover, r8.
 
    Çekmece yalnız açıkken DOM'da: kapalı <dialog> <header> içinde kalırsa
@@ -78,8 +83,8 @@ export function MobilMenu({ baglantilar }: { baglantilar: readonly Baglanti[] })
           experimental={{ isFullWidthOnMobile: true }}
           className="bg-ink"
         >
-          <div className="flex items-center justify-between border-b border-line px-24 py-10">
-            <span className="font-display text-16 font-bold text-cream">Sarnıç Kasap</span>
+          <HStack align="center" justify="between" className="border-b border-line px-24 py-10">
+            <Text weight="bold" className="font-display text-16 text-cream">Sarnıç Kasap</Text>
             <IconButton
               data-autofocus
               variant="ghost"
@@ -89,20 +94,20 @@ export function MobilMenu({ baglantilar }: { baglantilar: readonly Baglanti[] })
               onClick={kapat}
               className="h-40 w-40"
             />
-          </div>
+          </HStack>
 
-          <nav aria-label="Ana menü" className="flex flex-col gap-4 p-24">
+          <VStack as="nav" aria-label="Ana menü" gap={1} className="p-24">
             {baglantilar.map((l) => (
-              <a
+              <SideNavItem
                 key={l.href}
                 href={l.href}
+                label={l.label}
+                size="lg"
                 onClick={kapat}
-                className="rounded-8 px-12 py-14 text-18 font-medium text-muted transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-body"
-              >
-                {l.label}
-              </a>
+                className="h-auto rounded-8 px-12 py-14 text-18 font-medium text-muted transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-body"
+              />
             ))}
-          </nav>
+          </VStack>
         </Drawer>
       )}
     </>

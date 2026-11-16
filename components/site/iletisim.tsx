@@ -1,11 +1,11 @@
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { Suspense } from "react";
-import {
-  DisBaglantiIkonu,
-  KonumIkonu,
-  MesajIkonu,
-  TelefonIkonu,
-} from "@/components/icons";
+import { KonumIkonu, MesajIkonu, TelefonIkonu } from "@/components/icons";
 import type { Saat } from "@/lib/saatler";
+import { BolumBasligi } from "./bilgi-bolum-basligi";
 import {
   CalismaSaatleri,
   CalismaSaatleriIskelet,
@@ -20,7 +20,7 @@ import { haritaSorgusu, yolTarifiLinki } from "@/lib/format";
      iç       max-w 1280 · mx-auto · p 112px 24px
               grid auto-fit minmax(min(100%,400px),1fr) · gap48
               ⚠️ align-items YOK → kolonlar stretch (harita sol kolon boyunca uzar)
-     sol      flex-col · gap32
+     sol      VStack · gap32
        başlık gap12 → eyebrow #e0464e + h2 "Bize ulaşın"
        liste  flex-col · gap16 · satırlar gap14 · ikon #e0464e flex-none
          adres    items-start + ikon mt-2 · 16px lh1.5 #e5e5e5
@@ -36,7 +36,17 @@ import { haritaSorgusu, yolTarifiLinki } from "@/lib/format";
    Aşama 4: adresin altında "Yol tarifi al" (yeni sekmede Google
    Haritalar) ve harita tıklayınca yüklenir (harita.tsx, K-26 devamı).
    Bağlantı adres metniyle aynı sütunda: 14px/500 · #f8efea · alt çizgi.
+
+   Astryx: VStack/HStack (düzen) · Text (adres) · Link (telefon, WhatsApp,
+   yol tarifi — `isExternalLink` yeni sekme + dış bağlantı ikonu + ekran
+   okuyucu notu + rel=noopener'ı kendisi ekler) · BolumBasligi.
+   Kolon ızgarası Tailwind'de: Astryx Grid'in ölçeğinde 48px boşluk yok ve
+   harita testi `#iletisim > div > div` yapısını ölçüyor.
    ────────────────────────────────────────────────────────────────────────── */
+
+/** İletişim satırı bağlantısı — 16px · #e5e5e5 → hover beyaz */
+const SATIR_BAGLANTISI =
+  "text-16 text-read no-underline transition-colors duration-150 ease-out-soft hover:text-white";
 
 export function Iletisim({
   address,
@@ -56,61 +66,53 @@ export function Iletisim({
   return (
     <section id="iletisim" className="border-t border-line">
       <div className="mx-auto grid max-w-[1280px] grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] gap-48 px-24 py-112">
-        <div className="flex flex-col gap-32">
-          <div className="flex flex-col gap-12">
-            <span className="text-12 font-semibold tracking-eyebrow uppercase text-brand-accent">
-              İletişim
-            </span>
-            <h2 className="m-0 font-display text-h2 leading-h2 font-bold tracking-h2 text-cream">
-              Bize ulaşın
-            </h2>
-          </div>
+        <VStack gap={8}>
+          <BolumBasligi ust="İletişim" baslik="Bize ulaşın" />
 
-          <div className="flex flex-col gap-16">
-            <div className="flex items-start gap-14">
+          <VStack gap={4}>
+            <HStack vAlign="start" className="gap-14">
               <KonumIkonu size={20} className="mt-2 flex-none text-brand-accent" />
-              <div className="flex flex-col gap-6">
-                <span className="text-16 leading-15 text-read">{address}</span>
-                <a
+              <VStack className="gap-6">
+                <Text className="text-16 leading-15 text-read">{address}</Text>
+                <Link
                   href={yolTarifiLinki(address)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-fit items-center gap-6 text-14 font-medium text-cream underline underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white"
+                  isExternalLink
+                  newTabLabel="(Google Haritalar, yeni sekmede açılır)"
+                  color="inherit"
+                  type="inherit"
+                  hasUnderline
+                  className="flex w-fit items-center gap-6 text-14 font-medium text-cream underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white"
                 >
                   Yol tarifi al
-                  <DisBaglantiIkonu size={14} className="flex-none" />
-                  <span className="sr-only"> (Google Haritalar, yeni sekmede açılır)</span>
-                </a>
-              </div>
-            </div>
+                </Link>
+              </VStack>
+            </HStack>
 
-            <div className="flex items-center gap-14">
+            <HStack vAlign="center" className="gap-14">
               <TelefonIkonu size={20} className="flex-none text-brand-accent" />
-              <a
-                href={telLink}
-                className="text-16 text-read transition-colors duration-150 ease-out-soft hover:text-white"
-              >
+              <Link href={telLink} color="inherit" type="inherit" className={SATIR_BAGLANTISI}>
                 {phone}
-              </a>
-            </div>
+              </Link>
+            </HStack>
 
-            <div className="flex items-center gap-14">
+            <HStack vAlign="center" className="gap-14">
               <MesajIkonu size={20} className="flex-none text-brand-accent" />
-              <a
+              <Link
                 href={waLink}
                 target="_blank"
-                rel="noopener noreferrer"
-                className="text-16 text-read transition-colors duration-150 ease-out-soft hover:text-white"
+                color="inherit"
+                type="inherit"
+                className={SATIR_BAGLANTISI}
               >
                 WhatsApp: {phone}
-              </a>
-            </div>
-          </div>
+              </Link>
+            </HStack>
+          </VStack>
 
           <Suspense fallback={<CalismaSaatleriIskelet saatler={saatler} />}>
             <CalismaSaatleri saatler={saatler} />
           </Suspense>
-        </div>
+        </VStack>
 
         <Harita src={haritaSrc} />
       </div>

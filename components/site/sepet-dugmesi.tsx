@@ -2,6 +2,7 @@
 
 import { Badge } from "@astryxdesign/core/Badge";
 import { Button } from "@astryxdesign/core/Button";
+import { VisuallyHidden } from "@astryxdesign/core/VisuallyHidden";
 import { SepetIkonu } from "@/components/icons";
 import { useSepet } from "@/lib/sepet";
 import { CERCEVELI } from "./siparis-stilleri";
@@ -31,9 +32,9 @@ export function SepetDugmesi() {
       >
         {adet > 0 && <Badge label={adet} aria-hidden className="bg-brand font-semibold text-white" />}
       </Button>
-      <span aria-live="polite" className="sr-only">
+      <VisuallyHidden aria-live="polite">
         {sepet ? `Sepette ${adet} ürün` : ""}
-      </span>
+      </VisuallyHidden>
     </>
   );
 }

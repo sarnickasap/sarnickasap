@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { HStack } from "@astryxdesign/core/HStack";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { ALAN, AnaButon, DurumToggle, Kart, SayfaBasligi, SilButonu } from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
@@ -72,7 +73,7 @@ export function KampanyalarSekmesi({
 
       {liste.map((d) => (
         <Kart key={d.id} className="flex flex-col gap-10 p-16">
-          <div className="flex flex-wrap items-center gap-8">
+          <HStack wrap="wrap" vAlign="center" gap={2}>
             <TextInput
               label="Fırsat başlığı"
               isLabelHidden
@@ -98,9 +99,9 @@ export function KampanyalarSekmesi({
               onChange={() => yaz(d.id, { active: !d.active }, true)}
             />
             <SilButonu onClick={() => sil(d)} etiket={`${d.title} fırsatını sil`} />
-          </div>
+          </HStack>
 
-          <div className="flex flex-wrap items-center gap-8">
+          <HStack wrap="wrap" vAlign="center" gap={2}>
             <TextInput
               label="Fırsat açıklaması"
               isLabelHidden
@@ -138,7 +139,7 @@ export function KampanyalarSekmesi({
                 className={`${FIYAT_ALANI} font-semibold`}
               />
             </label>
-          </div>
+          </HStack>
         </Kart>
       ))}
     </>

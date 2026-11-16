@@ -1,6 +1,9 @@
 "use client";
 
 import { Button } from "@astryxdesign/core/Button";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { useToast } from "@astryxdesign/core/Toast";
 import { useEffect, useRef, useState } from "react";
 import { MIKTAR_KURALI } from "@/lib/miktar";
 import { sepeteEkle, type EklemeSonucu } from "@/lib/sepet";
@@ -12,13 +15,16 @@ import { MiktarSecici } from "./miktar-secici";
 
      seçici  MiktarSecici (h36 · r8 · 1px #333333)
      buton   Astryx Button primary · h36 · 14px/600 (marka kırmızısı)
-   Durum `aria-live` ile duyurulur; buton metni kısa süre "Eklendi" olur.
+
+   Başarı: Astryx Toast ("Sepete eklendi" + "Sepete git" bağlantısı; Toast
+   kendi `role=status` canlı bölgesiyle duyurur) ve buton metni kısa süre
+   "Eklendi" olur. Hata (sepet dolu / kaydedilemedi) kalıcı bilgi olduğu
+   için kartın içinde metin olarak kalır (`aria-live`).
    ────────────────────────────────────────────────────────────────────────── */
 
 const GERI_BILDIRIM_MS = 1600;
 
-const DURUM_METNI: Record<EklemeSonucu, string> = {
-  eklendi: "Sepete eklendi",
+const HATA_METNI: Record<Exclude<EklemeSonucu, "eklendi">, string> = {
   dolu: "Sepette en fazla 30 kalem olabilir",
   kaydedilemedi: "Sepet bu tarayıcıda kaydedilemiyor",
 };
@@ -27,6 +33,7 @@ export function SepeteEkle({ code, unit, name }: { code: string; unit: Birim; na
   const [miktar, setMiktar] = useState(MIKTAR_KURALI[unit].varsayilan);
   const [durum, setDurum] = useState<EklemeSonucu | null>(null);
   const zamanlayici = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bildir = useToast();
 
   useEffect(
     () => () => {
@@ -36,15 +43,23 @@ export function SepeteEkle({ code, unit, name }: { code: string; unit: Birim; na
   );
 
   const ekle = () => {
-    setDurum(sepeteEkle(code, unit, miktar));
+    const sonuc = sepeteEkle(code, unit, miktar);
+    setDurum(sonuc);
+    if (sonuc === "eklendi") {
+      bildir({
+        body: `Sepete eklendi: ${name}`,
+        uniqueID: "sepete-eklendi",
+        endContent: <Button size="sm" variant="secondary" label="Sepete git" href="/sepet" />,
+      });
+    }
     if (zamanlayici.current) clearTimeout(zamanlayici.current);
     zamanlayici.current = setTimeout(() => setDurum(null), GERI_BILDIRIM_MS);
   };
 
-  const hataVar = durum !== null && durum !== "eklendi";
+  const hata = durum !== null && durum !== "eklendi" ? HATA_METNI[durum] : "";
 
   return (
-    <div className="flex flex-wrap items-center gap-8">
+    <HStack wrap="wrap" align="center" gap={2}>
       <MiktarSecici unit={unit} deger={miktar} onDegis={setMiktar} etiket={`${name} miktarı`} />
 
       <Button
@@ -57,9 +72,9 @@ export function SepeteEkle({ code, unit, name }: { code: string; unit: Birim; na
         {durum === "eklendi" ? "Eklendi" : "Sepete ekle"}
       </Button>
 
-      <p aria-live="polite" className={hataVar ? "m-0 w-full text-12 text-discount" : "sr-only"}>
-        {durum ? DURUM_METNI[durum] : ""}
-      </p>
-    </div>
+      <Text as="p" aria-live="polite" className={hata ? "w-full text-12 text-discount" : "sr-only"}>
+        {hata}
+      </Text>
+    </HStack>
   );
 }

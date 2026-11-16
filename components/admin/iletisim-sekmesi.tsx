@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckboxInput } from "@astryxdesign/core/CheckboxInput";
+import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
 import {
   ALAN,
@@ -142,9 +143,12 @@ export function IletisimSekmesi({
           <Text weight="semibold">Çalışma saatleri</Text>
         </div>
         {s.map((h) => (
-          <div
+          <HStack
             key={h.dayIndex}
-            className={`flex flex-wrap items-center gap-10 px-16 py-10 ${SATIR_AYRACI}`}
+            wrap="wrap"
+            vAlign="center"
+            gap={3}
+            className={`px-16 py-10 ${SATIR_AYRACI}`}
           >
             <Text weight="medium" className="flex-[1_1_110px]">
               {h.day}
@@ -177,7 +181,7 @@ export function IletisimSekmesi({
               value={h.closed}
               onChange={(kapali) => yazSaat(h.dayIndex, { closed: kapali }, true)}
             />
-          </div>
+          </HStack>
         ))}
       </Kart>
     </>

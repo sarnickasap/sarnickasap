@@ -1,5 +1,8 @@
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { Text } from "@astryxdesign/core/Text";
 import { cacheLife } from "next/cache";
-import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { istanbulYili } from "@/lib/saatler";
 import { YASAL_BILGI } from "@/lib/yasal-bilgi";
@@ -34,10 +37,21 @@ import { urunKaynagiGetir } from "@/lib/urun-verisi";
    yüklemesi tetikliyordu (mobil veri + ISR yükü); tarayıcı yeniden
    yüklemesinde bu istekler açık kalıp `networkidle`'ı da kilitliyordu
    (admin-galeri zaman aşımı, ölçüldü). Tarayıcılar için bağlantı aynı.
+
+   Astryx: Link (bağlantılar; LinkProvider → next/link, `prefetch={false}`
+   kalan nitelik olarak next/link'e geçer) · Heading · Text · HStack.
+   <footer>/<nav> yerli öğe: landmark'lar ve testteki
+   `footer nav[aria-labelledby="footer-kategoriler"]` seçicisi.
+   Yasal kimlik satırı (Meta işletme doğrulaması) metni DEĞİŞTİRİLMEDİ ve
+   her sayfada görünür kalır (alt-sayfa.tsx da bu footer'ı kullanır).
    ────────────────────────────────────────────────────────────────────────── */
 
 const FOOTER_BAGLANTI =
-  "text-muted-dark transition-colors duration-150 ease-out-soft hover:text-body";
+  "text-muted-dark no-underline transition-colors duration-150 ease-out-soft hover:text-body";
+
+/** `prefetch={false}` Astryx Link tiplerinde yok; bileşen kalan nitelikleri
+ *  LinkProvider'daki next/link'e aktarıyor (bkz. yukarıdaki not). */
+const ON_YUKLEME_YOK = { prefetch: false } as object;
 
 async function yilGetir() {
   "use cache";
@@ -60,25 +74,29 @@ function KategoriBaglantilari({
       aria-labelledby="footer-kategoriler"
       className="flex basis-full flex-wrap items-baseline gap-x-16 gap-y-8"
     >
-      <h2
+      <Heading
+        level={2}
         id="footer-kategoriler"
-        className="m-0 text-13 font-medium text-muted"
+        weight="medium"
+        className="m-0 font-sans text-13 text-muted"
       >
         Kategoriler
-      </h2>
-      <ul className="m-0 flex flex-wrap gap-x-16 gap-y-8 p-0 list-none">
+      </Heading>
+      <HStack as="ul" wrap="wrap" className="m-0 list-none gap-x-16 gap-y-8 p-0">
         {kategoriler.map((k) => (
           <li key={k.slug}>
             <Link
               href={`/urunler/${k.slug}`}
-              prefetch={false}
+              color="inherit"
+              type="inherit"
               className={FOOTER_BAGLANTI}
+              {...ON_YUKLEME_YOK}
             >
               {k.ad}
             </Link>
           </li>
         ))}
-      </ul>
+      </HStack>
     </nav>
   );
 }
@@ -89,30 +107,44 @@ export async function SiteFooter() {
 
   return (
     <footer className="border-t border-line">
-      <div className="mx-auto flex max-w-[1280px] flex-wrap items-center justify-between gap-16 px-24 py-32 text-13 text-muted-dark">
+      <HStack
+        wrap="wrap"
+        vAlign="center"
+        justify="between"
+        gap={4}
+        className="mx-auto max-w-[1280px] px-24 py-32 text-13 text-muted-dark"
+      >
         <KategoriBaglantilari kategoriler={kategoriler} />
-        <div className="flex items-center gap-12">
+        <HStack vAlign="center" gap={3}>
           <Logo
             genislik={32}
             yukseklik={31}
             alt=""
             className="h-31 w-32 object-contain"
           />
-          <span>© {yil} Sarnıç Kasap · Gaziemir, İzmir</span>
-        </div>
+          <Text type="inherit" color="inherit">
+            © {yil} Sarnıç Kasap · Gaziemir, İzmir
+          </Text>
+        </HStack>
         {/* "Yönetim" bağlantısı kaldırıldı: panel /yonetim adresinden açılır,
             müşteriye gösterilmez. Yerine KVKK aydınlatma metni (her sayfadan
             erişilebilir olmalı). */}
-        <Link href="/kvkk" prefetch={false} className={FOOTER_BAGLANTI}>
+        <Link
+          href="/kvkk"
+          color="inherit"
+          type="inherit"
+          className={FOOTER_BAGLANTI}
+          {...ON_YUKLEME_YOK}
+        >
           KVKK aydınlatma metni
         </Link>
         {/* Resmi kimlik (Meta işletme doğrulaması resmi adı sitede arar) */}
-        <p className="m-0 basis-full">
+        <Text as="p" type="inherit" color="inherit" className="m-0 basis-full">
           {YASAL_BILGI.isyeriAdi} — {YASAL_BILGI.adSoyad} · {YASAL_BILGI.adres}{" "}
           · {YASAL_BILGI.vergiDairesi} {YASAL_BILGI.vergiNo} · Esnaf Sicil No{" "}
           {YASAL_BILGI.esnafSicilNo}
-        </p>
-      </div>
+        </Text>
+      </HStack>
     </footer>
   );
 }

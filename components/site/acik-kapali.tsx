@@ -1,3 +1,4 @@
+import { StatusDot } from "@astryxdesign/core/StatusDot";
 import { connection } from "next/server";
 import { bugunDurumu, type Saat } from "@/lib/saatler";
 
@@ -18,12 +19,18 @@ import { bugunDurumu, type Saat } from "@/lib/saatler";
    Burada Europe/Istanbul'a sabit — bkz. lib/saatler.ts.
    ────────────────────────────────────────────────────────────────────────── */
 
-/** Tasarım: width:8px;height:8px;border-radius:50% — açık #22c55e, kapalı #737373 */
+/** Astryx StatusDot. Tasarım: 8px yuvarlak — açık #22c55e, kapalı #737373;
+ *  renkler token sınıfıyla korunur (StatusDot'un success/neutral tonları
+ *  koyu temada tasarımdan farklı). Hemen yanında görünür metin var
+ *  ("Şu an açık …"), bu yüzden nokta ekran okuyucudan gizli — `label`
+ *  StatusDot'ta zorunlu ama ikinci kez okunmasın diye aria-hidden. */
 function Nokta({ acik }: { acik: boolean }) {
   return (
-    <span
-      className={`h-8 w-8 flex-none rounded-full ${acik ? "bg-open" : "bg-dot-kapali"}`}
-      aria-hidden
+    <StatusDot
+      variant={acik ? "success" : "neutral"}
+      label={acik ? "Açık" : "Kapalı"}
+      aria-hidden="true"
+      className={`h-8 w-8 flex-none ${acik ? "bg-open" : "bg-dot-kapali"}`}
     />
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AltSayfa } from "@/components/site/alt-sayfa";
+import { SiparisAdimlari } from "@/components/site/siparis-adimlari";
 import { SepetIcerik } from "@/components/site/sepet-icerik";
 import { SiparisKapali } from "@/components/site/siparis-kapali";
 import { siteBilgisiGetir } from "@/lib/data";
@@ -15,10 +16,16 @@ export const metadata: Metadata = {
 
 export default async function SepetSayfasi() {
   const [katalog, info] = await Promise.all([katalogGetir(), siteBilgisiGetir()]);
+  const acik = siparisAlinir(katalog);
 
   return (
-    <AltSayfa ust="Online sipariş" baslik="Sepetiniz" sepetVar={siparisAlinir(katalog)}>
-      {siparisAlinir(katalog) ? (
+    <AltSayfa
+      ust="Online sipariş"
+      baslik="Sepetiniz"
+      sepetVar={acik}
+      ustBilgi={acik ? <SiparisAdimlari adim={0} /> : undefined}
+    >
+      {acik ? (
         <SepetIcerik urunler={katalog.products} teslimatNotu={katalog.delivery.note} />
       ) : (
         <SiparisKapali waLink={waLink(info.whatsapp, WA_MESAJ.genelSiparis)} />

@@ -1,4 +1,8 @@
 import { Button } from "@astryxdesign/core/Button";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { Suspense } from "react";
 import { Logo } from "@/components/logo";
 import { MesajIkonu, SepetIkonu, TelefonIkonu } from "@/components/icons";
@@ -20,6 +24,10 @@ import { CTA, CTA_IKINCIL } from "./siparis-stilleri";
        birincil primary · h48 · px22 · gap10 · 15px/600
        ikincil  h48 · px22 · gap10 · 1px #333333 · 15px/500 · #fafafa
      sağ      flex · justify-center → img w-full max-w-500 h-auto
+
+   Astryx: Heading (h1), Text (alt metin, meta), VStack/HStack, Button.
+   İki sütunlu ızgara Tailwind'de kaldı: Astryx Grid `minmax(420px,…)`
+   telefonda taşar, `max` sınırlı biçimi de 48px aralıkla tek sütuna düşer.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function Hero({
@@ -44,24 +52,24 @@ export function Hero({
       id="top"
       className="mx-auto grid max-w-[1280px] grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] items-center gap-48 px-24 pt-72 pb-96"
     >
-      <div className="flex flex-col gap-28">
-        <div className="flex items-center gap-10 text-13 font-medium text-soft">
+      <VStack className="gap-28">
+        <HStack align="center" className="gap-10 text-13 font-medium text-soft">
           <Suspense fallback={<AcikKapaliIskelet />}>
             <AcikKapali saatler={saatler} />
           </Suspense>
-          <span className="text-dot">·</span>
-          <span>Gaziemir, İzmir</span>
-        </div>
+          <Text color="inherit" type="inherit" className="text-dot">·</Text>
+          <Text color="inherit" type="inherit">Gaziemir, İzmir</Text>
+        </HStack>
 
-        <h1 className="m-0 font-display text-h1 leading-h1 font-bold tracking-h1 text-balance text-cream">
+        <Heading level={1} textWrap="balance" className="font-display text-h1 leading-h1 font-bold tracking-h1 text-cream">
           {heroTitle}
-        </h1>
+        </Heading>
 
-        <p className="m-0 max-w-[520px] text-18 leading-16 text-pretty text-muted">
+        <Text as="p" color="secondary" textWrap="pretty" className="max-w-[520px] text-18 leading-16">
           {heroSub}
-        </p>
+        </Text>
 
-        <div className="flex flex-wrap gap-12">
+        <HStack wrap="wrap" gap={3}>
           {siparisAcik && (
             <Button
               variant="primary"
@@ -90,8 +98,8 @@ export function Hero({
             icon={<TelefonIkonu size={18} />}
             className={CTA_IKINCIL}
           />
-        </div>
-      </div>
+        </HStack>
+      </VStack>
 
       {/* Telefonda büyük logo gizli: başlıkta zaten var, ürünler bir ekran yukarı gelir. */}
       <div className="hidden justify-center md:flex">

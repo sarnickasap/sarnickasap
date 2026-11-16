@@ -1,6 +1,11 @@
 import { Badge } from "@astryxdesign/core/Badge";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Text } from "@astryxdesign/core/Text";
+import { VisuallyHidden } from "@astryxdesign/core/VisuallyHidden";
+import { VStack } from "@astryxdesign/core/VStack";
 import { fiyat, indirimOrani, waLink, WA_MESAJ } from "@/lib/format";
 import { CERCEVELI } from "./siparis-stilleri";
 
@@ -25,6 +30,9 @@ import { CERCEVELI } from "./siparis-stilleri";
    panelin "Kampanyalar"ı (bu dosyadaki `FirsatKarti`) ve stok programı
    kampanyaları (`katalog-firsat-karti.tsx`). Görünüm birebir aynı;
    katalog kartı yeni fiyatın yanına birim soneki ekler.
+
+   Astryx: Card, Badge (pil — e2e `#firsatlar .grid span` ilk span olarak
+   bunu okur, sırası korunmalı), Heading (h3), Text, HStack/VStack, Button.
    ────────────────────────────────────────────────────────────────────────── */
 
 export type FirsatVerisi = {
@@ -62,36 +70,36 @@ export function FirsatCercevesi({
 
   return (
     <Card variant="transparent" padding={6} className="flex flex-col gap-18 bg-ink">
-      <div className="flex items-center justify-between gap-12">
+      <HStack align="center" justify="between" gap={3}>
         <Badge label={etiket} className="h-auto rounded-pill bg-pill px-10 py-4 text-12 font-semibold text-cream" />
         {/* Tasarımda indirim yoksa boş span yine render ediliyor — birebir */}
-        <span className="text-13 font-semibold text-discount">{oran}</span>
-      </div>
+        <Text weight="semibold" className="text-13 text-discount">{oran}</Text>
+      </HStack>
 
-      <div className="flex flex-1 flex-col gap-6">
-        <h3 className="m-0 font-display text-24 font-semibold tracking-deal text-cream break-words">
+      <VStack className="flex-1 gap-6">
+        <Heading level={3} className="font-display text-24 font-semibold tracking-deal text-cream break-words">
           {baslik}
-        </h3>
-        <p className="m-0 text-14 leading-15 text-muted">{aciklama}</p>
-      </div>
+        </Heading>
+        <Text as="p" color="secondary" className="text-14 leading-15">{aciklama}</Text>
+      </VStack>
 
-      <div className="flex flex-wrap items-baseline gap-10">
-        <span className="font-display text-30 font-bold text-white">
+      <HStack wrap="wrap" className="items-baseline gap-10">
+        <Text weight="bold" className="font-display text-30 text-white">
           {fiyat(yeniFiyat)}
-          {sonek && <span className="ml-4 font-sans text-15 font-normal text-muted">{sonek}</span>}
-        </span>
+          {sonek && <Text color="secondary" weight="normal" className="ml-4 font-sans text-15">{sonek}</Text>}
+        </Text>
         {/* Tasarım: oldPrice yoksa boş string — span yine var */}
-        <span className="text-15 text-muted-dark line-through">
+        <Text hasStrikethrough className="text-15 text-muted-dark">
           {eskiFiyat ? (
             <>
-              <span className="sr-only">Önceki fiyat: </span>
+              <VisuallyHidden>Önceki fiyat: </VisuallyHidden>
               {fiyat(eskiFiyat)}
             </>
           ) : (
             ""
           )}
-        </span>
-      </div>
+        </Text>
+      </HStack>
 
       {children}
     </Card>

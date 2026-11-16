@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { HStack } from "@astryxdesign/core/HStack";
+import { VStack } from "@astryxdesign/core/VStack";
 import { AdminHeader } from "./admin-header";
 import { AdminSidebar, STOK_SEKMELERI, type SekmeAnahtari } from "./admin-sidebar";
 import { UrunlerSekmesi, type AdminUrun } from "./urunler-sekmesi";
@@ -22,10 +24,16 @@ import {
 import { kayitDurumMetni, kayitSonucuDinle } from "@/lib/kaydet";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Panel kabuğu — vault "Admin Sidebar" notundaki gövde düzeni:
+   Panel kabuğu — vault "Admin Sidebar" notundaki gövde düzeni, Astryx
+   HStack/VStack ile:
      max-w 1280 · w-full · mx-auto · p 24px 20px 64px
-     flex · flex-wrap · gap24 · items-start
-     main → flex:999 1 560px · min-w-0 · flex-col · gap16
+     HStack wrap · gap 6 (24px) · üstten hizalı
+     main → VStack gap 4 (16px) · flex:999 1 560px · min-w-0
+
+   Astryx AppShell KULLANILMADI: içeriği `role="main"` bir <div>'e koyuyor,
+   e2e testleri ise gerçek <main> (tek adet), `aside button` ve `header`
+   etiketlerine dayanıyor; içine <main> koymak iç içe main landmark'ı
+   (axe ihlali) demek.
    ────────────────────────────────────────────────────────────────────────── */
 
 export type PanelVerisi = {
@@ -76,10 +84,15 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
   };
 
   return (
-    <div className="tema-admin flex min-h-screen flex-col bg-[var(--color-background-body)] text-[var(--color-text-primary)]">
+    <VStack className="tema-admin min-h-screen bg-[var(--color-background-body)] text-[var(--color-text-primary)]">
       <AdminHeader durumMetni={kayitDurumMetni(sonKayit, kayitHatasi)} />
 
-      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-start gap-24 px-20 pt-24 pb-64">
+      <HStack
+        wrap="wrap"
+        vAlign="start"
+        gap={6}
+        className="mx-auto w-full max-w-[1280px] px-20 pt-24 pb-64"
+      >
         <AdminSidebar
           secili={gorunenSekme}
           onSec={setSekme}
@@ -96,7 +109,7 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
           }}
         />
 
-        <main className="flex min-w-0 flex-[999_1_560px] flex-col gap-16">
+        <VStack as="main" gap={4} className="min-w-0 flex-[999_1_560px]">
           {gorunenSekme === "urunler" && (
             <UrunlerSekmesi
               urunler={veri.urunler}
@@ -144,8 +157,8 @@ export function Panel({ veri }: { veri: PanelVerisi }) {
               benimId={veri.benimId}
             />
           )}
-        </main>
-      </div>
-    </div>
+        </VStack>
+      </HStack>
+    </VStack>
   );
 }

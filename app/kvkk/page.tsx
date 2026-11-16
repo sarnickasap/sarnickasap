@@ -1,3 +1,7 @@
+import { Heading } from "@astryxdesign/core/Heading";
+import { List, ListItem } from "@astryxdesign/core/List";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AltSayfa } from "@/components/site/alt-sayfa";
@@ -26,6 +30,12 @@ import {
    programı + WhatsApp + e-posta) gerçekte işlediği verilere göre yazıldı.
    Sisteme yeni bir kişisel veri ya da hizmet sağlayıcı eklenirse metin.ts
    güncellenmeli. Adres ve telefon panelden (site_info) gelir.
+
+   Astryx: VStack · Heading (h2/h3) · Text (paragraf) · List/ListItem
+   (madde listeleri; amaç–hukuki sebep listesi `description` ile).
+   Bölümler Collapsible DEĞİL: aydınlatma metni katmanlı/gizli olmadan
+   okunabilmeli (KVKK aydınlatma yükümlülüğü) ve arama motorları için
+   tüm metin açık kalmalı.
    ────────────────────────────────────────────────────────────────────────── */
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,26 +49,50 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const BASLIK = "m-0 font-display text-20 font-semibold text-cream";
-const ALT_BASLIK = "m-0 text-16 font-semibold text-cream";
+const ALT_BASLIK = "m-0 font-sans text-16 font-semibold text-cream";
 const PARAGRAF = "m-0 text-16 leading-16 text-read";
-const LISTE = "m-0 flex flex-col gap-6 pl-20 text-16 leading-16 text-read";
+const MADDE = "text-16 leading-16 text-read";
 
-function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
+function Paragraf({ children }: { children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-10">
-      <h2 className={BASLIK}>{baslik}</h2>
+    <Text as="p" className={PARAGRAF}>
       {children}
-    </section>
+    </Text>
   );
 }
 
-function Liste({ ogeler }: { ogeler: readonly string[] }) {
+function Bolum({ baslik, children }: { baslik: string; children: ReactNode }) {
   return (
-    <ul className={LISTE}>
+    <VStack as="section" className="gap-10">
+      <Heading level={2} className={BASLIK}>
+        {baslik}
+      </Heading>
+      {children}
+    </VStack>
+  );
+}
+
+/** Madde işaretli liste. Etiket ReactNode verilir: düz metin etiketini
+ *  ListItem tek satıra kırpar, hukuki metin kırpılmamalı. */
+function Liste({ children }: { children: ReactNode }) {
+  return (
+    <List listStyle="disc" density="compact" edge="flush" className="pl-20">
+      {children}
+    </List>
+  );
+}
+
+function Madde({ children }: { children: ReactNode }) {
+  return <ListItem label={<Text className={MADDE}>{children}</Text>} />;
+}
+
+function MetinListesi({ ogeler }: { ogeler: readonly string[] }) {
+  return (
+    <Liste>
       {ogeler.map((o) => (
-        <li key={o}>{o}</li>
+        <Madde key={o}>{o}</Madde>
       ))}
-    </ul>
+    </Liste>
   );
 }
 
@@ -67,118 +101,123 @@ export default async function KvkkSayfasi() {
 
   return (
     <AltSayfa ust="Kişisel veriler" baslik="KVKK aydınlatma metni">
-      <article className="flex flex-col gap-28">
-        <p className={PARAGRAF}>
+      <VStack as="article" className="gap-28">
+        <Paragraf>
           Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu (“KVKK”) md. 10 ve Aydınlatma
           Yükümlülüğünün Yerine Getirilmesinde Uyulacak Usul ve Esaslar Hakkında Tebliğ uyarınca;
           web sitemizi ziyaret eden, online ya da WhatsApp üzerinden sipariş veren, dükkânımızdan
           alışveriş yapan ve cari hesabı bulunan müşterilerimizi bilgilendirmek için hazırlanmıştır.
-        </p>
+        </Paragraf>
 
         <Bolum baslik="1. Veri sorumlusu">
-          <p className={PARAGRAF}>
+          <Paragraf>
             Veri sorumlusu, “{ISLETME_ADI}” adıyla faaliyet gösteren şahıs işletmesinin sahibi{" "}
             <strong className="font-semibold text-cream">{VERI_SORUMLUSU.ad}</strong>’dır.
-          </p>
-          <ul className={LISTE}>
-            <li>
+          </Paragraf>
+          <Liste>
+            <Madde>
               Vergi dairesi ve no: {VERI_SORUMLUSU.vergiDairesi}, {VERI_SORUMLUSU.vergiNo}
-            </li>
-            <li>Adres: {info.address}</li>
-            <li>Telefon: {info.phone}</li>
-          </ul>
+            </Madde>
+            <Madde>Adres: {info.address}</Madde>
+            <Madde>Telefon: {info.phone}</Madde>
+          </Liste>
         </Bolum>
 
         <Bolum baslik="2. İşlenen kişisel veriler">
-          <ul className={LISTE}>
+          <Liste>
             {VERI_KATEGORILERI.map((k) => (
-              <li key={k.ad}>
+              <Madde key={k.ad}>
                 <strong className="font-semibold text-cream">{k.ad}:</strong> {k.veriler}
-              </li>
+              </Madde>
             ))}
-          </ul>
-          <p className={PARAGRAF}>
+          </Liste>
+          <Paragraf>
             Özel nitelikli kişisel veri (sağlık, din, biyometrik veri vb.) talep etmiyoruz. Sipariş
             notu veya mesaj alanlarına bu tür bilgileri yazmamanızı rica ederiz.
-          </p>
+          </Paragraf>
         </Bolum>
 
         <Bolum baslik="3. İşleme amaçları ve hukuki sebepler">
-          <p className={PARAGRAF}>
+          <Paragraf>
             Kişisel verileriniz aşağıdaki amaçlarla ve her amacın altında belirtilen KVKK md. 5
             hukuki sebebine dayanılarak işlenir:
-          </p>
-          <ul className="m-0 flex list-none flex-col gap-12 p-0">
+          </Paragraf>
+          <List hasDividers className="rounded-8 border border-line">
             {AMACLAR.map((a) => (
-              <li key={a.amac} className="flex flex-col gap-4 rounded-8 border border-line p-14">
-                <span className="text-16 leading-16 text-read">{a.amac}</span>
-                <span className="text-14 leading-16 text-muted">Hukuki sebep: {a.sebep}</span>
-              </li>
+              <ListItem
+                key={a.amac}
+                label={<Text className={MADDE}>{a.amac}</Text>}
+                description={
+                  <Text type="supporting" className="text-14 leading-16">
+                    Hukuki sebep: {a.sebep}
+                  </Text>
+                }
+              />
             ))}
-          </ul>
+          </List>
         </Bolum>
 
         <Bolum baslik="4. Toplama yöntemi">
-          <Liste ogeler={TOPLAMA} />
+          <MetinListesi ogeler={TOPLAMA} />
         </Bolum>
 
         <Bolum baslik="5. Kişisel verilerin aktarılması">
-          <p className={PARAGRAF}>
+          <Paragraf>
             Kişisel verileriniz satılmaz ve pazarlama amacıyla üçüncü kişilerle paylaşılmaz.
             Yalnızca aşağıdaki alıcılara, belirtilen amaçla ve gerektiği ölçüde aktarılır.
-          </p>
-          <h3 className={ALT_BASLIK}>Yurt içi</h3>
-          <Liste ogeler={AKTARIMLAR.yurtIci} />
-          <h3 className={ALT_BASLIK}>Yurt dışı (hizmet sağlayıcılar)</h3>
-          <p className={PARAGRAF}>
+          </Paragraf>
+          <Heading level={3} className={ALT_BASLIK}>Yurt içi</Heading>
+          <MetinListesi ogeler={AKTARIMLAR.yurtIci} />
+          <Heading level={3} className={ALT_BASLIK}>Yurt dışı (hizmet sağlayıcılar)</Heading>
+          <Paragraf>
             Web sitemiz, sipariş ve cari hesap programımız ile mesajlaşma altyapımız, sunucuları
             yurt dışında bulunan hizmet sağlayıcılarda çalışır. Bu nedenle verileriniz KVKK md. 9
             kapsamında, yalnızca hizmetin sunulması amacıyla aşağıdaki sağlayıcıların sunucularına
             aktarılır:
-          </p>
-          <Liste ogeler={AKTARIMLAR.yurtDisi} />
-          <p className={PARAGRAF}>
+          </Paragraf>
+          <MetinListesi ogeler={AKTARIMLAR.yurtDisi} />
+          <Paragraf>
             Yurt dışı aktarımlarda uygulanan güvenceler hakkında bilgi almak için 9. maddedeki
             yollarla bize başvurabilirsiniz.
-          </p>
+          </Paragraf>
         </Bolum>
 
         <Bolum baslik="6. Saklama süreleri">
-          <Liste ogeler={SAKLAMA} />
-          <p className={PARAGRAF}>
+          <MetinListesi ogeler={SAKLAMA} />
+          <Paragraf>
             Süre dolduğunda veya işleme şartları ortadan kalktığında veriler silinir, yok edilir ya
             da anonim hâle getirilir.
-          </p>
+          </Paragraf>
         </Bolum>
 
         <Bolum baslik="7. Çerezler ve tarayıcı depolama">
-          <Liste ogeler={TARAYICI} />
+          <MetinListesi ogeler={TARAYICI} />
         </Bolum>
 
         <Bolum baslik="8. KVKK md. 11 kapsamındaki haklarınız">
-          <Liste ogeler={HAKLAR} />
+          <MetinListesi ogeler={HAKLAR} />
         </Bolum>
 
         <Bolum baslik="9. Başvuru">
-          <p className={PARAGRAF}>
+          <Paragraf>
             Haklarınıza ilişkin taleplerinizi, Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında
             Tebliğ uyarınca Türkçe olarak; kimliğinizi gösterir belgeyle şahsen ya da ıslak imzalı
             dilekçeyle posta veya noter aracılığıyla {info.address} adresine iletebilirsiniz.
             Başvurunuzda adınız soyadınız, imzanız, T.C. kimlik numaranız (yabancılar için uyruk ve
             pasaport ya da kimlik numarası), tebligata esas adresiniz, varsa e-posta adresiniz,
             telefon numaranız ve talep konunuz bulunmalıdır.
-          </p>
-          <p className={PARAGRAF}>
+          </Paragraf>
+          <Paragraf>
             Talebiniz niteliğine göre en geç 30 gün içinde ücretsiz sonuçlandırılır; işlemin ayrıca
             bir maliyet gerektirmesi hâlinde Kişisel Verileri Koruma Kurulunca belirlenen tarifedeki
             ücret alınabilir. Başvurunuzun reddedilmesi, verilen cevabı yetersiz bulmanız veya
             süresinde cevap verilmemesi hâlinde KVKK md. 14 uyarınca Kişisel Verileri Koruma
             Kuruluna şikâyette bulunabilirsiniz.
-          </p>
+          </Paragraf>
         </Bolum>
 
-        <p className="m-0 text-13 text-muted-dark">Son güncelleme: {METIN_TARIHI}</p>
-      </article>
+        <Text as="p" className="m-0 text-13 text-muted-dark">Son güncelleme: {METIN_TARIHI}</Text>
+      </VStack>
     </AltSayfa>
   );
 }

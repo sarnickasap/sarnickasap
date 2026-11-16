@@ -1,3 +1,6 @@
+import { Heading } from "@astryxdesign/core/Heading";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { UrunListesi } from "./urun-listesi";
 import type { UrunVerisi } from "./urun-karti";
 import { FiyatlarGuncelleniyor } from "./fiyatlar-guncelleniyor";
@@ -14,6 +17,9 @@ import { FiyatlarGuncelleniyor } from "./fiyatlar-guncelleniyor";
    anlatır ve altına "KDV dahil · Son güncelleme" satırı eklenir
    (12px · #8a8a8a — ürün kartı kategori etiketiyle aynı ton).
    Katalog yokken metin tasarımdaki gibi AYNEN kalır.
+
+   Astryx: başlık bloğu VStack + Text (eyebrow, açıklama) + Heading (h2).
+   <section> kimliğiyle (#urunler, nav çapası) yerel öğe olarak kalır.
    ────────────────────────────────────────────────────────────────────────── */
 
 export type KatalogBilgisi = {
@@ -49,32 +55,32 @@ export function Urunler({
       id="urunler"
       className="mx-auto flex max-w-[1280px] flex-col gap-36 px-24 py-112"
     >
-      <div className="flex max-w-[640px] flex-col gap-12">
-        <span className="text-12 font-semibold tracking-eyebrow uppercase text-brand-accent">
+      <VStack gap={3} maxWidth={640}>
+        <Text weight="semibold" color="accent" className="text-12 tracking-eyebrow uppercase">
           Ürünler ve fiyatlar
-        </span>
-        <h2 className="m-0 font-display text-h2 leading-h2 font-bold tracking-h2 text-cream">
+        </Text>
+        <Heading level={2} className="font-display text-h2 leading-h2 font-bold tracking-h2 text-cream">
           Güncel fiyatlar
-        </h2>
+        </Heading>
         {fiyatlarYok ? null : katalog ? (
           <>
-            <p className="m-0 text-16 leading-16 text-muted">
+            <Text as="p" color="secondary" className="text-16 leading-16">
               {katalog.siparisAcik
                 ? KATALOG_ACIKLAMASI.siparisli
                 : KATALOG_ACIKLAMASI.siparissiz}
-            </p>
-            <p className="m-0 text-12 text-muted-dark">
+            </Text>
+            <Text as="p" className="text-12 text-muted-dark">
               {katalog.kdvDahil ? "Fiyatlar KDV dahildir · " : ""}Son
               güncelleme: {katalog.guncelleme}
-            </p>
+            </Text>
           </>
         ) : (
-          <p className="m-0 text-16 leading-16 text-muted">
+          <Text as="p" color="secondary" className="text-16 leading-16">
             Fiyatlar kilogram başınadır ve günlük güncellenir. İstediğiniz kesim
             ve gramajı WhatsApp’tan yazın.
-          </p>
+          </Text>
         )}
-      </div>
+      </VStack>
 
       {fiyatlarYok ? (
         <FiyatlarGuncelleniyor whatsapp={whatsapp} />

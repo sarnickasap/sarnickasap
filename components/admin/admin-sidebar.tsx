@@ -4,6 +4,7 @@ import { Banner } from "@astryxdesign/core/Banner";
 import { Divider } from "@astryxdesign/core/Divider";
 import { SideNav, SideNavItem } from "@astryxdesign/core/SideNav";
 import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Admin Sidebar — Astryx SideNav (aside içinde, tam genişlik).
@@ -68,7 +69,7 @@ export function AdminSidebar({
   /* `aside button` e2e testlerinin sekme seçicisi — SideNavItem href'siz
      olduğunda <button> render eder, metni etiketle başlar. */
   return (
-    <aside className="flex max-w-full flex-[1_1_210px] flex-col gap-12">
+    <VStack as="aside" gap={3} className="max-w-full flex-[1_1_210px]">
       {stokYonetiyor && (
         <Banner status="info" title="Ürünler ve fiyatlar stok programından yönetiliyor" />
       )}
@@ -98,6 +99,6 @@ export function AdminSidebar({
       <Text type="supporting" as="p">
         Değişiklikler otomatik kaydedilir ve sitede anında görünür.
       </Text>
-    </aside>
+    </VStack>
   );
 }

@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Button } from "@astryxdesign/core/Button";
+import { useState } from "react";
+import { AspectRatio } from "@astryxdesign/core/AspectRatio";
 import { EmptyState } from "@astryxdesign/core/EmptyState";
-import { Icon } from "@astryxdesign/core/Icon";
+import { FileInput } from "@astryxdesign/core/FileInput";
+import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import {
@@ -28,6 +29,9 @@ import {
    `main .grid > div` e2e testlerinin kart seçicisi — kartlar ızgaranın
    doğrudan çocuğu kalmalı.
 
+   Önizleme Astryx AspectRatio (16:9), yükleme Astryx FileInput (kompakt;
+   seçilen dosya hemen yüklenir, alan değeri hep boş kalır).
+
    Logo YÜKLEMELİ (galeri URL alanıyla yetiniyordu). Sebep: kullanıcının
    elinde logo dosyası var, barındıracak yeri yok. Vercel Blob'a yükleniyor.
    ────────────────────────────────────────────────────────────────────────── */
@@ -51,7 +55,6 @@ export function MarkalarSekmesi({
   const [yukleniyor, setYukleniyor] = useState<number | null>(null);
   const [hata, setHata] = useState<string | null>(null);
   const gecikmeli = useGecikmeliKayit();
-  const girisler = useRef(new Map<number, HTMLInputElement | null>());
 
   function yaz(id: number, alan: Partial<AdminMarka>, hemen = false) {
     setListe((l) => l.map((m) => (m.id === id ? { ...m, ...alan } : m)));
@@ -114,18 +117,24 @@ export function MarkalarSekmesi({
         {liste.map((m) => (
           <Kart key={m.id} className="flex flex-col gap-8 p-10">
             {/* Önizleme koyu zeminde — sitede de koyu zeminde duracak */}
-            <div className="flex aspect-[16/9] items-center justify-center overflow-hidden rounded-[var(--radius-element)] bg-ink p-12">
-              {m.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={m.logoUrl}
-                  alt=""
-                  className="max-h-full max-w-full object-contain"
-                />
-              ) : (
-                <span className="font-mono text-12 text-muted-dark">logo yok</span>
-              )}
-            </div>
+            <AspectRatio
+              ratio={16 / 9}
+              fit="cover"
+              className="rounded-[var(--radius-element)]"
+            >
+              <div className="flex items-center justify-center bg-ink p-12">
+                {m.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={m.logoUrl}
+                    alt=""
+                    className="max-h-full max-w-full object-contain"
+                  />
+                ) : (
+                  <span className="font-mono text-12 text-muted-dark">logo yok</span>
+                )}
+              </div>
+            </AspectRatio>
 
             <TextInput
               label="Marka adı"
@@ -146,31 +155,28 @@ export function MarkalarSekmesi({
               onChange={(v) => yaz(m.id, { linkUrl: v })}
             />
 
-            <div className="flex items-center gap-6">
-              <input
-                ref={(el) => {
-                  girisler.current.set(m.id, el);
-                }}
-                type="file"
+            <HStack gap={1.5} vAlign="center">
+              <FileInput
+                label="Logo yükle"
+                isLabelHidden
+                placeholder={
+                  yukleniyor === m.id
+                    ? "Yükleniyor…"
+                    : m.logoUrl
+                      ? "Logoyu değiştir"
+                      : "Logo yükle"
+                }
                 accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                className="hidden"
-                onChange={(e) => {
-                  const d = e.target.files?.[0];
-                  if (d) void dosyaSecildi(m.id, d);
-                  e.target.value = "";
+                value={null}
+                onChange={(d) => {
+                  const dosya = Array.isArray(d) ? d[0] : d;
+                  if (dosya) void dosyaSecildi(m.id, dosya);
                 }}
-              />
-              <Button
-                label={m.logoUrl ? "Logoyu değiştir" : "Logo yükle"}
-                icon={<Icon icon="upload" />}
-                onClick={() => girisler.current.get(m.id)?.click()}
                 isLoading={yukleniyor === m.id}
-                className="flex-1"
-              >
-                {yukleniyor === m.id ? "Yükleniyor…" : undefined}
-              </Button>
+                containerClassName="min-w-0 flex-1"
+              />
               <SilButonu kucuk onClick={() => sil(m)} etiket={`${m.name} markasını sil`} />
-            </div>
+            </HStack>
 
             <DurumToggle
               acik={m.visible}

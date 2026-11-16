@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AltSayfa } from "@/components/site/alt-sayfa";
+import { SiparisAdimlari } from "@/components/site/siparis-adimlari";
 import { SiparisFormu } from "@/components/site/siparis-formu";
 import { SiparisKapali } from "@/components/site/siparis-kapali";
 import { siteBilgisiGetir } from "@/lib/data";
@@ -23,6 +24,7 @@ export default async function SiparisSayfasi() {
       baslik="Siparişi tamamla"
       aciklama={acik ? "Bilgilerinizi girin, siparişiniz doğrudan dükkâna iletilir." : undefined}
       sepetVar={acik}
+      ustBilgi={acik ? <SiparisAdimlari adim={1} /> : undefined}
     >
       {acik ? (
         <SiparisFormu katalog={katalog} />

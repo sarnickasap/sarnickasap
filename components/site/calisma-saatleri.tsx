@@ -1,5 +1,9 @@
 import { connection } from "next/server";
-import { SaatIkonu } from "@/components/icons";
+import { Card } from "@astryxdesign/core/Card";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Icon } from "@astryxdesign/core/Icon";
+import { Table, TableBody, TableCell, TableRow } from "@astryxdesign/core/Table";
+import { Text } from "@astryxdesign/core/Text";
 import { istanbulSimdi, saatEtiketi, type Saat } from "@/lib/saatler";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -13,34 +17,40 @@ import { istanbulSimdi, saatEtiketi, type Saat } from "@/lib/saatler";
      etiket   "08:00 – 20:00"  ← en dash, İKİ yanında boşluk
               (hero'daki "08:00–20:00" boşluksuz — farklı!)
 
+   Astryx: Card (kutu) · HStack + Icon "clock" + Text (başlık) · Table
+   (gün/saat satırları — veri gerçekten tablo: iki sütun, yedi satır).
+   Bugünün satırı `aria-current="date"` taşır (site-butunluk testi sayar).
+
    Vurgulu gün saate bağlı → hero'daki gibi istek zamanında hesaplanır,
    yoksa önbellekte donup yanlış günü vurgulardı.
    ────────────────────────────────────────────────────────────────────────── */
 
+const BASLIK_ID = "calisma-saatleri-baslik";
+const HUCRE = "px-20 py-11 text-14";
+
 function Satir({ s, bugun }: { s: Saat; bugun: boolean }) {
+  const renk = bugun ? "bg-hover font-semibold text-white" : "text-muted";
   return (
-    <div
-      className={
-        "flex justify-between px-20 py-11 text-14 " +
-        (bugun ? "bg-hover font-semibold text-white" : "text-muted")
-      }
-      aria-current={bugun ? "date" : undefined}
-    >
-      <span>{s.day}</span>
-      <span>{saatEtiketi(s)}</span>
-    </div>
+    <TableRow aria-current={bugun ? "date" : undefined}>
+      <TableCell className={`${HUCRE} ${renk}`}>{s.day}</TableCell>
+      <TableCell className={`${HUCRE} ${renk} text-right`}>{saatEtiketi(s)}</TableCell>
+    </TableRow>
   );
 }
 
 function Kutu({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col overflow-hidden rounded-12 border border-line">
-      <div className="flex items-center gap-10 border-b border-line px-20 py-14 text-14 font-semibold text-body">
-        <SaatIkonu size={16} />
-        Çalışma saatleri
-      </div>
-      {children}
-    </div>
+    <Card padding={0} className="overflow-hidden">
+      <HStack vAlign="center" className="gap-10 border-b border-line px-20 py-14">
+        <Icon icon="clock" size="sm" />
+        <Text id={BASLIK_ID} weight="semibold" className="text-14 text-body">
+          Çalışma saatleri
+        </Text>
+      </HStack>
+      <Table dividers="none" density="compact" aria-labelledby={BASLIK_ID}>
+        <TableBody>{children}</TableBody>
+      </Table>
+    </Card>
   );
 }
 

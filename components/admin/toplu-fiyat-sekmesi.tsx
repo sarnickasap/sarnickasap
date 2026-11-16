@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@astryxdesign/core/Button";
+import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
 import { ALAN, ETIKET, Kart, SATIR_AYRACI, SayfaBasligi } from "./ui";
 import { fiyat } from "@/lib/format";
@@ -14,7 +15,9 @@ import type { AdminUrun } from "./urunler-sekmesi";
                  Alanlar YEREL ve <label> içinde: e2e testi
                  `main label … select/input` ile buluyor, selectOption kullanıyor.
      önizleme    kart; ilk satır başlık, sonra ürün başına bir satır
-                 (testler kartın doğrudan div çocuklarını sayıyor).
+                 (testler kartın doğrudan div çocuklarını sayıyor ve satırda
+                 ad için ilk <span>, eski fiyat için `span:last-of-type > span`,
+                 yeni fiyat için <strong> okuyor — Astryx Table bu yüzden yok).
 
    Hesap tasarımdaki bulkCalc ile birebir:
      Math.max(0, Math.round(price * (1 + pct/100) / round) * round)
@@ -121,14 +124,16 @@ export function TopluFiyatSekmesi({
       </Kart>
 
       <Kart className="overflow-hidden">
-        <div className={`flex justify-between px-16 py-12 ${SATIR_AYRACI}`}>
+        <HStack hAlign="between" className={`px-16 py-12 ${SATIR_AYRACI}`}>
           <Text type="label" color="secondary">Önizleme</Text>
           <Text type="label" color="secondary">Eski → yeni</Text>
-        </div>
+        </HStack>
         {hedef.map((p) => (
-          <div
+          <HStack
             key={p.id}
-            className={`flex justify-between gap-12 px-16 py-10 ${SATIR_AYRACI}`}
+            hAlign="between"
+            gap={3}
+            className={`px-16 py-10 ${SATIR_AYRACI}`}
           >
             <Text weight="medium">
               {p.name}{" "}
@@ -138,9 +143,11 @@ export function TopluFiyatSekmesi({
             </Text>
             <Text hasTabularNumbers className="whitespace-nowrap">
               <Text color="secondary">{fiyat(p.price)}</Text> →{" "}
-              <Text weight="semibold">{fiyat(hesapla(p.price))}</Text>
+              <strong>
+                <Text weight="semibold">{fiyat(hesapla(p.price))}</Text>
+              </strong>
             </Text>
-          </div>
+          </HStack>
         ))}
       </Kart>
     </>

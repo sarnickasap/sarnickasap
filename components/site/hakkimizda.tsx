@@ -1,3 +1,8 @@
+import { Heading } from "@astryxdesign/core/Heading";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
+import { BOLUM_BASLIGI, UstBaslik } from "./bilgi-bolum-basligi";
+
 /* ──────────────────────────────────────────────────────────────────────────
    Hakkımızda — vault "Hakkimizda Bolumu" notundan birebir.
 
@@ -10,6 +15,10 @@
        h2      DM Sans 700 · clamp(32,4.5vw,48) · lh1.05 · ls -.025em
                · #f8efea · text-wrap balance   ← balance YALNIZCA burada
        p       17px · lh1.7 · #a3a3a3 · text-wrap pretty
+
+   Astryx: VStack (dikey düzen) · Text (eyebrow, paragraf) · Heading (h2).
+   <section> yerli öğe olarak kalıyor: Astryx Section bir <div> basar ve
+   sayfa bölgesi/çapa (#hakkimizda) anlamını kaybettirirdi.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function Hakkimizda({ about }: { about: string }) {
@@ -20,15 +29,20 @@ export function Hakkimizda({ about }: { about: string }) {
     >
       {/* Fotoğraf yer tutucusu kaldırıldı: gerçek fotoğraf gelene dek yalnızca metin. */}
       <div className="mx-auto max-w-[1280px] px-24 py-112">
-        <div className="flex max-w-[720px] flex-col gap-20">
-          <span className="text-12 font-semibold tracking-eyebrow uppercase text-brand-accent">
-            Hakkımızda
-          </span>
-          <h2 className="m-0 font-display text-h2 leading-h2 font-bold tracking-h2 text-balance text-cream">
+        <VStack gap={5} maxWidth={720}>
+          <UstBaslik>Hakkımızda</UstBaslik>
+          <Heading level={2} textWrap="balance" className={BOLUM_BASLIGI}>
             Mahallenin kasabı
-          </h2>
-          <p className="m-0 text-17 leading-17 text-pretty text-muted">{about}</p>
-        </div>
+          </Heading>
+          <Text
+            as="p"
+            color="secondary"
+            textWrap="pretty"
+            className="m-0 text-17 leading-17"
+          >
+            {about}
+          </Text>
+        </VStack>
       </div>
     </section>
   );

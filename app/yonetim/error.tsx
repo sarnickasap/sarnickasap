@@ -4,7 +4,9 @@ import { useEffect } from "react";
 import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
 import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 
 /* Panel hata ekranı — TASARIMDA YOK (K-08 ile aynı gerekçe, K-34).
 
@@ -37,20 +39,20 @@ export default function PanelHatasi({
   return (
     <main className="tema-admin flex min-h-screen items-center justify-center bg-[var(--color-background-body)] px-20 py-64">
       <Card maxWidth={420} className="flex w-full flex-col gap-16">
-        <div className="flex flex-col gap-4">
+        <VStack gap={1}>
           <Heading level={1}>Panel açılamadı</Heading>
           <Text type="supporting" as="p">
             Veriler yüklenirken bir sorun oluştu. Çoğu zaman geçicidir —
             tekrar deneyin. Sürerse bağlantınızı kontrol edin.
           </Text>
-        </div>
+        </VStack>
 
-        <div className="flex flex-wrap gap-8">
+        <HStack wrap="wrap" gap={2}>
           <Button label="Tekrar dene" variant="primary" onClick={reset} />
           {/* Yumuşak geçiş DEĞİL: hata sınırı bozuk bir render yakaladı,
               aynı hatayı tekrar tetiklememek için tam sayfa yükleme. */}
           <Button label="Panele dön" href="/yonetim" as={DuzBaglanti} />
-        </div>
+        </HStack>
 
         {error.digest && (
           <Text type="code" color="secondary">

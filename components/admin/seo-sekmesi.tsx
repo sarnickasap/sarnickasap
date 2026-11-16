@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Text } from "@astryxdesign/core/Text";
 import { TextArea } from "@astryxdesign/core/TextArea";
 import { TextInput } from "@astryxdesign/core/TextInput";
+import { VStack } from "@astryxdesign/core/VStack";
 import { Kart, SayfaBasligi } from "./ui";
 import { useGecikmeliKayit } from "@/lib/kaydet";
 import { bilgiGuncelle } from "@/lib/actions/admin";
@@ -92,7 +93,7 @@ export function SeoSekmesi({
           Google’da böyle görünür
         </Text>
         {/* Sade bir taklit — gerçek arama sonucu değil. */}
-        <div className="flex flex-col gap-2">
+        <VStack gap={0.5}>
           <Text type="supporting">sarnickasap.com</Text>
           <span className="text-18 leading-15 text-[#1a0dab]">
             {baslik.slice(0, BASLIK_SINIR) || "Başlık girilmedi"}
@@ -102,7 +103,7 @@ export function SeoSekmesi({
             {aciklama.slice(0, ACIKLAMA_SINIR) || "Açıklama girilmedi"}
             {aciklama.length > ACIKLAMA_SINIR && "…"}
           </Text>
-        </div>
+        </VStack>
       </Kart>
 
       <PaylasimGorseli ogImageUrl={ogImageUrl} onDegisti={onDegisti} />

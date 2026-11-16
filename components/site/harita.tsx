@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@astryxdesign/core/Button";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { useEffect, useRef, useState } from "react";
 import { KonumIkonu } from "@/components/icons";
 import { CERCEVELI } from "./siparis-stilleri";
@@ -21,6 +23,8 @@ import { CERCEVELI } from "./siparis-stilleri";
    düzen kayması yok. Düğme Astryx Button, sitenin ikincil düğme dilinde
    (h40 · 1px #333333 · 14px/500). Tıklanınca odak iframe'e taşınır (düğme kaybolduğu için odak
    sayfanın başına düşmesin).
+   Yüz içeriği Astryx VStack + Text. Dış kutu yerli <div>: harita testi
+   onun min-height 420 ve #171717 zeminini ölçüyor.
    ────────────────────────────────────────────────────────────────────────── */
 
 export function Harita({ src }: { src: string }) {
@@ -42,7 +46,7 @@ export function Harita({ src }: { src: string }) {
           className="map-filter block min-h-420 w-full flex-1 border-0"
         />
       ) : (
-        <div className="flex flex-1 flex-col items-center justify-center gap-12 p-24 text-center">
+        <VStack gap={3} align="center" justify="center" className="flex-1 p-24 text-center">
           <KonumIkonu size={28} className="text-brand-accent" />
           <Button
             size="lg"
@@ -50,10 +54,10 @@ export function Harita({ src }: { src: string }) {
             onClick={() => setGoster(true)}
             className={`h-40 px-16 text-14 ${CERCEVELI}`}
           />
-          <p className="m-0 max-w-[280px] text-12 leading-15 text-muted-dark">
+          <Text as="p" type="supporting" className="m-0 max-w-[280px] text-12 leading-15 text-muted-dark">
             Harita Google Haritalar’dan yüklenir.
-          </p>
-        </div>
+          </Text>
+        </VStack>
       )}
     </div>
   );

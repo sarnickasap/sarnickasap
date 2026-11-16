@@ -1,4 +1,7 @@
 import { Button } from "@astryxdesign/core/Button";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { TopNav, TopNavItem } from "@astryxdesign/core/TopNav";
 import { MesajIkonu } from "@/components/icons";
 import { Logo } from "@/components/logo";
 import { gorunurNavBaglantilari } from "./nav-baglantilari";
@@ -19,6 +22,10 @@ import { CTA_ORTA } from "./siparis-stilleri";
              hover → bg #171717, color #fafafa
      CTA     Astryx Button primary · h40 · px16 · gap8 · 14px/600
 
+   Astryx: nav = TopNav (yalnız bağlantılar — logo ve CTA nav DIŞINDA kalır,
+   `header nav a` yalnızca bölüm bağlantılarını saymalı), bağlantılar
+   TopNavItem, logo bağlantısı Link, satır HStack. Ölçüler className ile.
+
    SAPMA (onaylı #1, K-18): 768px altında nav gizlenir, hamburger açılır.
    Breakpoint uydurulmadı, ÖLÇÜLDÜ: tasarımın nav'ı 493px yer kaplıyor,
    768px'te kullanılabilir alan 496px — yani tasarımın kendi navigasyonu
@@ -30,7 +37,7 @@ import { CTA_ORTA } from "./siparis-stilleri";
    ────────────────────────────────────────────────────────────────────────── */
 
 const NAV_LINK =
-  "rounded-8 px-12 py-8 text-14 font-medium whitespace-nowrap text-muted " +
+  "h-auto rounded-8 px-12 py-8 text-14 font-medium whitespace-nowrap text-muted " +
   "transition-colors duration-150 ease-out-soft hover:bg-hover hover:text-body";
 
 export function SiteHeader({
@@ -50,42 +57,39 @@ export function SiteHeader({
 
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-[rgba(10,10,10,0.88)] backdrop-blur-[10px]">
-      <div className="mx-auto flex max-w-[1280px] items-center gap-24 px-24 py-10">
-        <a href="#top" className="flex flex-none items-center" aria-label="Sayfa başına dön">
+      <HStack align="center" gap={6} className="mx-auto max-w-[1280px] px-24 py-10">
+        <Link href="#top" label="Sayfa başına dön" color="inherit" className="flex flex-none items-center">
           <Logo
             genislik={48}
             yukseklik={46}
             alt="Sarnıç Kasap"
             className="block h-46 w-48 object-contain"
           />
-        </a>
+        </Link>
 
         {/* Masaüstü navigasyonu — 768px ve üstünde tasarımla birebir */}
-        <nav
-          aria-label="Ana menü"
-          className="no-scrollbar hidden min-w-0 flex-1 gap-4 overflow-x-auto md:flex"
-        >
-          {baglantilar.map((l) => (
-            <a key={l.href} href={l.href} className={NAV_LINK}>
-              {l.label}
-            </a>
+        <TopNav
+          label="Ana menü"
+          className="no-scrollbar hidden w-auto min-w-0 flex-1 overflow-x-auto md:flex"
+          startContent={baglantilar.map((l) => (
+            <TopNavItem key={l.href} href={l.href} label={l.label} className={NAV_LINK} />
           ))}
-        </nav>
+        />
 
         {/* Mobilde nav'ın yerini tutar, CTA'yı sağa iter */}
         <div className="flex-1 md:hidden" />
 
         {sepetVar ? (
-          <div className="flex flex-none items-center gap-8">
+          <HStack align="center" gap={2} className="flex-none">
             <SepetDugmesi />
             <SiparisCta href="#urunler" />
-          </div>
+          </HStack>
         ) : (
           <SiparisCta href={waLink} disari />
         )}
 
         <MobilMenu baglantilar={baglantilar} />
-      </div>
+      </HStack>
     </header>
   );
 }

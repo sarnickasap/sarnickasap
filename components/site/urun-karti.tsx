@@ -1,5 +1,12 @@
+import { AspectRatio } from "@astryxdesign/core/AspectRatio";
 import { Badge } from "@astryxdesign/core/Badge";
+import { Card } from "@astryxdesign/core/Card";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
 import { IconButton } from "@astryxdesign/core/IconButton";
+import { Text } from "@astryxdesign/core/Text";
+import { VisuallyHidden } from "@astryxdesign/core/VisuallyHidden";
+import { VStack } from "@astryxdesign/core/VStack";
 import { SagOkIkonu } from "@/components/icons";
 import { fiyat, waLink, WA_MESAJ } from "@/lib/format";
 import { birimSoneki } from "@/lib/miktar";
@@ -66,53 +73,46 @@ export function UrunKarti({
   siparisAcik: boolean;
 }) {
   return (
-    <div className="flex min-h-190 flex-col gap-14 bg-ink p-22">
+    <Card variant="transparent" padding={0} className="flex min-h-190 flex-col gap-14 rounded-none bg-ink p-22">
       {urun.imageUrl && (
-        // Blob görseli — galeriyle aynı gerekçe: next/image uzak alan adı ister.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={urun.imageUrl}
-          alt={urun.name}
-          loading="lazy"
-          decoding="async"
-          // Gerçek boyut bilinmiyor; 4:3 oranı tarayıcıya önceden yer ayırtır (CLS yok)
-          width={400}
-          height={300}
-          className="block aspect-[4/3] h-auto w-full rounded-8 bg-hover object-cover"
-        />
+        <AspectRatio ratio={4 / 3} fit="cover" className="overflow-hidden rounded-8 bg-hover">
+          {/* Blob görseli — galeriyle aynı gerekçe: next/image uzak alan adı ister. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={urun.imageUrl} alt={urun.name} loading="lazy" decoding="async" width={400} height={300} />
+        </AspectRatio>
       )}
-      <div className="flex items-center justify-between gap-8">
-        <span className="text-12 font-medium text-muted-dark">{urun.cat}</span>
-        <div className="flex items-center gap-6">
+      <HStack align="center" justify="between" gap={2}>
+        <Text weight="medium" className="text-12 text-muted-dark">{urun.cat}</Text>
+        <HStack align="center" gap={1.5}>
           {urun.listPrice !== null && (
             <Badge label="Fırsat" className={`${ROZET} bg-brand text-white`} />
           )}
           {!urun.stock && (
             <Badge label="Tükendi" className={`${ROZET} bg-badge text-soft`} />
           )}
-        </div>
-      </div>
+        </HStack>
+      </HStack>
 
-      <div className="flex flex-1 flex-col gap-4">
-        <h3 className="m-0 font-display text-20 font-semibold tracking-product text-cream break-words">
+      <VStack gap={1} className="flex-1">
+        <Heading level={3} className="font-display text-20 font-semibold tracking-product text-cream break-words">
           {urun.name}
-        </h3>
-        <p className="m-0 text-13 leading-145 text-muted">{urun.note}</p>
-      </div>
+        </Heading>
+        <Text as="p" color="secondary" className="text-13 leading-145">{urun.note}</Text>
+      </VStack>
 
-      <div className="flex items-center justify-between gap-12">
-        <div className="flex flex-wrap items-baseline gap-4">
-          <span className="font-display text-24 font-bold text-white">
+      <HStack align="center" justify="between" gap={3}>
+        <HStack wrap="wrap" gap={1} className="items-baseline">
+          <Text weight="bold" className="font-display text-24 text-white">
             {fiyat(urun.price)}
-          </span>
-          <span className="text-13 text-muted-dark">{birimSoneki(urun.unit)}</span>
+          </Text>
+          <Text className="text-13 text-muted-dark">{birimSoneki(urun.unit)}</Text>
           {urun.listPrice !== null && (
-            <span className="ml-4 text-13 text-muted-dark line-through">
-              <span className="sr-only">Önceki fiyat: </span>
+            <Text hasStrikethrough className="ml-4 text-13 text-muted-dark">
+              <VisuallyHidden>Önceki fiyat: </VisuallyHidden>
               {fiyat(urun.listPrice)}
-            </span>
+            </Text>
           )}
-        </div>
+        </HStack>
 
         {urun.stock && (
           <IconButton
@@ -126,11 +126,11 @@ export function UrunKarti({
             className="h-36 w-36 border border-edge bg-transparent text-body hover:border-brand hover:bg-brand hover:text-white"
           />
         )}
-      </div>
+      </HStack>
 
       {siparisAcik && urun.stock && urun.code && (
         <SepeteEkle code={urun.code} unit={urun.unit} name={urun.name} />
       )}
-    </div>
+    </Card>
   );
 }

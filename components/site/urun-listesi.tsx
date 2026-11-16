@@ -1,7 +1,10 @@
 "use client";
 
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
 import { ToggleButton } from "@astryxdesign/core/ToggleButton";
-import Link from "next/link";
+import { VisuallyHidden } from "@astryxdesign/core/VisuallyHidden";
+import { VStack } from "@astryxdesign/core/VStack";
 import { useMemo, useState } from "react";
 import { kategoriOzetleri } from "@/lib/urun-kaynagi";
 import type { UrunVerisi } from "./urun-karti";
@@ -29,6 +32,9 @@ import { UrunIzgarasi } from "./urun-izgarasi";
    `role="tablist"` değil — bunlar panel açan sekmeler değil, tek bir listeyi
    süzen filtre düğmeleri. Sonuç sayısı `aria-live` ile duyuruluyor.
    Pil görünümü (yukarıdaki ölçüler) className ile korunur.
+   Şerit HStack, bağlantı Astryx Link (LinkProvider → next/link),
+   duyuru VisuallyHidden. SegmentedControl uygun değil: kategori sayısı
+   değişken, şerit telefonda yatay kayıyor.
    ────────────────────────────────────────────────────────────────────────── */
 
 const TUMU = "Tümü";
@@ -64,10 +70,12 @@ export function UrunListesi({
 
   return (
     <>
-      <div
+      <HStack
         role="group"
         aria-label="Kategori filtresi"
-        className="no-scrollbar flex gap-8 overflow-x-auto pb-4"
+        gap={2}
+        isScrollable
+        className="no-scrollbar pb-4"
       >
         {sekmeler.map((k) => (
           <ToggleButton
@@ -78,24 +86,27 @@ export function UrunListesi({
             className={SEKME}
           />
         ))}
-      </div>
+      </HStack>
 
-      <div className="flex flex-col gap-12">
+      <VStack gap={3}>
         <UrunIzgarasi urunler={gorunen} whatsapp={whatsapp} siparisAcik={siparisAcik} />
 
         {seciliSlug && (
           <Link
             href={`/urunler/${seciliSlug}`}
-            className="self-end text-14 font-medium text-cream underline underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white"
+            hasUnderline
+            weight="medium"
+            color="inherit"
+            className="self-end text-14 text-cream underline-offset-2 transition-colors duration-150 ease-out-soft hover:text-white"
           >
             Tüm {secili.toLocaleLowerCase("tr-TR")} ürünleri →
           </Link>
         )}
-      </div>
+      </VStack>
 
-      <p aria-live="polite" className="sr-only">
+      <VisuallyHidden as="p" aria-live="polite">
         {gorunen.length} ürün listeleniyor
-      </p>
+      </VisuallyHidden>
     </>
   );
 }

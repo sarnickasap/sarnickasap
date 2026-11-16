@@ -1,6 +1,11 @@
 import { Button } from "@astryxdesign/core/Button";
-import Link from "next/link";
+import { Heading } from "@astryxdesign/core/Heading";
+import { HStack } from "@astryxdesign/core/HStack";
+import { Link } from "@astryxdesign/core/Link";
+import { Text } from "@astryxdesign/core/Text";
+import { VStack } from "@astryxdesign/core/VStack";
 import { Logo } from "@/components/logo";
+import { BOLUM_BASLIGI, UstBaslik } from "./bilgi-bolum-basligi";
 import { SiteFooter } from "./footer";
 import { SepetDugmesi } from "./sepet-dugmesi";
 
@@ -12,7 +17,11 @@ import { SepetDugmesi } from "./sepet-dugmesi";
    sayfalarda boşa düşerdi.
 
    İçerik sütunu: max-w 880 · p 56px 24px 112px · başlık ana sayfadaki
-   bölüm başlığıyla aynı (eyebrow + h2).
+   bölüm başlığıyla aynı (eyebrow + başlık), burada h1.
+
+   Astryx: HStack (başlık satırı) · Link (logo → ana sayfa) · Button ·
+   VStack · Text · Heading. <header>/<main> yerli öğe (landmark'lar,
+   #ana-icerik atlama hedefi).
    ────────────────────────────────────────────────────────────────────────── */
 
 export function AltSayfa({
@@ -34,23 +43,27 @@ export function AltSayfa({
   return (
     <div className="flex min-h-screen flex-col bg-ink text-body">
       <header className="sticky top-0 z-20 border-b border-line bg-[rgba(10,10,10,0.88)] backdrop-blur-[10px]">
-        <div className="mx-auto flex max-w-[1280px] items-center gap-16 px-24 py-10">
-          <Link href="/" className="flex flex-none items-center" aria-label="Ana sayfa">
+        <HStack vAlign="center" gap={4} className="mx-auto max-w-[1280px] px-24 py-10">
+          <Link href="/" label="Ana sayfa" color="inherit" className="flex flex-none items-center">
             <Logo genislik={48} yukseklik={46} alt="Sarnıç Kasap" className="block h-46 w-48 object-contain" />
           </Link>
           <div className="flex-1" />
           <Button variant="ghost" size="lg" label="Ürünlere dön" href="/#urunler" className="text-14 text-muted hover:text-body" />
           {sepetVar && <SepetDugmesi />}
-        </div>
+        </HStack>
       </header>
 
       <main id="ana-icerik" className="mx-auto flex w-full max-w-[880px] flex-1 flex-col gap-32 px-24 pt-56 pb-112">
-        <div className="flex flex-col gap-12">
+        <VStack gap={3}>
           {ustBilgi}
-          <span className="text-12 font-semibold tracking-eyebrow uppercase text-brand-accent">{ust}</span>
-          <h1 className="m-0 font-display text-h2 leading-h2 font-bold tracking-h2 text-cream">{baslik}</h1>
-          {aciklama && <div className="m-0 text-16 leading-16 text-muted">{aciklama}</div>}
-        </div>
+          <UstBaslik>{ust}</UstBaslik>
+          <Heading level={1} className={BOLUM_BASLIGI}>{baslik}</Heading>
+          {aciklama && (
+            <Text as="div" color="secondary" className="m-0 text-16 leading-16">
+              {aciklama}
+            </Text>
+          )}
+        </VStack>
         {children}
       </main>
 
