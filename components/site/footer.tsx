@@ -2,6 +2,7 @@ import { cacheLife } from "next/cache";
 import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { istanbulYili } from "@/lib/saatler";
+import { YASAL_BILGI } from "@/lib/yasal-bilgi";
 import { kategoriOzetleri, type KategoriOzeti } from "@/lib/urun-kaynagi";
 import { urunKaynagiGetir } from "@/lib/urun-verisi";
 
@@ -105,6 +106,12 @@ export async function SiteFooter() {
         <Link href="/kvkk" prefetch={false} className={FOOTER_BAGLANTI}>
           KVKK aydınlatma metni
         </Link>
+        {/* Resmi kimlik (Meta işletme doğrulaması resmi adı sitede arar) */}
+        <p className="m-0 basis-full">
+          {YASAL_BILGI.isyeriAdi} — {YASAL_BILGI.adSoyad} · {YASAL_BILGI.adres}{" "}
+          · {YASAL_BILGI.vergiDairesi} {YASAL_BILGI.vergiNo} · Esnaf Sicil No{" "}
+          {YASAL_BILGI.esnafSicilNo}
+        </p>
       </div>
     </footer>
   );
